@@ -70,6 +70,12 @@ func _run() -> void:
 	elif scenario.begins_with("play="):
 		var r := scenario.substr(5).split("-")
 		await _play(int(r[0]), int(r[1]))
+	elif scenario == "layouts":
+		await _layouts()
+	elif scenario == "nav":
+		await _nav()
+	elif scenario == "rewards":
+		await _rewards()
 	elif scenario == "icon":
 		await _icon()
 	elif scenario == "rapid":
@@ -205,6 +211,120 @@ func _lifecycle_b() -> void:
 	await _wait(0.4)
 	var g := game()
 	print("QA: lifecycle_b key=", g.ps.state.key(), " undos=", g.ps.undo_count)
+
+func _layouts() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a == "--qa-large-text":
+			App.set_setting("large_text", true)
+	var tag := "%dx%d" % [get_viewport().get_visible_rect().size.x, get_viewport().get_visible_rect().size.y]
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--qa-tag="):
+			tag = a.substr(9)
+	for id in ["c031", "c052", "c060"]:
+		App.main.goto("game", {"kind": "campaign", "id": id}, false)
+		await _wait(0.5)
+		var g := game()
+		var path: Array = g.def.meta.solution
+		for k in mini(5, path.size()):
+			await tap_crate(int(path[k]))
+			await _wait(0.05)
+		await _wait(0.6)
+		await shot("%s_%s" % [tag, id])
+	App.data.restoration.milestones = 5
+	App.data.restoration.choices = {"wall": "sage", "seating": "rattan", "plants": "flowers", "sign": "block"}
+	App.main.goto("home", {}, false)
+	await _wait(0.5)
+	await shot("%s_home_done" % tag)
+
+func _expect(cond: bool, what: String) -> void:
+	print("QA: %s %s" % ["PASS" if cond else "FAIL", what])
+
+func _stack() -> String:
+	return ",".join(App.main.stack.map(func(e): return e.name))
+
+## Rewarded continue + hint through the real UI with the simulated ad service.
+func _rewards() -> void:
+	var ads: SimulatedAdService = App.ads
+	# Find a dead-end: play random legal moves on c020 until lost.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3
+	var lost := false
+	for attempt in 40:
+		App.main.goto("game", {"kind": "campaign", "id": "c020"}, false)
+		await _wait(0.3)
+		var g := game()
+		if attempt > 0:
+			g._on_restart()
+		while not g.ps.is_won() and not g.ps.is_lost():
+			var lm := Rules.legal_moves(g.ps.state)
+			g.tap(lm[rng.randi_range(0, lm.size() - 1)])
+		if g.ps.is_lost():
+			lost = true
+			break
+	_expect(lost, "reached a lost state")
+	await _wait(1.0)
+	_expect(App.main.overlays.size() == 1, "loss dialog shown")
+	var g2 := game()
+	var slots_before: int = g2.ps.state.counter.size()
+	ads.auto_resolve = "cancel"
+	App.rewards.request("continue", func(): g2.ps.grant_continue())
+	await _wait(0.3)
+	_expect(g2.ps.state.counter.size() == slots_before, "cancelled ad grants nothing")
+	ads.auto_resolve = "earn"
+	App.rewards.request("continue", func(): g2.ps.grant_continue())
+	await _wait(0.3)
+	_expect(g2.ps.state.counter.size() == slots_before + 1, "earned ad grants one slot")
+	App.rewards.request("continue", func(): g2.ps.grant_continue())
+	await _wait(0.3)
+	_expect(g2.ps.state.counter.size() == slots_before + 1, "second continue refused (max one)")
+	App.main.close_all_overlays()
+	g2._on_restart()
+	g2._on_hint()
+	await _wait(2.0)
+	_expect(g2.hint_crate >= 0 and g2.free_hints == 0, "free hint highlights a crate")
+	var before_hints: int = g2.ps.hints_used
+	g2._on_hint()     # no free hint: offers ad dialog
+	await _wait(0.3)
+	_expect(App.main.overlays.size() == 1, "second hint offers optional ad")
+	App.main.close_all_overlays()
+	App.rewards.request("hint", func(): g2._run_hint(false))
+	await _wait(2.0)
+	_expect(g2.ps.hints_used == before_hints + 1, "ad hint granted after reward")
+	ads.auto_resolve = ""
+
+## Android back behaviour and navigation stack.
+func _nav() -> void:
+	App.main.goto("home", {}, false)
+	await _wait(0.3)
+	App.main.goto("game", {"kind": "campaign", "id": "c004"})
+	await _wait(0.4)
+	await tap_crate(int(game().def.meta.solution[0]))
+	App.main.handle_back()           # back in game -> pause overlay
+	await _wait(0.3)
+	_expect(App.main.overlays.size() == 1 and App.main.current_name() == "game", "back in game opens pause")
+	App.main.handle_back()           # back again closes pause
+	await _wait(0.2)
+	_expect(App.main.overlays.is_empty(), "back closes overlay")
+	game()._leave()
+	await _wait(0.3)
+	_expect(_stack() == "home,levels", "pause->level map lands on levels (stack %s)" % _stack())
+	_expect(App.data.current.get("id", "") == "c004", "progress kept for continue")
+	App.main.handle_back()
+	await _wait(0.3)
+	_expect(_stack() == "home", "back from levels -> home")
+	App.main.handle_back()
+	await _wait(0.3)
+	_expect(App.main.overlays.size() == 1, "back on home asks before exit")
+	App.main.close_all_overlays()
+	for s in ["settings", "help", "credits", "privacy", "daily", "restore", "shop"]:
+		App.main.goto(s)
+		await _wait(0.2)
+		App.main.handle_back()
+		await _wait(0.2)
+		_expect(_stack() == "home", "back from %s -> home" % s)
+	App.main.goto("game", {"kind": "campaign", "id": "c004"})
+	await _wait(0.4)
+	_expect(game().ps.state.moves == 1, "continue restores in-progress move")
 
 ## Renders launcher icon layers from the game's own vector art.
 func _icon() -> void:

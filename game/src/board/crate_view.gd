@@ -91,12 +91,17 @@ func _draw() -> void:
 		var f := Style.font_regular
 		draw_string(f, Vector2(0, tray.get_center().y + 10) + off, "—", HORIZONTAL_ALIGNMENT_CENTER, w, 34, Color(Style.PAPER, 0.8))
 		return
-	# items behind the front, bottom-to-top = next-to-last
-	var y0 := tray.position.y - bs * 0.55
+	# Items behind the front, bottom-to-top = next-to-last. Every item is always
+	# drawn: if the column is short, items shrink to fit instead of being cut.
+	var behind := items.size() - 1
+	var avail := tray.position.y - 6.0
+	var step := bs * 0.86
+	if behind > 0 and behind * step > avail:
+		step = avail / behind
+		bs = minf(bs, step / 0.86)
+	var y0 := tray.position.y - step * 0.5 - 2
 	for i in range(1, items.size()):
-		var c := Vector2(w / 2, y0 - (i - 1) * bs * 0.86) + off
-		if c.y < bs * 0.4:
-			break
+		var c := Vector2(w / 2, y0 - (i - 1) * step) + off
 		var plate := StyleBoxFlat.new()
 		plate.bg_color = Color(Style.PAPER, 0.85)
 		plate.set_corner_radius_all(int(bs * 0.3))

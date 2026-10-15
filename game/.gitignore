@@ -4,3 +4,5 @@
 export_credentials.cfg
 *.keystore
 *.jks
+android/build/
+android/.build_version

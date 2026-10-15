@@ -584,9 +584,16 @@ func _open_pause() -> void:
 		[Loc.t("resume"), func(): pass, ""],
 		[Loc.t("restart"), _on_restart, "SecondaryButton"],
 		[Loc.t("settings"), func(): App.main.goto("settings"), "SecondaryButton"],
-		[Loc.t("quit_to_map") if kind == "campaign" else Loc.t("quit_to_home"), func(): App.main.back(), "SecondaryButton"],
+		[Loc.t("quit_to_map") if kind == "campaign" else Loc.t("quit_to_home"), _leave, "SecondaryButton"],
 	], info)
 	App.main.show_overlay(d)
+
+## Leaves the level; progress is kept in App.data.current for "Continue".
+func _leave() -> void:
+	persist()
+	App.main.goto("home", {}, false)
+	if kind == "campaign":
+		App.main.goto("levels")
 
 func on_back() -> bool:
 	_open_pause()

@@ -1,0 +1,14 @@
+; Engine configuration file. Pinned engine: Godot 4.7.2-stable.
+
+config_version=5
+
+[application]
+
+config/name="Tiny Street: Sort & Restore"
+config/version="0.1.0"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

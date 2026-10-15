@@ -108,6 +108,8 @@ func _best_candidate(kind: String, n: int, sigs: Dictionary) -> Dictionary:
 		var def := LevelDef.from_dict(cand)
 		if LevelValidator.signature(def) in sigs:
 			continue
+		if p.two > 0.0 and not def.has_two_stage():
+			continue # tiers that feature two-stage orders must include one
 		var r := LevelValidator.validate(cand, BUDGET)
 		if r.verdict != LevelValidator.PASSED:
 			continue

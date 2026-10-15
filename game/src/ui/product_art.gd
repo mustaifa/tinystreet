@@ -6,7 +6,19 @@ extends RefCounted
 
 const OUTLINE := Color("3b2f2a")
 
+## Textures rendered once at boot (see bake()). Drawing a cached texture is far
+## cheaper than re-triangulating the vector polygons every frame.
+static var cache := {}
+const BAKE_PX := 192
+
 static func draw(ci: CanvasItem, p: int, c: Vector2, s: float, a: float = 1.0) -> void:
+	var tex: Texture2D = cache.get(p)
+	if tex:
+		ci.draw_texture_rect(tex, Rect2(c - Vector2(s, s) / 2, Vector2(s, s)), false, Color(1, 1, 1, a))
+		return
+	draw_vector(ci, p, c, s, a)
+
+static func draw_vector(ci: CanvasItem, p: int, c: Vector2, s: float, a: float = 1.0) -> void:
 	match p:
 		Products.COFFEE: _coffee(ci, c, s, a)
 		Products.TEA: _tea(ci, c, s, a)
@@ -155,3 +167,28 @@ static func _chocolate(ci: CanvasItem, c: Vector2, s: float, a: float) -> void:
 	_poly(ci, _pts(c, s, [[0.0, -0.27], [-0.16, -0.38], [-0.17, -0.25]]), _col("f0c25a", a), lw * 0.8, a)
 	_poly(ci, _pts(c, s, [[0.0, -0.27], [0.16, -0.38], [0.17, -0.25]]), _col("f0c25a", a), lw * 0.8, a)
 	ci.draw_circle(c + Vector2(0, -0.27) * s, s * 0.04, _col("c88f22", a))
+
+## Renders every product into a texture using an offscreen viewport.
+static func bake(host: Node) -> void:
+	if not cache.is_empty() or DisplayServer.get_name() == "headless":
+		return
+	for p in Products.COUNT:
+		var vp := SubViewport.new()
+		vp.size = Vector2i(BAKE_PX, BAKE_PX)
+		vp.transparent_bg = true
+		vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+		var art := _Baker.new()
+		art.product = p
+		art.size = Vector2(BAKE_PX, BAKE_PX)
+		vp.add_child(art)
+		host.add_child(vp)
+		await RenderingServer.frame_post_draw
+		var img := vp.get_texture().get_image()
+		img.generate_mipmaps()
+		cache[p] = ImageTexture.create_from_image(img)
+		vp.queue_free()
+
+class _Baker extends Control:
+	var product := 0
+	func _draw() -> void:
+		ProductArt.draw_vector(self, product, size / 2, size.x)

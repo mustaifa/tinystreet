@@ -16,6 +16,7 @@ func setup(_p: Dictionary) -> void:
 	v.add_child(UI.label(Loc.t("game_title"), "TitleLabel"))
 	v.add_child(UI.label(Loc.t("loading"), "SoftLabel"))
 	add_child(v)
+	await ProductArt.bake(self)
 	App.consent.finished.connect(_on_consent, CONNECT_ONE_SHOT)
 	App.consent.start()
 

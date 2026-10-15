@@ -2,7 +2,7 @@
 	"kind": "campaign",
 	"levels": [
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -16,23 +16,23 @@
 			"id": "c001",
 			"meta": {
 				"metrics": {
-					"crates": 2,
-					"items": 4,
-					"max_depth": 2,
-					"min_counter": 0,
-					"orders": 2,
+					"crates": 2.0,
+					"items": 4.0,
+					"max_depth": 2.0,
+					"min_counter": 0.0,
+					"orders": 2.0,
 					"random_win_rate": 1.0,
-					"slack": 3,
-					"solver_nodes": 4,
-					"two_stage": 0
+					"slack": 3.0,
+					"solver_nodes": 4.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 1,
+				"par_counter": 1.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					1,
-					1
+					0.0,
+					0.0,
+					1.0,
+					1.0
 				],
 				"tier": "intro",
 				"tutorial": "tut_tap",
@@ -41,19 +41,19 @@
 			"orders": [
 				[
 					{
-						"coffee": 3
+						"coffee": 3.0
 					}
 				],
 				[
 					{
-						"tea": 1
+						"tea": 1.0
 					}
 				]
 			],
-			"trays": 1
+			"trays": 1.0
 		},
 		{
-			"counter": 4,
+			"counter": 4.0,
 			"crates": [
 				[
 					"tea",
@@ -71,25 +71,25 @@
 			"id": "c002",
 			"meta": {
 				"metrics": {
-					"crates": 3,
-					"items": 6,
-					"max_depth": 2,
-					"min_counter": 2,
-					"orders": 3,
+					"crates": 3.0,
+					"items": 6.0,
+					"max_depth": 2.0,
+					"min_counter": 2.0,
+					"orders": 3.0,
 					"random_win_rate": 1.0,
-					"slack": 2,
-					"solver_nodes": 6,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 6.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					1,
-					1,
-					2,
-					2
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0
 				],
 				"tier": "intro",
 				"tutorial": "tut_counter",
@@ -98,24 +98,24 @@
 			"orders": [
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				]
 			],
-			"trays": 1
+			"trays": 1.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -136,28 +136,28 @@
 			"id": "c003",
 			"meta": {
 				"metrics": {
-					"crates": 3,
-					"items": 9,
-					"max_depth": 3,
-					"min_counter": 0,
-					"orders": 4,
+					"crates": 3.0,
+					"items": 9.0,
+					"max_depth": 3.0,
+					"min_counter": 0.0,
+					"orders": 4.0,
 					"random_win_rate": 1.0,
-					"slack": 3,
-					"solver_nodes": 9,
-					"two_stage": 0
+					"slack": 3.0,
+					"solver_nodes": 9.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					2,
-					1,
-					1,
-					1,
-					2,
-					2
+					0.0,
+					0.0,
+					0.0,
+					2.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0
 				],
 				"tier": "intro",
 				"tutorial": "tut_priority",
@@ -166,31 +166,31 @@
 			"orders": [
 				[
 					{
-						"coffee": 2,
-						"tea": 1
+						"coffee": 2.0,
+						"tea": 1.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 1,
-						"tea": 2
+						"croissant": 1.0,
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 1
+						"coffee": 1.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"strawberry",
@@ -210,27 +210,27 @@
 			"id": "c004",
 			"meta": {
 				"metrics": {
-					"crates": 3,
-					"items": 8,
-					"max_depth": 3,
-					"min_counter": 1,
-					"orders": 4,
+					"crates": 3.0,
+					"items": 8.0,
+					"max_depth": 3.0,
+					"min_counter": 1.0,
+					"orders": 4.0,
 					"random_win_rate": 0.825,
-					"slack": 2,
-					"solver_nodes": 8,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 8.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					1,
-					1,
-					1,
-					2,
-					2
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0
 				],
 				"tier": "intro",
 				"verified": "PASSED"
@@ -238,29 +238,29 @@
 			"orders": [
 				[
 					{
-						"cupcake": 1
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"croissant": 1
+						"croissant": 1.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"chocolate",
@@ -281,28 +281,28 @@
 			"id": "c005",
 			"meta": {
 				"metrics": {
-					"crates": 3,
-					"items": 9,
-					"max_depth": 3,
-					"min_counter": 2,
-					"orders": 3,
+					"crates": 3.0,
+					"items": 9.0,
+					"max_depth": 3.0,
+					"min_counter": 2.0,
+					"orders": 3.0,
 					"random_win_rate": 0.83,
-					"slack": 1,
-					"solver_nodes": 12,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 12.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					2,
-					2,
-					2,
-					1,
-					1,
-					1
+					0.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					1.0,
+					1.0,
+					1.0
 				],
 				"tier": "intro",
 				"verified": "PASSED"
@@ -310,25 +310,25 @@
 			"orders": [
 				[
 					{
-						"coffee": 1,
-						"strawberry": 2
+						"coffee": 1.0,
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 4
+						"chocolate": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"cupcake",
@@ -354,31 +354,31 @@
 			"id": "c006",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 12,
-					"max_depth": 3,
-					"min_counter": 2,
-					"orders": 4,
+					"crates": 4.0,
+					"items": 12.0,
+					"max_depth": 3.0,
+					"min_counter": 2.0,
+					"orders": 4.0,
 					"random_win_rate": 0.52,
-					"slack": 1,
-					"solver_nodes": 13,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 13.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					2,
-					3,
-					0,
-					0,
-					0,
-					2,
-					2,
-					1,
-					1,
-					1,
-					3,
-					3
+					2.0,
+					3.0,
+					0.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					3.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -386,31 +386,31 @@
 			"orders": [
 				[
 					{
-						"tea": 3
+						"tea": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 1,
-						"tea": 2
+						"coffee": 1.0,
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 3
+						"cupcake": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2,
-						"cupcake": 1
+						"coffee": 2.0,
+						"cupcake": 1.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"croissant",
@@ -431,28 +431,28 @@
 			"id": "c007",
 			"meta": {
 				"metrics": {
-					"crates": 3,
-					"items": 9,
-					"max_depth": 3,
-					"min_counter": 1,
-					"orders": 4,
+					"crates": 3.0,
+					"items": 9.0,
+					"max_depth": 3.0,
+					"min_counter": 1.0,
+					"orders": 4.0,
 					"random_win_rate": 0.73,
-					"slack": 2,
-					"solver_nodes": 9,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 9.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					2,
-					1,
-					1,
-					1,
-					2,
-					2
+					0.0,
+					0.0,
+					0.0,
+					2.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -460,29 +460,29 @@
 			"orders": [
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 1
+						"croissant": 1.0
 					}
 				],
 				[
 					{
-						"cupcake": 2
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 4
+						"chocolate": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"chocolate",
@@ -503,28 +503,28 @@
 			"id": "c008",
 			"meta": {
 				"metrics": {
-					"crates": 3,
-					"items": 9,
-					"max_depth": 3,
-					"min_counter": 1,
-					"orders": 4,
+					"crates": 3.0,
+					"items": 9.0,
+					"max_depth": 3.0,
+					"min_counter": 1.0,
+					"orders": 4.0,
 					"random_win_rate": 0.81,
-					"slack": 2,
-					"solver_nodes": 9,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 9.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					1,
-					1,
-					1,
-					2,
-					2,
-					2
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0,
+					2.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -532,29 +532,29 @@
 			"orders": [
 				[
 					{
-						"coffee": 3
+						"coffee": 3.0
 					}
 				],
 				[
 					{
-						"tea": 1
+						"tea": 1.0
 					}
 				],
 				[
 					{
-						"chocolate": 2
+						"chocolate": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 3
+						"chocolate": 3.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -575,28 +575,28 @@
 			"id": "c009",
 			"meta": {
 				"metrics": {
-					"crates": 3,
-					"items": 9,
-					"max_depth": 3,
-					"min_counter": 2,
-					"orders": 5,
+					"crates": 3.0,
+					"items": 9.0,
+					"max_depth": 3.0,
+					"min_counter": 2.0,
+					"orders": 5.0,
 					"random_win_rate": 0.46,
-					"slack": 1,
-					"solver_nodes": 9,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 9.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					1,
-					2,
-					1,
-					1,
-					2,
-					2
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					2.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -604,34 +604,34 @@
 			"orders": [
 				[
 					{
-						"cupcake": 1
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"cupcake": 1
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"croissant": 3
+						"croissant": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"cupcake",
@@ -657,31 +657,31 @@
 			"id": "c010",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 12,
-					"max_depth": 3,
-					"min_counter": 1,
-					"orders": 5,
+					"crates": 4.0,
+					"items": 12.0,
+					"max_depth": 3.0,
+					"min_counter": 1.0,
+					"orders": 5.0,
 					"random_win_rate": 0.685,
-					"slack": 2,
-					"solver_nodes": 12,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 12.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					1,
-					3,
-					0,
-					0,
-					0,
-					1,
-					1,
-					2,
-					2,
-					2,
-					3,
-					3
+					1.0,
+					3.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -689,35 +689,35 @@
 			"orders": [
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2
+						"chocolate": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 1,
-						"cupcake": 2
+						"croissant": 1.0,
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 3
+						"cupcake": 3.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -747,35 +747,35 @@
 			"id": "c011",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 16,
-					"max_depth": 4,
-					"min_counter": 1,
-					"orders": 5,
+					"crates": 4.0,
+					"items": 16.0,
+					"max_depth": 4.0,
+					"min_counter": 1.0,
+					"orders": 5.0,
 					"random_win_rate": 0.505,
-					"slack": 2,
-					"solver_nodes": 18,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 18.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					1,
-					3,
-					0,
-					0,
-					2,
-					2,
-					2,
-					0,
-					1,
-					1,
-					1,
-					2,
-					3,
-					3,
-					3
+					0.0,
+					1.0,
+					3.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -783,35 +783,35 @@
 			"orders": [
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2,
-						"strawberry": 1
+						"coffee": 2.0,
+						"strawberry": 1.0
 					}
 				],
 				[
 					{
-						"chocolate": 3
+						"chocolate": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 3
+						"coffee": 3.0
 					}
 				],
 				[
 					{
-						"tea": 4
+						"tea": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -840,34 +840,34 @@
 			"id": "c012",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 15,
-					"max_depth": 4,
-					"min_counter": 2,
-					"orders": 5,
+					"crates": 4.0,
+					"items": 15.0,
+					"max_depth": 4.0,
+					"min_counter": 2.0,
+					"orders": 5.0,
 					"random_win_rate": 0.4,
-					"slack": 1,
-					"solver_nodes": 26,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 26.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					1,
-					1,
-					3,
-					0,
-					2,
-					2,
-					2,
-					2,
-					0,
-					0,
-					1,
-					3,
-					3,
-					3
+					0.0,
+					1.0,
+					1.0,
+					3.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					0.0,
+					0.0,
+					1.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -875,36 +875,36 @@
 			"orders": [
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 1,
-						"tea": 2
+						"coffee": 1.0,
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 3
+						"croissant": 3.0
 					}
 				],
 				[
 					{
-						"croissant": 2,
-						"tea": 3
+						"croissant": 2.0,
+						"tea": 3.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"cupcake",
@@ -933,34 +933,34 @@
 			"id": "c013",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 15,
-					"max_depth": 4,
-					"min_counter": 0,
-					"orders": 5,
+					"crates": 4.0,
+					"items": 15.0,
+					"max_depth": 4.0,
+					"min_counter": 0.0,
+					"orders": 5.0,
 					"random_win_rate": 0.475,
-					"slack": 3,
-					"solver_nodes": 15,
-					"two_stage": 0
+					"slack": 3.0,
+					"solver_nodes": 15.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 1,
+				"par_counter": 1.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					0,
-					1,
-					1,
-					1,
-					2,
-					3,
-					1,
-					2,
-					2,
-					3,
-					3,
-					3
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					3.0,
+					1.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -968,37 +968,37 @@
 			"orders": [
 				[
 					{
-						"croissant": 3
+						"croissant": 3.0
 					}
 				],
 				[
 					{
-						"croissant": 1,
-						"cupcake": 2
+						"croissant": 1.0,
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 3,
-						"strawberry": 1
+						"cupcake": 3.0,
+						"strawberry": 1.0
 					}
 				],
 				[
 					{
-						"cupcake": 2,
-						"strawberry": 1
+						"cupcake": 2.0,
+						"strawberry": 1.0
 					}
 				],
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"tea",
@@ -1025,32 +1025,32 @@
 			"id": "c014",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 13,
-					"max_depth": 4,
-					"min_counter": 1,
-					"orders": 5,
+					"crates": 4.0,
+					"items": 13.0,
+					"max_depth": 4.0,
+					"min_counter": 1.0,
+					"orders": 5.0,
 					"random_win_rate": 0.485,
-					"slack": 2,
-					"solver_nodes": 26,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 26.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					1,
-					0,
-					2,
-					2,
-					2,
-					1,
-					1,
-					2,
-					3,
-					3,
-					3
+					0.0,
+					0.0,
+					1.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					1.0,
+					1.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -1058,36 +1058,36 @@
 			"orders": [
 				[
 					{
-						"coffee": 2,
-						"tea": 1
+						"coffee": 2.0,
+						"tea": 1.0
 					}
 				],
 				[
 					{
-						"chocolate": 3,
-						"coffee": 1
+						"chocolate": 3.0,
+						"coffee": 1.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"tea": 1
+						"tea": 1.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"tea",
@@ -1115,33 +1115,33 @@
 			"id": "c015",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 14,
-					"max_depth": 4,
-					"min_counter": 2,
-					"orders": 5,
+					"crates": 4.0,
+					"items": 14.0,
+					"max_depth": 4.0,
+					"min_counter": 2.0,
+					"orders": 5.0,
 					"random_win_rate": 0.425,
-					"slack": 1,
-					"solver_nodes": 21,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 21.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					0,
-					2,
-					2,
-					2,
-					2,
-					1,
-					1,
-					1,
-					3,
-					3,
-					3
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "sequencing",
 				"verified": "PASSED"
@@ -1149,37 +1149,37 @@
 			"orders": [
 				[
 					{
-						"coffee": 1,
-						"croissant": 2
+						"coffee": 1.0,
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 1,
-						"cupcake": 2
+						"croissant": 1.0,
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 1,
-						"tea": 3
+						"cupcake": 1.0,
+						"tea": 3.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"cupcake",
@@ -1209,35 +1209,35 @@
 			"id": "c016",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 16,
-					"max_depth": 4,
-					"min_counter": 1,
-					"orders": 7,
+					"crates": 4.0,
+					"items": 16.0,
+					"max_depth": 4.0,
+					"min_counter": 1.0,
+					"orders": 7.0,
 					"random_win_rate": 0.26,
-					"slack": 2,
-					"solver_nodes": 16,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 16.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					1,
-					0,
-					1,
-					1,
-					1,
-					3,
-					3,
-					3,
-					2,
-					2,
-					2,
-					2,
-					3
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					3.0,
+					3.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -1245,45 +1245,45 @@
 			"orders": [
 				[
 					{
-						"cupcake": 1
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2
+						"chocolate": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 3
+						"cupcake": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2,
-						"cupcake": 2
+						"coffee": 2.0,
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"chocolate",
@@ -1319,39 +1319,39 @@
 			"id": "c017",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 20,
-					"max_depth": 4,
-					"min_counter": 2,
-					"orders": 6,
+					"crates": 5.0,
+					"items": 20.0,
+					"max_depth": 4.0,
+					"min_counter": 2.0,
+					"orders": 6.0,
 					"random_win_rate": 0.185,
-					"slack": 1,
-					"solver_nodes": 101,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 101.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					2,
-					4,
-					4,
-					4,
-					3,
-					4,
-					1,
-					2,
-					2,
-					3,
-					3,
-					1,
-					1,
-					1,
-					3,
-					0,
-					0,
-					0,
-					0,
-					2
+					2.0,
+					4.0,
+					4.0,
+					4.0,
+					3.0,
+					4.0,
+					1.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					2.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -1359,42 +1359,42 @@
 			"orders": [
 				[
 					{
-						"coffee": 3,
-						"strawberry": 1
+						"coffee": 3.0,
+						"strawberry": 1.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 1,
-						"tea": 3
+						"coffee": 1.0,
+						"tea": 3.0
 					}
 				],
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2,
-						"croissant": 2
+						"chocolate": 2.0,
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 4
+						"chocolate": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -1424,35 +1424,35 @@
 			"id": "c018",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 16,
-					"max_depth": 4,
-					"min_counter": 1,
-					"orders": 7,
+					"crates": 4.0,
+					"items": 16.0,
+					"max_depth": 4.0,
+					"min_counter": 1.0,
+					"orders": 7.0,
 					"random_win_rate": 0.365,
-					"slack": 2,
-					"solver_nodes": 17,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 17.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					1,
-					1,
-					1,
-					3,
-					3,
-					0,
-					0,
-					0,
-					0,
-					1,
-					3,
-					3,
-					2,
-					2,
-					2,
-					2
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					3.0,
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					3.0,
+					3.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -1460,45 +1460,45 @@
 			"orders": [
 				[
 					{
-						"croissant": 2,
-						"cupcake": 1
+						"croissant": 2.0,
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"strawberry": 1
+						"strawberry": 1.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 4
+						"cupcake": 4.0
 					}
 				],
 				[
 					{
-						"cupcake": 2
+						"cupcake": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"cupcake",
@@ -1534,39 +1534,39 @@
 			"id": "c019",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 20,
-					"max_depth": 4,
-					"min_counter": 2,
-					"orders": 6,
+					"crates": 5.0,
+					"items": 20.0,
+					"max_depth": 4.0,
+					"min_counter": 2.0,
+					"orders": 6.0,
 					"random_win_rate": 0.39,
-					"slack": 1,
-					"solver_nodes": 34,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 34.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					1,
-					2,
-					0,
-					0,
-					0,
-					1,
-					1,
-					0,
-					1,
-					4,
-					4,
-					4,
-					4,
-					2,
-					2,
-					2,
-					3,
-					3,
-					3,
-					3
+					1.0,
+					2.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					0.0,
+					1.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -1574,41 +1574,41 @@
 			"orders": [
 				[
 					{
-						"strawberry": 4
+						"strawberry": 4.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"cupcake": 2
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 1,
-						"croissant": 2
+						"chocolate": 1.0,
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 2,
-						"cupcake": 2
+						"croissant": 2.0,
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 4
+						"cupcake": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -1644,39 +1644,39 @@
 			"id": "c020",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 20,
-					"max_depth": 4,
-					"min_counter": 1,
-					"orders": 7,
+					"crates": 5.0,
+					"items": 20.0,
+					"max_depth": 4.0,
+					"min_counter": 1.0,
+					"orders": 7.0,
 					"random_win_rate": 0.44,
-					"slack": 2,
-					"solver_nodes": 289,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 289.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					3,
-					1,
-					1,
-					1,
-					1,
-					3,
-					2,
-					3,
-					3,
-					4,
-					4,
-					4,
-					4,
-					0,
-					0,
-					0,
-					2,
-					2,
-					2
+					0.0,
+					3.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					2.0,
+					3.0,
+					3.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0,
+					0.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -1684,47 +1684,47 @@
 			"orders": [
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 1,
-						"coffee": 2
+						"chocolate": 1.0,
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2,
-						"tea": 2
+						"chocolate": 2.0,
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 1,
-						"strawberry": 3
+						"coffee": 1.0,
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 3
+						"coffee": 3.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"tea",
@@ -1754,35 +1754,35 @@
 			"id": "c021",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 16,
-					"max_depth": 4,
-					"min_counter": 1,
-					"orders": 7,
+					"crates": 4.0,
+					"items": 16.0,
+					"max_depth": 4.0,
+					"min_counter": 1.0,
+					"orders": 7.0,
 					"random_win_rate": 0.335,
-					"slack": 2,
-					"solver_nodes": 17,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 17.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					1,
-					0,
-					0,
-					1,
-					1,
-					1,
-					0,
-					0,
-					2,
-					2,
-					2,
-					2,
-					3,
-					3,
-					3,
-					3
+					1.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -1790,45 +1790,45 @@
 			"orders": [
 				[
 					{
-						"cupcake": 1
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"cupcake": 1
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"tea": 4
+						"tea": 4.0
 					}
 				],
 				[
 					{
-						"coffee": 2,
-						"strawberry": 1
+						"coffee": 2.0,
+						"strawberry": 1.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"chocolate",
@@ -1858,35 +1858,35 @@
 			"id": "c022",
 			"meta": {
 				"metrics": {
-					"crates": 4,
-					"items": 16,
-					"max_depth": 4,
-					"min_counter": 1,
-					"orders": 7,
+					"crates": 4.0,
+					"items": 16.0,
+					"max_depth": 4.0,
+					"min_counter": 1.0,
+					"orders": 7.0,
 					"random_win_rate": 0.36,
-					"slack": 2,
-					"solver_nodes": 17,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 17.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					1,
-					2,
-					3,
-					0,
-					0,
-					1,
-					1,
-					1,
-					0,
-					0,
-					3,
-					3,
-					3,
-					2,
-					2,
-					2
+					1.0,
+					2.0,
+					3.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					0.0,
+					0.0,
+					3.0,
+					3.0,
+					3.0,
+					2.0,
+					2.0,
+					2.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -1894,45 +1894,45 @@
 			"orders": [
 				[
 					{
-						"croissant": 3
+						"croissant": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 1
+						"croissant": 1.0
 					}
 				],
 				[
 					{
-						"chocolate": 2,
-						"coffee": 2
+						"chocolate": 2.0,
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 1
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"chocolate": 3
+						"chocolate": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"chocolate",
@@ -1972,43 +1972,43 @@
 			"id": "c023",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 24,
-					"max_depth": 5,
-					"min_counter": 1,
-					"orders": 8,
+					"crates": 5.0,
+					"items": 24.0,
+					"max_depth": 5.0,
+					"min_counter": 1.0,
+					"orders": 8.0,
 					"random_win_rate": 0.225,
-					"slack": 2,
-					"solver_nodes": 30,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 30.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					3,
-					0,
-					0,
-					2,
-					2,
-					2,
-					1,
-					3,
-					3,
-					1,
-					1,
-					3,
-					1,
-					1,
-					3,
-					2,
-					4,
-					4,
-					4,
-					4,
-					4
+					0.0,
+					0.0,
+					0.0,
+					3.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					1.0,
+					3.0,
+					3.0,
+					1.0,
+					1.0,
+					3.0,
+					1.0,
+					1.0,
+					3.0,
+					2.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2016,51 +2016,51 @@
 			"orders": [
 				[
 					{
-						"chocolate": 3
+						"chocolate": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2,
-						"croissant": 2
+						"coffee": 2.0,
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 4
+						"coffee": 4.0
 					}
 				],
 				[
 					{
-						"coffee": 1,
-						"strawberry": 2
+						"coffee": 1.0,
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2
+						"chocolate": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 4
+						"coffee": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"strawberry",
@@ -2098,41 +2098,41 @@
 			"id": "c024",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 22,
-					"max_depth": 5,
-					"min_counter": 3,
-					"orders": 8,
+					"crates": 5.0,
+					"items": 22.0,
+					"max_depth": 5.0,
+					"min_counter": 3.0,
+					"orders": 8.0,
 					"random_win_rate": 0.2,
-					"slack": 0,
-					"solver_nodes": 34,
-					"two_stage": 0
+					"slack": 0.0,
+					"solver_nodes": 34.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					1,
-					0,
-					0,
-					1,
-					1,
-					2,
-					2,
-					2,
-					1,
-					0,
-					2,
-					0,
-					1,
-					4,
-					4,
-					3,
-					4,
-					3,
-					3,
-					3,
-					4,
-					4
+					1.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0,
+					2.0,
+					1.0,
+					0.0,
+					2.0,
+					0.0,
+					1.0,
+					4.0,
+					4.0,
+					3.0,
+					4.0,
+					3.0,
+					3.0,
+					3.0,
+					4.0,
+					4.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2140,51 +2140,51 @@
 			"orders": [
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 4
+						"cupcake": 4.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 3,
-						"tea": 1
+						"coffee": 3.0,
+						"tea": 1.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 2
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 1,
-						"strawberry": 2
+						"cupcake": 1.0,
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"cupcake",
@@ -2223,42 +2223,42 @@
 			"id": "c025",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 23,
-					"max_depth": 5,
-					"min_counter": 2,
-					"orders": 7,
+					"crates": 5.0,
+					"items": 23.0,
+					"max_depth": 5.0,
+					"min_counter": 2.0,
+					"orders": 7.0,
 					"random_win_rate": 0.025,
-					"slack": 1,
-					"solver_nodes": 137,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 137.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					0,
-					0,
-					1,
-					1,
-					2,
-					2,
-					2,
-					2,
-					2,
-					3,
-					3,
-					4,
-					1,
-					1,
-					4,
-					4,
-					3,
-					3,
-					4,
-					4
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					4.0,
+					1.0,
+					1.0,
+					4.0,
+					4.0,
+					3.0,
+					3.0,
+					4.0,
+					4.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2266,46 +2266,46 @@
 			"orders": [
 				[
 					{
-						"cupcake": 3
+						"cupcake": 3.0
 					}
 				],
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"strawberry": 4
+						"strawberry": 4.0
 					}
 				],
 				[
 					{
-						"croissant": 2,
-						"strawberry": 2
+						"croissant": 2.0,
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 4
+						"cupcake": 4.0
 					}
 				],
 				[
 					{
-						"chocolate": 2
+						"chocolate": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2,
-						"croissant": 2
+						"chocolate": 2.0,
+						"croissant": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"croissant",
@@ -2344,42 +2344,42 @@
 			"id": "c026",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 23,
-					"max_depth": 5,
-					"min_counter": 1,
-					"orders": 8,
+					"crates": 5.0,
+					"items": 23.0,
+					"max_depth": 5.0,
+					"min_counter": 1.0,
+					"orders": 8.0,
 					"random_win_rate": 0.25,
-					"slack": 2,
-					"solver_nodes": 25,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 25.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					0,
-					1,
-					1,
-					3,
-					3,
-					2,
-					4,
-					2,
-					4,
-					1,
-					1,
-					1,
-					4,
-					4,
-					2,
-					2,
-					3,
-					3,
-					3,
-					4
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					3.0,
+					3.0,
+					2.0,
+					4.0,
+					2.0,
+					4.0,
+					1.0,
+					1.0,
+					1.0,
+					4.0,
+					4.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0,
+					4.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2387,51 +2387,51 @@
 			"orders": [
 				[
 					{
-						"coffee": 3
+						"coffee": 3.0
 					}
 				],
 				[
 					{
-						"croissant": 4
+						"croissant": 4.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 3
+						"croissant": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 3,
-						"tea": 1
+						"coffee": 3.0,
+						"tea": 1.0
 					}
 				],
 				[
 					{
-						"strawberry": 1,
-						"tea": 2
+						"strawberry": 1.0,
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				],
 				[
 					{
-						"tea": 2
+						"tea": 2.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"coffee",
@@ -2470,42 +2470,42 @@
 			"id": "c027",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 23,
-					"max_depth": 5,
-					"min_counter": 0,
-					"orders": 7,
+					"crates": 5.0,
+					"items": 23.0,
+					"max_depth": 5.0,
+					"min_counter": 0.0,
+					"orders": 7.0,
 					"random_win_rate": 0.18,
-					"slack": 3,
-					"solver_nodes": 23,
-					"two_stage": 0
+					"slack": 3.0,
+					"solver_nodes": 23.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 1,
+				"par_counter": 1.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					0,
-					0,
-					1,
-					1,
-					1,
-					1,
-					1,
-					2,
-					2,
-					2,
-					2,
-					2,
-					3,
-					3,
-					3,
-					3,
-					4,
-					4,
-					4,
-					4,
-					4
+					0.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0,
+					3.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2513,46 +2513,46 @@
 			"orders": [
 				[
 					{
-						"croissant": 2,
-						"cupcake": 2
+						"croissant": 2.0,
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"cupcake": 2
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 2,
-						"tea": 1
+						"coffee": 2.0,
+						"tea": 1.0
 					}
 				],
 				[
 					{
-						"coffee": 3
+						"coffee": 3.0
 					}
 				],
 				[
 					{
-						"croissant": 4
+						"croissant": 4.0
 					}
 				],
 				[
 					{
-						"coffee": 5
+						"coffee": 5.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"chocolate",
@@ -2589,40 +2589,40 @@
 			"id": "c028",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 21,
-					"max_depth": 5,
-					"min_counter": 2,
-					"orders": 7,
+					"crates": 5.0,
+					"items": 21.0,
+					"max_depth": 5.0,
+					"min_counter": 2.0,
+					"orders": 7.0,
 					"random_win_rate": 0.17,
-					"slack": 1,
-					"solver_nodes": 31,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 31.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					2,
-					0,
-					0,
-					2,
-					2,
-					2,
-					3,
-					3,
-					3,
-					3,
-					0,
-					1,
-					1,
-					1,
-					1,
-					1,
-					4,
-					4,
-					4,
-					4
+					0.0,
+					2.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0,
+					3.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2630,47 +2630,47 @@
 			"orders": [
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2
+						"chocolate": 2.0
 					}
 				],
 				[
 					{
-						"chocolate": 2,
-						"cupcake": 1
+						"chocolate": 2.0,
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"chocolate": 3,
-						"coffee": 1
+						"chocolate": 3.0,
+						"coffee": 1.0
 					}
 				],
 				[
 					{
-						"cupcake": 2,
-						"strawberry": 1
+						"cupcake": 2.0,
+						"strawberry": 1.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				],
 				[
 					{
-						"cupcake": 4
+						"cupcake": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"tea",
@@ -2710,43 +2710,43 @@
 			"id": "c029",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 24,
-					"max_depth": 5,
-					"min_counter": 2,
-					"orders": 7,
+					"crates": 5.0,
+					"items": 24.0,
+					"max_depth": 5.0,
+					"min_counter": 2.0,
+					"orders": 7.0,
 					"random_win_rate": 0.255,
-					"slack": 1,
-					"solver_nodes": 108,
-					"two_stage": 0
+					"slack": 1.0,
+					"solver_nodes": 108.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 3,
+				"par_counter": 3.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					1,
-					2,
-					2,
-					0,
-					0,
-					0,
-					3,
-					3,
-					3,
-					2,
-					3,
-					3,
-					0,
-					2,
-					2,
-					1,
-					4,
-					4,
-					4,
-					4,
-					4,
-					1,
-					1
+					0.0,
+					1.0,
+					2.0,
+					2.0,
+					0.0,
+					0.0,
+					0.0,
+					3.0,
+					3.0,
+					3.0,
+					2.0,
+					3.0,
+					3.0,
+					0.0,
+					2.0,
+					2.0,
+					1.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0,
+					4.0,
+					1.0,
+					1.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2754,46 +2754,46 @@
 			"orders": [
 				[
 					{
-						"strawberry": 2
+						"strawberry": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 3,
-						"tea": 1
+						"coffee": 3.0,
+						"tea": 1.0
 					}
 				],
 				[
 					{
-						"coffee": 3
+						"coffee": 3.0
 					}
 				],
 				[
 					{
-						"tea": 3
+						"tea": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 3,
-						"croissant": 1
+						"coffee": 3.0,
+						"croissant": 1.0
 					}
 				],
 				[
 					{
-						"coffee": 4
+						"coffee": 4.0
 					}
 				],
 				[
 					{
-						"croissant": 4
+						"croissant": 4.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
-			"counter": 3,
+			"counter": 3.0,
 			"crates": [
 				[
 					"croissant",
@@ -2832,42 +2832,42 @@
 			"id": "c030",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 23,
-					"max_depth": 5,
-					"min_counter": 1,
-					"orders": 7,
+					"crates": 5.0,
+					"items": 23.0,
+					"max_depth": 5.0,
+					"min_counter": 1.0,
+					"orders": 7.0,
 					"random_win_rate": 0.285,
-					"slack": 2,
-					"solver_nodes": 25,
-					"two_stage": 0
+					"slack": 2.0,
+					"solver_nodes": 25.0,
+					"two_stage": 0.0
 				},
-				"par_counter": 2,
+				"par_counter": 2.0,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					0,
-					0,
-					1,
-					2,
-					2,
-					4,
-					1,
-					4,
-					0,
-					0,
-					0,
-					1,
-					1,
-					4,
-					1,
-					2,
-					4,
-					4,
-					2,
-					3,
-					3,
-					3,
-					3
+					0.0,
+					0.0,
+					1.0,
+					2.0,
+					2.0,
+					4.0,
+					1.0,
+					4.0,
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					4.0,
+					1.0,
+					2.0,
+					4.0,
+					4.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0,
+					3.0
 				],
 				"tier": "pressure",
 				"verified": "PASSED"
@@ -2875,102 +2875,104 @@
 			"orders": [
 				[
 					{
-						"croissant": 3,
-						"strawberry": 1
+						"croissant": 3.0,
+						"strawberry": 1.0
 					}
 				],
 				[
 					{
-						"coffee": 1,
-						"tea": 3
+						"coffee": 1.0,
+						"tea": 3.0
 					}
 				],
 				[
 					{
-						"coffee": 2,
-						"cupcake": 2
+						"coffee": 2.0,
+						"cupcake": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 2
+						"croissant": 2.0
 					}
 				],
 				[
 					{
-						"coffee": 2
+						"coffee": 2.0
 					}
 				],
 				[
 					{
-						"croissant": 3,
-						"cupcake": 1
+						"croissant": 3.0,
+						"cupcake": 1.0
 					}
 				],
 				[
 					{
-						"strawberry": 3
+						"strawberry": 3.0
 					}
 				]
 			],
-			"trays": 2
+			"trays": 2.0
 		},
 		{
 			"counter": 3,
 			"crates": [
 				[
+					"chocolate",
+					"cupcake",
+					"cupcake",
+					"cupcake"
+				],
+				[
 					"croissant",
-					"strawberry",
-					"coffee"
+					"chocolate",
+					"cupcake"
 				],
 				[
+					"croissant",
 					"chocolate",
 					"cupcake",
-					"chocolate",
-					"croissant"
-				],
-				[
-					"cupcake",
-					"coffee",
 					"chocolate"
 				],
 				[
+					"coffee",
 					"chocolate",
 					"croissant",
-					"strawberry",
-					"strawberry"
+					"coffee"
 				]
 			],
 			"id": "c031",
 			"meta": {
 				"metrics": {
 					"crates": 4,
-					"items": 14,
+					"items": 15,
 					"max_depth": 4,
-					"min_counter": 2,
-					"orders": 5,
-					"random_win_rate": 0.545,
-					"slack": 1,
-					"solver_nodes": 16,
-					"two_stage": 0
+					"min_counter": 1,
+					"orders": 6,
+					"random_win_rate": 0.42,
+					"slack": 2,
+					"solver_nodes": 17,
+					"two_stage": 2
 				},
-				"par_counter": 3,
+				"par_counter": 2,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
-					1,
-					3,
 					0,
 					0,
 					0,
-					2,
-					2,
-					1,
-					1,
 					1,
 					2,
 					3,
+					0,
+					1,
 					3,
-					3
+					3,
+					1,
+					3,
+					2,
+					2,
+					2
 				],
 				"tier": "two_stage",
 				"verified": "PASSED"
@@ -2978,8 +2980,28 @@
 			"orders": [
 				[
 					{
-						"chocolate": 1,
+						"cupcake": 1
+					},
+					{
+						"chocolate": 1
+					}
+				],
+				[
+					{
+						"cupcake": 1
+					},
+					{
 						"coffee": 2
+					}
+				],
+				[
+					{
+						"croissant": 3
+					}
+				],
+				[
+					{
+						"cupcake": 3
 					}
 				],
 				[
@@ -2989,19 +3011,7 @@
 				],
 				[
 					{
-						"croissant": 1,
-						"cupcake": 2
-					}
-				],
-				[
-					{
-						"croissant": 2,
-						"strawberry": 1
-					}
-				],
-				[
-					{
-						"strawberry": 2
+						"chocolate": 1
 					}
 				]
 			],
@@ -3763,78 +3773,66 @@
 			"counter": 3,
 			"crates": [
 				[
-					"coffee",
-					"tea",
-					"tea",
-					"croissant",
-					"coffee"
-				],
-				[
-					"tea",
-					"croissant",
-					"strawberry",
-					"strawberry",
-					"strawberry"
-				],
-				[
 					"cupcake",
+					"chocolate",
+					"croissant",
 					"strawberry",
+					"tea"
+				],
+				[
+					"chocolate",
 					"strawberry",
-					"strawberry",
-					"cupcake"
+					"coffee",
+					"coffee",
+					"tea"
+				],
+				[
+					"coffee",
+					"coffee",
+					"cupcake",
+					"croissant"
 				],
 				[
 					"croissant",
-					"strawberry",
-					"strawberry",
-					"cupcake"
-				],
-				[
-					"strawberry",
+					"chocolate",
 					"croissant",
-					"strawberry",
-					"strawberry"
+					"tea"
 				]
 			],
 			"id": "c039",
 			"meta": {
 				"metrics": {
-					"crates": 5,
-					"items": 23,
+					"crates": 4,
+					"items": 18,
 					"max_depth": 5,
-					"min_counter": 0,
-					"orders": 6,
-					"random_win_rate": 0.27,
-					"slack": 3,
-					"solver_nodes": 23,
-					"two_stage": 1
+					"min_counter": 2,
+					"orders": 7,
+					"random_win_rate": 0.305,
+					"slack": 1,
+					"solver_nodes": 18,
+					"two_stage": 2
 				},
-				"par_counter": 1,
+				"par_counter": 3,
 				"playtest": "AWAITING_HUMAN",
 				"solution": [
 					0,
+					2,
+					2,
+					2,
+					0,
+					0,
 					0,
 					0,
 					1,
-					0,
-					0,
-					2,
-					2,
-					2,
-					2,
-					2,
 					1,
 					1,
 					1,
+					2,
+					3,
 					1,
 					3,
 					3,
-					3,
-					3,
-					4,
-					4,
-					4,
-					4
+					3
 				],
 				"tier": "two_stage",
 				"verified": "PASSED"
@@ -3842,38 +3840,45 @@
 			"orders": [
 				[
 					{
-						"coffee": 2,
-						"tea": 2
+						"cupcake": 2,
+						"tea": 1
 					}
 				],
 				[
 					{
-						"tea": 1
+						"coffee": 4
+					}
+				],
+				[
+					{
+						"strawberry": 1
+					}
+				],
+				[
+					{
+						"croissant": 1
 					},
 					{
-						"croissant": 1,
-						"cupcake": 2
+						"chocolate": 2
 					}
 				],
 				[
 					{
-						"strawberry": 4
+						"chocolate": 1
+					},
+					{
+						"croissant": 1
 					}
 				],
 				[
 					{
-						"croissant": 3,
-						"cupcake": 1
+						"croissant": 2,
+						"strawberry": 1
 					}
 				],
 				[
 					{
-						"strawberry": 4
-					}
-				],
-				[
-					{
-						"strawberry": 3
+						"tea": 2
 					}
 				]
 			],

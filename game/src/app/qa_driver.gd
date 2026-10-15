@@ -236,7 +236,7 @@ class IconArt extends Control:
 			draw_circle(size / 2 + Vector2(0, s * 0.03), s * (0.36 if layer == "full" else 0.3), Style.CREAM)
 		if layer != "bg":
 			var k := 1.0 if layer == "full" else 0.8
-			ProductArt.draw(self, Products.COFFEE, size / 2 + Vector2(-s * 0.02, s * 0.03), s * 0.56 * k)
+			ProductArt.draw_vector(self, Products.COFFEE, size / 2 + Vector2(-s * 0.02, s * 0.03), s * 0.56 * k)
 
 func _report_frames() -> void:
 	if frame_times.is_empty():

@@ -3,7 +3,11 @@ extends SceneTree
 ##   godot --headless --path game -s res://tests/run_tests.gd [-- filter]
 ## Runs every test_*.gd suite's test_* methods. Exit code 1 on any failure.
 
-func _init() -> void:
+func _initialize() -> void:
+	_run()
+
+func _run() -> void:
+	await process_frame
 	var filter := ""
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
@@ -30,9 +34,7 @@ func _init() -> void:
 			suite.failures = []
 			suite.current = f + ":" + name
 			var t0 := Time.get_ticks_msec()
-			var r = suite.call(name)
-			if r is Object and r.has_signal("completed"):
-				await r.completed
+			await suite.call(name)
 			if suite.failures.is_empty():
 				passed += 1
 				print("PASS ", suite.current, " (", Time.get_ticks_msec() - t0, " ms)")

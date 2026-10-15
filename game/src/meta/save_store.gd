@@ -1,0 +1,98 @@
+class_name SaveStore
+extends RefCounted
+## Versioned, checksummed, atomic local save with backup recovery.
+##
+## File envelope: {"schema": int, "sha256": hex, "payload": "<json string>"}
+## Write sequence: write <file>.tmp -> rename <file> to <file>.bak -> rename tmp
+## to <file>. Load order: <file>, then <file>.tmp, then <file>.bak, then fresh.
+## Offline saves cannot provide anti-cheat protection; the checksum detects
+## corruption, not tampering.
+
+const SCHEMA := 2
+
+var path: String
+var last_load_source := ""     # "main", "tmp", "backup", "fresh"
+var last_load_issue := ""      # human-readable reason if recovery happened
+
+func _init(p: String = "user://save.json") -> void:
+	path = p
+
+func save(data: Dictionary) -> bool:
+	var payload := JSON.stringify(data)
+	var env := {"schema": SCHEMA, "sha256": payload.sha256_text(), "payload": payload}
+	var tmp := path + ".tmp"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
+	if f == null:
+		push_warning("save: cannot open temp file (%d)" % FileAccess.get_open_error())
+		return false
+	f.store_string(JSON.stringify(env))
+	f.flush()
+	f.close()
+	var abs_main := ProjectSettings.globalize_path(path)
+	var abs_tmp := ProjectSettings.globalize_path(tmp)
+	var abs_bak := ProjectSettings.globalize_path(path + ".bak")
+	if FileAccess.file_exists(path):
+		if _read_valid(path) != null:
+			DirAccess.remove_absolute(abs_bak)
+			DirAccess.rename_absolute(abs_main, abs_bak)
+	var err := DirAccess.rename_absolute(abs_tmp, abs_main)
+	return err == OK
+
+## Returns a migrated, validated save dictionary (never null).
+func load_data() -> Dictionary:
+	last_load_issue = ""
+	for pair in [[path, "main"], [path + ".tmp", "tmp"], [path + ".bak", "backup"]]:
+		if not FileAccess.file_exists(pair[0]):
+			if pair[1] == "main":
+				last_load_issue = "no main save"
+			continue
+		var d = _read_valid(pair[0])
+		if d == null:
+			last_load_issue = "%s save unreadable or corrupt" % pair[1]
+			continue
+		last_load_source = pair[1]
+		return GameData.sanitize(migrate(d.payload, int(d.schema)))
+	last_load_source = "fresh"
+	return GameData.fresh()
+
+## Parsed envelope if checksum and JSON are valid, else null.
+func _read_valid(p: String):
+	var txt := FileAccess.get_file_as_string(p)
+	if txt.is_empty():
+		return null
+	var env = JSON.parse_string(txt)
+	if typeof(env) != TYPE_DICTIONARY or not env.has("payload") or not env.has("sha256"):
+		return null
+	if str(env.payload).sha256_text() != str(env.sha256):
+		return null
+	var payload = JSON.parse_string(str(env.payload))
+	if typeof(payload) != TYPE_DICTIONARY:
+		return null
+	return {"schema": int(env.get("schema", 1)), "payload": payload}
+
+## Upgrades older schemas step by step.
+static func migrate(d: Dictionary, from_schema: int) -> Dictionary:
+	var s := from_schema
+	if s < 2:
+		# v1 stored stars as an Array of [id, stars] pairs and had no daily block.
+		var stars := {}
+		for pair in d.get("stars", []):
+			if pair is Array and pair.size() == 2:
+				stars[str(pair[0])] = int(pair[1])
+		d.erase("stars")
+		var camp: Dictionary = d.get("campaign", {})
+		camp["stars"] = stars
+		var cleared := {}
+		for k in stars:
+			cleared[k] = true
+		camp["cleared"] = cleared
+		d["campaign"] = camp
+		if not d.has("daily"):
+			d["daily"] = {"completed": {}}
+		s = 2
+	return d
+
+func delete_all() -> void:
+	for suffix in ["", ".tmp", ".bak"]:
+		if FileAccess.file_exists(path + suffix):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))

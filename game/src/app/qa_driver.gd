@@ -42,7 +42,9 @@ func shot(name: String) -> void:
 	img.save_png(out_dir.path_join(name + ".png"))
 	print("QA: shot ", name)
 
-func click(pos: Vector2) -> void:
+## `pos` is in canvas coordinates; input events need window coordinates.
+func click(canvas_pos: Vector2) -> void:
+	var pos: Vector2 = get_tree().root.get_final_transform() * canvas_pos
 	var down := InputEventMouseButton.new()
 	down.button_index = MOUSE_BUTTON_LEFT
 	down.pressed = true
@@ -165,7 +167,7 @@ func _rapid() -> void:
 				g._on_restart()
 			App.main.close_all_overlays()
 		var cv: CrateView = g.crate_views[rng.randi_range(0, g.crate_views.size() - 1)]
-		var p := cv.get_global_rect().get_center()
+		var p: Vector2 = get_tree().root.get_final_transform() * cv.get_global_rect().get_center()
 		var down := InputEventMouseButton.new()
 		down.button_index = MOUSE_BUTTON_LEFT
 		down.pressed = true

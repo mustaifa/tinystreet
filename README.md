@@ -73,3 +73,12 @@ Regenerate content (authoring only): `$GODOT --headless --path game -s res://too
 
 ## Docs
 [GAME_DESIGN](GAME_DESIGN.md) · [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) · [DECISIONS](DECISIONS.md) · [TEST_REPORT](TEST_REPORT.md) · [RELEASE_CHECKLIST](RELEASE_CHECKLIST.md) · [SESSION_HANDOVER](SESSION_HANDOVER.md) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md) · [docs/PRIVACY](docs/PRIVACY.md) · [docs/PLAYTEST](docs/PLAYTEST.md) · [docs/STORE_LISTING](docs/STORE_LISTING.md) · [docs/LEVEL_REPORT](docs/LEVEL_REPORT.md)
+
+## Artifacts (session 1 build, 2026-10-15)
+| File | Signing | SHA-256 |
+|---|---|---|
+| `build/tinystreet-debug.apk` (87.5 MB, debug engine, 3 ABIs) | **Debug key** (Godot auto-generated, local). Not for store upload. | `61a7b72a7ef0e859c45bfa917f022662f7d1c157c9be2994fc69e022d560e9de` |
+| `build/tinystreet-release-unsigned.aab` (53.6 MB, arm64 + armv7) | **Unsigned.** Needs the publisher's upload key. | `f9e161919df7ab6c18eaf9f7a1d666dbdb3ccebb684601d65238bc52bf2163ea` |
+| `build/tinystreet-monetization-test.apk` (172 MB, debug) | **Debug key.** Google **test** ad IDs only. | `7446623f03526bf16efb5f5953d42d6769bd1c1172c714b20d6c7003a3631514` |
+
+Rebuilding changes these hashes, because the exports aren't byte-reproducible (timestamps and signing).

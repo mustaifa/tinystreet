@@ -69,7 +69,7 @@ EN = {
 "help_undo_t": "Undo & restart", "help_undo_b": "Undo is free and unlimited and restores everything, including automatic deliveries. Restart is free too.",
 "help_hint_t": "Hints", "help_hint_b": "One free hint per attempt, worked out from your current position. Hints never affect stars.",
 "help_stars_t": "Stars", "help_stars_b": "★ complete. ★★ keep peak counter use at the level's target. ★★★ also use at most 1 undo and no extra space.",
-"help_tokens_t": "Restoring the café", "help_tokens_b": "Each level gives 1 restoration token the first time you clear it. Spend tokens to restore the café step by step. No purchase is ever needed.",
+"help_tokens_t": "Restoring the café", "help_tokens_b": "Each new star you earn gives 1 restoration token, once per star (up to 3 per level). Mastery ribbons, café tasks, awards and challenge cards give tokens too. Spend them to restore the café step by step. No purchase is ever needed.",
 "replay_tips": "Show tutorial tips again", "tips_reset": "Tutorial tips will show again on the first levels.",
 "p_coffee": "Coffee", "p_tea": "Tea tin", "p_croissant": "Croissant", "p_cupcake": "Cupcake", "p_strawberry": "Strawberries", "p_chocolate": "Chocolates",
 "credits_game": "Tiny Street: Sort & Restore — design, code, art and audio created for this project.",
@@ -412,4 +412,23 @@ EN.update({
 "ledger_e13_hint1": "Mr. Basil arrives early but must be served last. Who should the bell serve while he waits?",
 "ledger_e13_hint2": "Lena's order includes two hot items that can't wait. Theo only arrives when Lena leaves.",
 "ledger_e13_why": "After Mira, Mr. Basil arrives in ticket 1 and would take every tea, but he must wait for Theo, who hasn't arrived. The single ring belongs to Lena right then: her teas and her two hot items go straight to her, her departure brings Theo, and the coffee you parked jumps to him. Park Omar's coffee too, give Basil exactly one tea, finish Theo, and then Basil and Omar fall into place.",
+})
+
+# v5 UI polish: new interface strings.
+EN.update({
+"home_play": "Play", "home_continue": "Continue", "home_all_cleared": "Every level cleared · Level %s",
+"door_progress": "%s / %s done",
+"ledger_rules": "Rules",
+"ledger_stage_1": "Idea", "ledger_stage_2": "Bottleneck", "ledger_stage_3": "Move",
+"ledger_strip_bells": "Bells", "ledger_strip_moves": "Moves", "ledger_strip_order": "Serve order", "ledger_strip_any": "any order",
+"ledger_tag_stamped": "Stamped", "ledger_tag_nohint": "No hints", "ledger_tag_precision": "Precision",
+"chapter_locked": "Opens after level %s", "chapter_done": "All %s levels cleared", "chapter_progress": "%s of %s cleared",
+"locked_hint": "Clear level %s first to open this one.",
+"stat_moves": "moves", "stat_peak": "peak counter", "stat_undos": "undos",
+"win_mastery_short": "Mastery", "win_and_more": "(+%s more)",
+"preview_not_saved": "Not saved until you keep it",
+"done_tag": "Done", "daily_moves": "%s moves",
+"challenge_done_n": "%s of %s done", "challenge_intro_short": "Each card pays its reward once. Replay any time.",
+"locked_hint_bakery": "Bake level %s first to open this one.",
+"settings_sound": "Sound", "settings_comfort": "Comfort",
 })

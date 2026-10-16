@@ -2,7 +2,7 @@ extends Control
 ## In-app privacy & support summary reflecting what THIS build actually does.
 
 func setup(_p: Dictionary) -> void:
-	var root := UI.vbox(12)
+	var root := UI.vbox(14)
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
 	root.add_child(UI.header(Loc.t("privacy"), func(): App.main.back()))
@@ -17,7 +17,10 @@ func setup(_p: Dictionary) -> void:
 	lines.append(Loc.t("privacy_purchases_" + App.billing.kind()))
 	lines.append(Loc.t("privacy_permissions"))
 	lines.append(Loc.t("privacy_contact_pending"))
-	for t in lines:
-		v.add_child(UI.card(UI.label(t, "", HORIZONTAL_ALIGNMENT_LEFT if not Loc.is_rtl() else HORIZONTAL_ALIGNMENT_RIGHT)))
+	var icons := ["shield", "heart", "info", "info", "coin", "vibrate", "help"]
+	for k in lines.size():
+		var r := UI.row(UI.medallion(icons[mini(k, icons.size() - 1)], Style.LINEN, Style.TEAL_DARK, 52), lines[k], "", null, "")
+		(r.get_child(0) as Control).size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		v.add_child(UI.card(r))
 	if App.consent.privacy_options_required:
 		v.add_child(UI.button(Loc.t("privacy_choices"), func(): App.consent.show_privacy_options()))

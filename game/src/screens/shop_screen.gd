@@ -12,9 +12,8 @@ func setup(_p: Dictionary) -> void:
 	add_child(root)
 	root.add_child(UI.header(Loc.t("shop"), func(): App.main.back()))
 	if App.billing.is_simulated():
-		var warn := UI.label(Loc.t("shop_simulated"), "HeaderLabel")
-		warn.add_theme_color_override("font_color", Style.TERRACOTTA)
-		root.add_child(UI.card(warn))
+		var warn := UI.row(UI.medallion("info", Style.PAPER, Style.TERRACOTTA, 52), Loc.t("shop_simulated"), "", null, "StrongLabel")
+		root.add_child(UI.card(warn, "WarmPanel"))
 	if not App.billing.is_available():
 		root.add_child(UI.label(Loc.t("shop_unavailable")))
 		return
@@ -22,7 +21,7 @@ func setup(_p: Dictionary) -> void:
 	item.add_child(UI.label(Loc.t("sku_theme_evening"), "HeaderLabel"))
 	item.add_child(UI.label(Loc.t("sku_theme_evening_desc")))
 	var preview := CafeView.new()
-	preview.custom_minimum_size = Vector2(0, 300)
+	preview.custom_minimum_size = Vector2(0, 320)
 	preview.configure_state({"steps": 8, "choices": {"walls": "evening", "seating": "evening", "plants": "flowers", "sign": "evening", "lights": "string"}, "extras": {}})
 	item.add_child(preview)
 	buy = UI.button("", func(): App.billing.purchase("theme_evening"), "WarmButton")

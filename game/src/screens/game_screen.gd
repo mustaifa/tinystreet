@@ -14,9 +14,11 @@ const TUTORIAL_STEPS := {
 	"tut_bell": ["tut_bell_1", "tut_bell_2", "tut_bell_3"],
 	"tut_oven": ["tut_oven_1", "tut_oven_2"],
 }
+const BLEED := 160.0
 const STREAK_WORDS := {3: "streak_3", 5: "streak_5", 8: "streak_8", 12: "streak_12"}
 
 var kind := "campaign"          # "campaign" | "daily" | "rush" | "challenge"
+var screen_mode := "cafe"       # full-bleed background around the board
 var challenge_id := ""          # v3 challenge card being played
 var level_id := ""
 var date_key := ""
@@ -68,6 +70,7 @@ func setup(params: Dictionary) -> void:
 		return
 	if kind == "ledger":
 		ledger = LedgerPlay.new(self)
+	screen_mode = "night" if kind == "ledger" else ("bakery" if kind == "bakery" else "cafe")
 	_build()
 	var cur: Dictionary = App.data.current
 	if kind != "rush" and cur.get("id", "") == level_id and cur.get("kind", "") == kind and cur.has("session") \
@@ -112,33 +115,44 @@ func _new_attempt(is_retry: bool) -> void:
 func _build() -> void:
 	for c in get_children():
 		c.queue_free()
+	var night := kind == "ledger"
 	backdrop = Backdrop.new()
+	backdrop.mode = "night" if night else ("bakery" if kind == "bakery" else "cafe")
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# bleed under the safe-area margins so the setting reaches the screen edges
+	for side in ["offset_left", "offset_top"]:
+		backdrop.set(side, -BLEED)
+	for side in ["offset_right", "offset_bottom"]:
+		backdrop.set(side, BLEED)
 	add_child(backdrop)
 	var root := UI.vbox(6)
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
-	# top bar
+	# top bar: pause, title, rules/help (secondary chips, out of the board)
 	var top := UI.hbox(12)
-	top.add_child(UI.icon_button("pause", "", _open_pause, "SecondaryButton", 88))
+	top.add_child(UI.chip("pause", _open_pause, "NightChip" if night else "ChipButton", Style.CHIP, 0, Loc.t("paused")))
 	var titles := UI.vbox(0)
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_label = UI.label(_title(), "TitleLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	titles.alignment = BoxContainer.ALIGNMENT_CENTER
+	title_label = UI.label(_title(), "NightTitle" if night else "TitleLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	UI.fit_font(title_label, 720 - 2 * Style.CHIP - 120, 38, 28)
+	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	title_label.clip_text = true
 	titles.add_child(title_label)
-	sub_label = UI.label(_subtitle(), "SoftLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
-	sub_label.add_theme_font_size_override("font_size", Style.fs(22))
+	sub_label = UI.label(_subtitle(), "NightCaption" if night else "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
 	sub_label.visible = sub_label.text != ""
 	titles.add_child(sub_label)
 	top.add_child(titles)
 	if kind == "ledger":
-		top.add_child(UI.icon_button("book", "", func(): ledger.show_rules(), "SecondaryButton", 88))
+		top.add_child(UI.chip("book", func(): ledger.show_rules(), "NightChip", Style.CHIP, 0, Loc.t("ledger_rules")))
 	else:
-		top.add_child(UI.icon_button("help", "", func(): App.main.goto("help"), "SecondaryButton", 88))
+		top.add_child(UI.chip("help", func(): App.main.goto("help"), "ChipButton", Style.CHIP, 0, Loc.t("help")))
 	root.add_child(top)
 	# order progress + queue
 	progress = _ProgressBar.new()
 	progress.custom_minimum_size = Vector2(0, 92)
 	progress.game = self
+	progress.night = night
 	root.add_child(progress)
 	if ledger:
 		root.add_child(ledger.make_strip())
@@ -155,24 +169,33 @@ func _build() -> void:
 		orders_row.add_child(oc)
 		order_cards.append(oc)
 	root.add_child(orders_row)
-	# counter
-	counter_label = UI.label("", "SoftLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	# counter, with its caption
+	counter_label = UI.label("", "NightSoft" if night else "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
 	root.add_child(counter_label)
 	counter = CounterView.new()
-	counter.custom_minimum_size = Vector2(0, 112)
+	counter.custom_minimum_size = Vector2(0, 108)
 	root.add_child(counter)
-	status_label = UI.label("", "", HORIZONTAL_ALIGNMENT_CENTER)
-	status_label.custom_minimum_size = Vector2(0, 40)
-	status_label.add_theme_font_size_override("font_size", Style.fs(26))
+	# status line: a reserved row, so messages never shift the board
+	status_label = StatusPill.new()
+	status_label.custom_minimum_size = Vector2(0, 52)
 	root.add_child(status_label)
 	# coach bubble (tutorial) sits in the layout flow, never over crates
 	coach = PanelContainer.new()
-	coach.add_theme_stylebox_override("panel", Style.box(Style.PAPER, 22, Style.GOLD, 3))
+	var csb := Style.box(Style.PAPER, 22, Style.GOLD, 3)
+	csb.content_margin_left = 14
+	csb.content_margin_top = 10
+	csb.content_margin_bottom = 10
+	coach.add_theme_stylebox_override("panel", csb)
 	coach.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	coach_label = UI.label("")
+	var crow := UI.hbox(14)
+	crow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	crow.add_child(UI.medallion("hint", Style.GOLD_SOFT, Style.GOLD_EDGE, 56))
+	coach_label = UI.label("", "", UI.al())
 	coach_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	coach_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	coach_label.add_theme_font_size_override("font_size", Style.fs(26))
-	coach.add_child(coach_label)
+	crow.add_child(coach_label)
+	coach.add_child(crow)
 	coach.visible = false
 	root.add_child(coach)
 	# crates
@@ -192,21 +215,29 @@ func _build() -> void:
 		crates_row.add_child(cv)
 		crate_views.append(cv)
 	root.add_child(crates_row)
-	# bottom controls (thumb zone)
-	var bottom := UI.hbox(18)
+	# bottom dock (thumb zone): secondary tools, clearly separate from the board
+	var dock := PanelContainer.new()
+	var dsb := Style.box(Color(Style.NIGHT_2, 0.92) if night else Color(Style.PAPER, 0.9), 30,
+		Style.NIGHT_LINE if night else Style.PAPER_EDGE, 2, true)
+	dsb.content_margin_top = 10
+	dsb.content_margin_bottom = 8
+	dock.add_theme_stylebox_override("panel", dsb)
+	var bottom := UI.hbox(10)
 	bottom.alignment = BoxContainer.ALIGNMENT_CENTER
-	var u := UI.icon_button("undo", Loc.t("undo"), _on_undo, "SecondaryButton", 100)
+	dock.add_child(bottom)
+	var chip_var := "NightChip" if night else "ChipButton"
+	var u := _dock_item("undo", Loc.t("undo"), _on_undo, chip_var, night)
 	undo_btn = u.get_meta("button")
 	bottom.add_child(u)
-	var h := UI.icon_button("hint", Loc.t("hint"), _on_hint, "SecondaryButton", 100)
+	var h := _dock_item("hint", Loc.t("hint"), _on_hint, chip_var, night)
 	hint_btn = h.get_meta("button")
 	bottom.add_child(h)
 	if kind == "ledger":
-		var rd := UI.icon_button("next", Loc.t("redo"), _on_redo, "SecondaryButton", 100)
+		var rd := _dock_item("redo", Loc.t("redo"), _on_redo, chip_var, night)
 		redo_btn = rd.get_meta("button")
 		bottom.add_child(rd)
-	bottom.add_child(UI.icon_button("restart", Loc.t("restart"), _on_restart, "SecondaryButton", 100))
-	root.add_child(bottom)
+	bottom.add_child(_dock_item("restart", Loc.t("restart"), _on_restart, chip_var, night))
+	root.add_child(dock)
 	fx_layer = Control.new()
 	fx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -216,9 +247,28 @@ func _build() -> void:
 	guide.visible = false
 	fx_layer.add_child(guide)
 
+## One dock tool: a chip with its caption underneath (never icon-only).
+func _dock_item(glyph: String, caption: String, cb: Callable, variation: String, night: bool) -> Control:
+	var w := UI.icon_button(glyph, caption, cb, variation, 84)
+	w.custom_minimum_size = Vector2(132, 0)
+	var l := w.get_child(1) as Label
+	if l and night:
+		l.add_theme_color_override("font_color", Style.MOON_SOFT)
+	return w
+
+## Free-hint count on the hint chip (campaign-style hints only).
+func _update_hint_badge() -> void:
+	if hint_btn == null:
+		return
+	for c in hint_btn.get_children():
+		if c is UI.Bubble:
+			c.queue_free()
+	if not ledger and free_hints > 0 and not ps.is_won():
+		UI.badge(hint_btn, free_hints)
+
 func _process(delta: float) -> void:
 	if crates_row and backdrop:
-		var y := (crates_row.get_global_rect().position.y - get_global_rect().position.y) + 40
+		var y := (crates_row.get_global_rect().position.y - backdrop.get_global_rect().position.y) + 40
 		backdrop.set_split(y)
 	# Rush clock: counts up only while the puzzle is in play and unobstructed.
 	if kind == "rush" and App.rush and ps and not ps.is_won() and App.main.overlays.is_empty():
@@ -304,8 +354,10 @@ func _refresh() -> void:
 	progress.queue_redraw()
 	var free := s.counter_free()
 	counter_label.text = Loc.t("counter_label", [s.counter_used(), s.counter.size()])
-	counter_label.add_theme_color_override("font_color", Style.WARN if free <= 1 and s.counter.size() > 1 else Style.INK_SOFT)
+	var calm := Style.MOON_SOFT if ledger else Style.INK_SOFT
+	counter_label.add_theme_color_override("font_color", (Style.LANTERN if ledger else Style.WARN) if free <= 1 and s.counter.size() > 1 else calm)
 	undo_btn.disabled = not ps.can_undo()
+	_update_hint_badge()
 	if redo_btn:
 		redo_btn.disabled = not ps.can_redo()
 	if ledger:
@@ -698,7 +750,7 @@ func _on_hint() -> void:
 	if App.rewards.available():
 		buttons.append([Loc.t("hint_watch_ad"), func(): App.rewards.request("hint", func(): _run_hint(false)), ""])
 	buttons.append([Loc.t("close"), func(): pass, "SecondaryButton"])
-	App.main.show_overlay(Dialog.make(Loc.t("hint_title"), Loc.t("hint_used_body") if App.rewards.available() else Loc.t("hint_used_noads"), buttons))
+	App.main.show_overlay(Dialog.make(Loc.t("hint_title"), Loc.t("hint_used_body") if App.rewards.available() else Loc.t("hint_used_noads"), buttons, null, "hint"))
 
 func _run_hint(free: bool) -> void:
 	App.analytics.event("hint_requested", {"level": level_id, "source": "free" if free else "ad"})
@@ -856,7 +908,7 @@ func _show_lost() -> void:
 					_refresh()
 					persist()), "WarmButton"])
 	buttons.append([Loc.t("restart"), _on_restart, "SecondaryButton"])
-	var d := Dialog.make(Loc.t("lost_title"), _lost_reason(), buttons)
+	var d := Dialog.make(Loc.t("lost_title"), _lost_reason(), buttons, null, "undo")
 	_delay(App.dur(0.45), func(): if ps.is_lost(): App.main.show_overlay(d))
 
 ## Says why no move is left, naming the blocking mechanic if there is one.
@@ -886,7 +938,7 @@ func _open_pause() -> void:
 		[Loc.t("restart"), _on_restart, "SecondaryButton"],
 		[Loc.t("settings"), func(): App.main.goto("settings"), "SecondaryButton"],
 		[leave_text, _leave, "SecondaryButton"],
-	], info)
+	], info, "pause")
 	App.main.show_overlay(d)
 
 ## Leaves the level; progress is kept in App.data.current for "Continue".
@@ -1000,6 +1052,7 @@ func replay() -> void:
 ## Orders delivered so far as a segmented bar, with the next customers queued.
 class _ProgressBar extends Control:
 	var game: Node
+	var night := false
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1015,7 +1068,9 @@ class _ProgressBar extends Control:
 		var txt := Loc.t("orders_progress", [s.completed, total])
 		var tw := Style.font_bold.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24)).x
 		var x0 := 6.0
-		draw_string(Style.font_bold, Vector2(size.x - x0 - tw if rtl else x0, 24), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24), Style.INK)
+		var ink := Style.MOON if night else Style.INK
+		var soft := Style.MOON_SOFT if night else Style.INK_SOFT
+		draw_string(Style.font_bold, Vector2(size.x - x0 - tw if rtl else x0, 24), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24), ink)
 		# segmented bar
 		var bx := x0 + tw + 16
 		var bw := size.x - bx - x0
@@ -1025,7 +1080,7 @@ class _ProgressBar extends Control:
 			var sx := bx + i * (seg + 4)
 			if rtl:
 				sx = size.x - sx - seg
-			var col := Style.TEAL if i < s.completed else Color(Style.INK_SOFT, 0.18)
+			var col := (Style.LANTERN if night else Style.TEAL) if i < s.completed else Color(soft, 0.22)
 			var sb := StyleBoxFlat.new()
 			sb.bg_color = col
 			sb.set_corner_radius_all(7)
@@ -1037,7 +1092,7 @@ class _ProgressBar extends Control:
 		var y := 66.0
 		var label := Loc.t("next_label") if s.next_order < total else Loc.t("queue_last")
 		var lw := Style.font_regular.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22)).x
-		draw_string(Style.font_regular, Vector2(size.x - x0 - lw if rtl else x0, y + 8), label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22), Style.INK_SOFT)
+		draw_string(Style.font_regular, Vector2(size.x - x0 - lw if rtl else x0, y + 8), label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22), soft)
 		var x := x0 + lw + 14
 		for k in 3:
 			var o := s.next_order + k
@@ -1056,6 +1111,41 @@ class _ProgressBar extends Control:
 					x += 33
 			if d.orders[o].size() > 1:
 				var t := "+"
-				draw_string(Style.font_bold, Vector2(size.x - x - 14 if rtl else x, y + 9), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Style.INK_SOFT)
+				draw_string(Style.font_bold, Vector2(size.x - x - 14 if rtl else x, y + 9), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, soft)
 				x += 18
 			x += 18
+
+## The status line: a reserved row that shows a short message in a soft pill
+## (gold for refusals and hints, paper for information); empty shows nothing.
+class StatusPill extends Label:
+	var _last := "\u0001"
+	var _sticky := false
+
+	func _ready() -> void:
+		horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_theme_font_override("font", Style.font_bold)
+		add_theme_font_size_override("font_size", Style.fs(24))
+		_restyle()
+
+	func _process(_d: float) -> void:
+		var st := bool(get_meta("sticky", false))
+		if text != _last or st != _sticky:
+			_restyle()
+
+	func _restyle() -> void:
+		_last = text
+		_sticky = bool(get_meta("sticky", false))
+		if text == "":
+			add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+			return
+		var sb := Style.box(Style.GOLD_SOFT if _sticky else Color(Style.PAPER, 0.92), 22,
+			Color(Style.GOLD, 0.6) if _sticky else Style.PAPER_EDGE, 2, false)
+		sb.content_margin_top = 6
+		sb.content_margin_bottom = 8
+		sb.content_margin_left = 18
+		sb.content_margin_right = 18
+		add_theme_stylebox_override("normal", sb)
+		add_theme_color_override("font_color", Style.INK)

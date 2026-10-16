@@ -9,6 +9,8 @@ extends Node
 ##   lifecycle_b relaunch and verify the in-progress puzzle was restored
 ##   cafe        capture the café at every restoration step and decor variant
 ##   v2          v2 flows: mechanics, drag, restore via UI, tasks, rush, pause
+##   tour        every screen, popup and state, in a fixed order (before/after
+##               comparisons; --qa-lang=ar for Arabic)
 ## Results are printed as lines starting with "QA:".
 
 var scenario := ""
@@ -107,6 +109,8 @@ func _run() -> void:
 		await _v3()
 	elif scenario == "ledger":
 		await _ledger()
+	elif scenario == "tour":
+		await _tour()
 	print("QA: done ", scenario)
 	get_tree().quit()
 
@@ -831,3 +835,205 @@ func _report_frames() -> void:
 	avg /= s.size()
 	print("QA: frames n=%d avg=%.1fms p95=%.1fms max=%.1fms" % [s.size(), avg * 1000, s[int(s.size() * 0.95)] * 1000, s.back() * 1000])
 	frame_times.clear()
+
+## Every player-facing screen and popup in a fixed order, from a staged save.
+## Names are stable so before/after shots line up.
+func _tour() -> void:
+	var lang := "en"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--qa-lang="):
+			lang = a.substr(10)
+		if a == "--qa-large-text":
+			App.set_setting("large_text", true)
+	App.set_setting("lang", lang)
+	await _wait(0.3)
+	# --- a brand-new player
+	App.main.goto("home", {}, false)
+	await _wait(0.5)
+	await shot("t01_home_new")
+	App.main.goto("levels", {}, false)
+	await _wait(0.5)
+	await shot("t02_levels_new")
+	App.main.goto("game", {"kind": "campaign", "id": "c001"}, false)
+	await _wait(0.7)
+	await shot("t03_game_tutorial")
+	# --- a returning player, mid-campaign
+	App.data.tutorial.done = {"tut_tap": true, "tut_counter": true, "tut_priority": true, "tut_fresh": true, "tut_bell": true, "tut_bag": true, "tut_lock": true, "tut_two_stage": true}
+	App.data.story.seen = {"intro": true, "first_served": true}
+	for i in 30:
+		var lid: String = App.progression.campaign[i].id
+		Progression.record_win(App.data, lid, 3 if i % 4 != 1 else 2)
+		if i % 5 == 0:
+			App.data.campaign.mastery[lid] = true
+	App.data.tokens = 23
+	App.data.restoration.steps = 4
+	App.main.goto("home", {}, false)
+	await _wait(0.6)
+	await shot("t04_home_mid")
+	App.main.goto("levels", {}, false)
+	await _wait(0.6)
+	await shot("t05_levels_mid")
+	App.main.goto("game", {"kind": "campaign", "id": "c031"}, false)
+	await _wait(0.6)
+	App.main.close_all_overlays()
+	var g := game()
+	var sol: Array = g.def.meta.solution
+	for k in mini(4, sol.size()):
+		await tap_crate(int(sol[k]))
+		await _wait(0.08)
+	await _wait(0.7)
+	await shot("t06_game_mid")
+	# selection / pressed feedback while a crate is held
+	var cv: CrateView = g.crate_views[int(sol[4])] if sol.size() > 4 else g.crate_views[0]
+	var tf := get_tree().root.get_final_transform()
+	var down := InputEventMouseButton.new()
+	down.button_index = MOUSE_BUTTON_LEFT
+	down.pressed = true
+	down.position = tf * cv.get_global_rect().get_center()
+	down.global_position = down.position
+	Input.parse_input_event(down)
+	await _wait(0.5)
+	await shot("t07_game_hold")
+	var up := down.duplicate()
+	up.pressed = false
+	Input.parse_input_event(up)
+	await _wait(0.8)
+	for id in ["p01", "f01", "k01", "b01", "x05"]:
+		App.main.goto("game", {"kind": "campaign", "id": id}, false)
+		await _wait(0.5)
+		App.main.close_all_overlays()
+		g = game()
+		var s2: Array = g.def.meta.solution
+		for k in mini(2, s2.size()):
+			await act(int(s2[k]))
+			await _wait(0.08)
+		await _wait(0.8)
+		await shot("t08_game_" + id)
+	App.main.goto("game", {"kind": "campaign", "id": "c002"}, false)
+	await _wait(0.5)
+	g = game()
+	g._open_pause()
+	await _wait(0.4)
+	await shot("t09_pause")
+	App.main.close_all_overlays()
+	await _wait(0.1)
+	g._show_lost()
+	await _wait(0.5)
+	await shot("t10_lost")
+	App.main.close_all_overlays()
+	App.main.goto("game", {"kind": "campaign", "id": "c003"}, false)
+	await _wait(0.5)
+	g = game()
+	for c in Solver.new().solve(g.ps.state).path:
+		await act(c)
+		await _wait(0.05)
+	await _wait(1.6)
+	await shot("t11_win")
+	App.main.close_all_overlays()
+	# --- restoration
+	App.data.tokens = 40
+	App.main.goto("restore", {}, false)
+	await _wait(0.6)
+	await shot("t12_restore")
+	App.main.current._unlock()
+	await _wait(2.5)
+	await shot("t13_restore_after_unlock")
+	App.main.close_all_overlays()
+	await _wait(0.2)
+	App.main.goto("restore", {}, false)
+	await _wait(0.5)
+	App.main.current._choice_panel("walls")
+	await _wait(0.4)
+	await shot("t14_restore_choice")
+	# --- challenges, ledger, bakery
+	App.main.goto("daily", {}, false)
+	await _wait(0.5)
+	await shot("t15_challenges")
+	var sc: ScrollContainer = _find_scroll(App.main.current)
+	if sc:
+		sc.scroll_vertical = 900
+		await _wait(0.3)
+		await shot("t16_challenges_scrolled")
+	Ledger.record(App.data, "e01", 99, 0)
+	Ledger.record(App.data, "e02", 99, 1)
+	App.main.goto("ledger", {}, false)
+	await _wait(0.5)
+	await shot("t17_ledger_list")
+	App.main.goto("game", {"kind": "ledger", "id": "e03"}, false)
+	await _wait(0.6)
+	g = game()
+	var w: Array = g.def.meta.ledger.witness
+	for k in 3:
+		await act(int(w[k]))
+		await _wait(0.1)
+	await _wait(0.6)
+	await shot("t18_ledger_play")
+	g.ledger.show_rules()
+	await _wait(0.4)
+	await shot("t19_ledger_rules")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._show_stage(2)
+	await _wait(0.4)
+	await shot("t20_ledger_hint2")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	for k in range(3, w.size()):
+		await act(int(w[k]))
+		await _wait(0.06)
+	await _wait(1.6)
+	await shot("t21_ledger_won")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._why()
+	await _wait(0.4)
+	await shot("t22_ledger_why")
+	App.main.close_all_overlays()
+	App.data.bakery.unlocked = true
+	App.data.tokens = 30
+	App.main.goto("bakery", {}, false)
+	await _wait(0.6)
+	await shot("t23_bakery")
+	App.main.goto("game", {"kind": "bakery", "id": "m01"}, false)
+	await _wait(0.6)
+	App.main.close_all_overlays()
+	await _wait(0.3)
+	await shot("t24_bakery_game")
+	# --- secondary screens
+	App.data.stats.wins = 30
+	for t in ["tasks", "achievements", "progress"]:
+		App.main.goto("journal", {"tab": t}, false)
+		await _wait(0.5)
+		await shot("t25_journal_" + t)
+	for s in ["settings", "help", "credits", "privacy", "shop"]:
+		App.main.goto(s, {}, false)
+		await _wait(0.5)
+		await shot("t26_" + s)
+	App.main.goto("home", {}, false)
+	await _wait(0.4)
+	App.data.story.seen.erase("lvl:c016")
+	Story.level_start("c016")
+	await _wait(0.7)
+	await shot("t27_story")
+	App.main.close_all_overlays()
+	await _wait(0.2)
+	App.main._confirm_exit()
+	await _wait(0.4)
+	await shot("t28_exit_dialog")
+	App.main.close_all_overlays()
+	# --- a finished café
+	App.data.restoration.steps = 8
+	App.data.restoration.extras = {"cat": true, "clock": true, "gramophone": true, "cakestand": true}
+	App.main.goto("home", {}, false)
+	await _wait(0.6)
+	await shot("t29_home_done")
+	App.set_setting("lang", "en")
+
+func _find_scroll(n: Node) -> ScrollContainer:
+	if n is ScrollContainer:
+		return n
+	for c in n.get_children():
+		var r := _find_scroll(c)
+		if r:
+			return r
+	return null

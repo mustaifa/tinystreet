@@ -30,11 +30,18 @@ extends RefCounted
 ##     legal (it only chooses between tickets that both need the item), so it
 ##     doesn't change win/loss detection.
 ##
+##   BELL BUDGET (v4, "bell_budget": n): every ring (including clearing a
+##     bell) uses one; once n are used, ringing is refused. Unlimited if absent.
+##   ORDER SEQUENCE (v4, "sequence": [o1, o2, ...]): the listed orders must be
+##     delivered in that relative order. A crate tap whose cascade would deliver
+##     a listed order before an earlier listed one is refused (state
+##     unchanged), exactly like any other illegal tap.
+##
 ## ACTIONS: an int >= 0 taps that crate; an int < 0 rings tray (-a - 1).
 
 enum Dest { NONE, TRAY, COUNTER }
 ## Why a tap is illegal (for feedback). NONE when the tap is legal.
-enum Block { NONE, EMPTY, LOCKED, FRESH, FULL }
+enum Block { NONE, EMPTY, LOCKED, FRESH, FULL, SEQUENCE }
 
 const EV_PICK := "pick"                 # {crate, product}
 const EV_TO_TRAY := "to_tray"           # {crate, product, tray}
@@ -58,18 +65,36 @@ static func apply_action(s: PuzzleState, a: int) -> Array:
 	return apply_move(s, a) if a >= 0 else ring(s, action_tray(a))
 
 static func can_ring(s: PuzzleState, tray: int) -> bool:
-	return s.level.allow_bell and tray >= 0 and tray < s.tray_order.size() and s.tray_order[tray] >= 0
+	return s.level.allow_bell and tray >= 0 and tray < s.tray_order.size() and s.tray_order[tray] >= 0 \
+		and rings_left(s) != 0
+
+## Rings still allowed: -1 = unlimited.
+static func rings_left(s: PuzzleState) -> int:
+	return -1 if s.level.bell_budget < 0 else maxi(0, s.level.bell_budget - s.rings_used)
 
 ## Rings (or clears) a ticket's bell. Not a move: `moves` doesn't change.
 static func ring(s: PuzzleState, tray: int) -> Array:
 	if not can_ring(s, tray):
 		return []
 	s.pin = -1 if s.pin == tray else tray
+	s.rings_used += 1
 	return [{"type": EV_BELL, "tray": tray, "on": s.pin == tray}]
 
 ## Which tray (or counter) a tap on `crate` would send its product to.
 ## Returns {dest: Dest, tray: int, slot: int, product: int, block: Block, fresh: bool}.
 static func preview(s: PuzzleState, crate: int) -> Dictionary:
+	var r := _route(s, crate)
+	if r.dest != Dest.NONE and not s.level.sequence.is_empty():
+		# The tap is only legal if its whole cascade respects the sequence.
+		var sim := s.copy()
+		_apply_routed(sim, crate, r, [])
+		if sim.violation:
+			r.dest = Dest.NONE
+			r.block = Block.SEQUENCE
+	return r
+
+## Where a tap would go, ignoring the order-sequence constraint.
+static func _route(s: PuzzleState, crate: int) -> Dictionary:
 	var r := {"dest": Dest.NONE, "tray": -1, "slot": -1, "product": -1, "block": Block.EMPTY, "fresh": false}
 	if crate < 0 or crate >= s.crate_pos.size():
 		return r
@@ -140,8 +165,21 @@ static func legal_moves(s: PuzzleState) -> PackedInt32Array:
 static func is_won(s: PuzzleState) -> bool:
 	return s.completed >= s.level.orders.size()
 
+## Lost = not won, no legal tap, and no single bell ring that would create
+## one. (Without a sequence, ringing never changes legality; with one, a ring
+## can redirect a cascade away from an out-of-sequence delivery.)
 static func is_lost(s: PuzzleState) -> bool:
-	return not is_won(s) and legal_moves(s).is_empty()
+	if is_won(s) or not legal_moves(s).is_empty():
+		return false
+	if s.level.sequence.is_empty():
+		return true
+	for t in s.tray_order.size():
+		if can_ring(s, t):
+			var b := s.copy()
+			ring(b, t)
+			if not legal_moves(b).is_empty():
+				return false
+	return true
 
 ## Applies a tap. Mutates `s` and returns the ordered event list for
 ## presentation, or an empty array if the move was illegal (state unchanged).
@@ -149,8 +187,14 @@ static func apply_move(s: PuzzleState, crate: int) -> Array:
 	var pv := preview(s, crate)
 	if pv.dest == Dest.NONE:
 		return []
+	var events: Array = []
+	_apply_routed(s, crate, pv, events)
+	return events
+
+## Performs a routed tap (no legality re-check) and resolves the board.
+static func _apply_routed(s: PuzzleState, crate: int, pv: Dictionary, events: Array) -> void:
 	var p: int = pv.product
-	var events: Array = [{"type": EV_PICK, "crate": crate, "product": p, "fresh": pv.fresh}]
+	events.append({"type": EV_PICK, "crate": crate, "product": p, "fresh": pv.fresh})
 	s.crate_pos[crate] += 1
 	s.moves += 1
 	if s.crate_remaining(crate) > 0 and (s.level.flag(crate, s.crate_pos[crate]) & LevelDef.BAG) != 0:
@@ -163,7 +207,6 @@ static func apply_move(s: PuzzleState, crate: int) -> Array:
 		s.peak_counter = maxi(s.peak_counter, s.counter_used())
 		events.append({"type": EV_TO_COUNTER, "crate": crate, "product": p, "slot": pv.slot})
 	resolve(s, events)
-	return events
 
 ## Runs automatic effects until the board is stable.
 static func resolve(s: PuzzleState, events: Array) -> void:
@@ -183,6 +226,8 @@ static func resolve(s: PuzzleState, events: Array) -> void:
 					s.tray_stage[t] += 1
 					events.append({"type": EV_STAGE, "tray": t, "order": o, "stage": s.tray_stage[t]})
 				else:
+					if not _sequence_allows(s, o):
+						s.violation = true
 					s.completed += 1
 					s.tray_stage[t] = 0
 					s.tray_order[t] = -1
@@ -213,3 +258,22 @@ static func resolve(s: PuzzleState, events: Array) -> void:
 static func add_bonus_slot(s: PuzzleState) -> void:
 	s.bonus_slots += 1
 	s.counter.append(-1)
+
+## v4: may order o be delivered now? Every order listed before it in
+## level.sequence must already be delivered.
+static func _sequence_allows(s: PuzzleState, o: int) -> bool:
+	var seq := s.level.sequence
+	var i := seq.find(o)
+	if i <= 0:
+		return true
+	for k in i:
+		if not s.delivered(seq[k]):
+			return false
+	return true
+
+## v4: index into level.sequence of the next order still to deliver, or -1.
+static func sequence_next(s: PuzzleState) -> int:
+	for k in s.level.sequence.size():
+		if not s.delivered(s.level.sequence[k]):
+			return k
+	return -1

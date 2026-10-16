@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.4.0 (v4), 2026-10-16: The Midnight Ledger (expert mode)
+Built while the owner's V3 phone feedback is still pending. The campaign, café, bakery, economy and difficulty are **unchanged**. Design: `docs/EXPERT_MODE_DESIGN.md`.
+
+### New
+- **The Midnight Ledger**, an optional expert mode: 3 lessons, 9 puzzles and a final page. Small boards, explicit rules, no timers. Entry from Challenges and a one-time "Try expert mode" button on Home after the bell lesson.
+- Two constraints, as rules in `rules.gd`:
+  - **bell budget**: every ring counts, refused when spent;
+  - **order sequence**: a tap that would serve a listed customer early is refused, including through cascades.
+- The bell itself works exactly as in v3.
+- **Expert strip**: bells left, moves (with a proven precision target where offered), and the order sequence as faces.
+- **Rule card**, **redo**, and resume protected by a content hash.
+- **Three-stage hints** (idea → bottleneck with live facts → one verified move). They never suggest a random move. When stuck, they offer to undo to a point on the proven solution. A search timeout is reported as "couldn't decide", never as "unsolvable".
+- **"Why this works"** after each page, stating honestly whether your route matched the reference.
+- **Rewards without tokens**: stamp, no-hint badge, precision badge (2 pages, proven minimal), and the Midnight Lantern café extra for the full collection. All granted once.
+
+### Proofs and tooling
+- `tools/ledger_tool.gd` (search / review / build): witness replay through the real rules, proven minimum rings, every alternative at every witness step classified by exhaustive search, and a machine-checked "idea" per page. The build fails if any proof or idea check fails.
+- Outputs: `docs/EXPERT_PUZZLE_PROOFS.md` (no spoilers) and `docs/EXPERT_SOLUTIONS_SPOILERS.md`.
+- Solver `4.0-ledger`: the search key includes the rings used. Cross-checked against a brute-force reference on 100+ tiny boards.
+
+### Fixed during QA
+- With a spent budget, tickets ignored taps and gave no explanation; they now show a crossed-out bell and a message.
+- "Why this works" compared the route against JSON floats and wrongly said "different".
+- The Home invitation overflowed the screen width.
+
+### Technical
+- Save schema stays **4**: the new `ledger` block is additive (tested with a V3 save; no migration, no backup needed).
+- Version 0.4.0 / versionCode 4. Same package and debug key.
+
 ## 0.3.0 (v3), 2026-10-16
 Built after the owner reported that the updated Android build works on a phone (exact build unspecified) and asked for deeper gameplay, a livelier world, stronger progression and better presentation. Audit: `docs/V3_AUDIT.md`.
 

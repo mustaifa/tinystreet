@@ -19,6 +19,7 @@ var customer := ""
 var mood := 2                   # CharacterArt mood: waiting until served
 var bell_allowed := false       # v3: tap the ticket to ring its bell
 var bell_on := false            # this customer is served first
+var bell_spent := false         # v4: the page's bell budget is used up (still tappable, to explain)
 var special := false            # 3-part special order (gold frame + banner)
 var _wiggle := 0.0
 
@@ -26,9 +27,10 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
 
-func set_bell(allowed: bool, on: bool) -> void:
+func set_bell(allowed: bool, on: bool, spent: bool = false) -> void:
 	bell_allowed = allowed
 	bell_on = on
+	bell_spent = spent
 	mouse_filter = Control.MOUSE_FILTER_STOP if allowed else Control.MOUSE_FILTER_IGNORE
 	queue_redraw()
 
@@ -149,6 +151,8 @@ func _draw() -> void:
 		var bc := bell_center()
 		draw_circle(bc, 22, Style.PAPER if not bell_on else Color("fff3d0"))
 		draw_bell(self, bc, 15, bell_on, _wiggle)
+		if bell_spent and not bell_on:
+			draw_line(bc + Vector2(-14, 14), bc + Vector2(14, -14), Style.INK_SOFT, 3, true)
 	if special:
 		draw_string(Style.font_bold, Vector2(0, size.y - 14), Loc.t("special_tag"), HORIZONTAL_ALIGNMENT_CENTER, size.x, Style.fs(18), Style.WOOD_DARK)
 	if stages.size() > 1:

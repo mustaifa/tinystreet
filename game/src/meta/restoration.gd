@@ -77,6 +77,7 @@ const EXTRAS := [
 	{"id": "photos", "cost": 0, "step": 3, "ach": "regulars"},
 	{"id": "chalkboard", "cost": 0, "step": 0, "special": "p06"},
 	{"id": "breadbasket", "cost": 0, "step": 0, "special": "m08"},
+	{"id": "lamp", "cost": 0, "step": 0, "special": "ledger"},
 ]
 
 static func total_cost() -> int:

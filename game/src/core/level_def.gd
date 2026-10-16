@@ -22,6 +22,8 @@ var crates: Array = []          # Array[PackedInt32Array]
 var flags: Array = []           # Array[PackedInt32Array], parallel to crates (FRESH | BAG)
 var locks: PackedInt32Array = PackedInt32Array()  # per crate: deliveries needed to open
 var allow_bell := true          # v3: the player may ring a ticket's bell
+var bell_budget := -1           # v4 ledger: max bell rings (-1 = unlimited)
+var sequence: PackedInt32Array = PackedInt32Array()  # v4 ledger: orders that must be delivered in this order
 var counter_slots: int = 4
 var trays: int = 2
 var orders: Array = []          # Array[Array[PackedInt32Array]]
@@ -60,6 +62,11 @@ static func from_dict(d: Dictionary) -> LevelDef:
 			stages.append(need)
 		L.orders.append(stages)
 	L.allow_bell = bool(d.get("bell", true))
+	L.bell_budget = int(d.get("bell_budget", -1))
+	var sq = d.get("sequence", [])
+	if sq is Array:
+		for v in sq:
+			L.sequence.append(int(v))
 	L.meta = d.get("meta", {})
 	return L
 
@@ -105,6 +112,10 @@ func to_dict() -> Dictionary:
 		out["locks"] = Array(locks)
 	if not allow_bell:
 		out["bell"] = false
+	if bell_budget >= 0:
+		out["bell_budget"] = bell_budget
+	if not sequence.is_empty():
+		out["sequence"] = Array(sequence)
 	return out
 
 ## Same level with the bell disabled (used to measure what the bell adds).
@@ -119,7 +130,24 @@ func without_bell() -> LevelDef:
 	L.orders = orders
 	L.meta = meta
 	L.allow_bell = false
+	L.bell_budget = bell_budget
+	L.sequence = sequence
 	return L
+
+## Same level with a different bell budget (proofs of the minimum rings).
+func with_budget(n: int) -> LevelDef:
+	var L := without_bell()
+	L.allow_bell = allow_bell
+	L.bell_budget = n
+	return L
+
+## Hash of everything that affects the rules (not meta). Saved puzzle states
+## are only resumed against content with the same hash.
+func content_hash() -> String:
+	var d := to_dict()
+	d.erase("meta")
+	d.erase("id")
+	return JSON.stringify(d, "", true).sha256_text().substr(0, 16)
 
 func max_stages() -> int:
 	var n := 0

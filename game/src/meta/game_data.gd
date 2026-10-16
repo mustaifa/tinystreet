@@ -28,6 +28,7 @@ static func fresh() -> Dictionary:
 		"story": {"seen": {}},
 		"bakery": {"unlocked": false, "steps": 0, "choices": {}},
 		"challenges": {"done": {}},
+		"ledger": {"done": {}, "nohint": {}, "precision": {}, "offer_seen": false},
 		"daily_days": 0,
 	}
 

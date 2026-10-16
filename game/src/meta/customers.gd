@@ -15,6 +15,9 @@ static func for_order(def: LevelDef, o: int) -> String:
 	var sp := Specials.customer(def, o)
 	if sp != "":
 		return sp
+	var fixed = def.meta.get("customers", [])
+	if fixed is Array and o < fixed.size():
+		return str(fixed[o])   # v4 ledger pages name every customer
 	if def.id.begins_with("m"):
 		# Mira's Bakery: Mira serves; the neighbours come to buy.
 		return "n%d" % posmod(hash(def.id + ":" + str(o)), 6)

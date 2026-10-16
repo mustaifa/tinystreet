@@ -51,7 +51,7 @@ func chapter_range(ci: int) -> Vector2i:
 func def_for(id: String) -> LevelDef:
 	if _defs.has(id):
 		return _defs[id]
-	for l in campaign + daily_pool + bakery:
+	for l in campaign + daily_pool + bakery + Ledger.pages():
 		if l.id == id:
 			_defs[id] = LevelDef.from_dict(l)
 			return _defs[id]

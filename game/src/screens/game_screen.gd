@@ -47,6 +47,8 @@ var fx_layer: Control
 var title_label: Label
 var sub_label: Label
 var undo_btn: Button
+var redo_btn: Button
+var ledger: LedgerPlay          # v4 expert-mode helper (kind == "ledger")
 var hint_btn: Button
 var coach: PanelContainer
 var coach_label: Label
@@ -64,12 +66,18 @@ func setup(params: Dictionary) -> void:
 	if def == null or (kind == "rush" and App.rush == null):
 		App.main.goto("home", {}, false)
 		return
+	if kind == "ledger":
+		ledger = LedgerPlay.new(self)
 	_build()
 	var cur: Dictionary = App.data.current
 	if kind != "rush" and cur.get("id", "") == level_id and cur.get("kind", "") == kind and cur.has("session") \
 			and str(cur.get("ch", "")) == challenge_id:
-		ps = PuzzleSession.restore(def, cur.session)
-		attempt = int(cur.get("attempt", 1))
+		# Expert pages resume only against identical rules (content hash).
+		if kind != "ledger" or str(cur.get("hash", "")) == def.content_hash():
+			ps = PuzzleSession.restore(def, cur.session)
+			attempt = int(cur.get("attempt", 1))
+		elif kind == "ledger":
+			App.main.toast(Loc.t("ledger_page_changed"))
 	if ps == null:
 		_new_attempt(false)
 	else:
@@ -122,13 +130,18 @@ func _build() -> void:
 	sub_label.visible = sub_label.text != ""
 	titles.add_child(sub_label)
 	top.add_child(titles)
-	top.add_child(UI.icon_button("help", "", func(): App.main.goto("help"), "SecondaryButton", 88))
+	if kind == "ledger":
+		top.add_child(UI.icon_button("book", "", func(): ledger.show_rules(), "SecondaryButton", 88))
+	else:
+		top.add_child(UI.icon_button("help", "", func(): App.main.goto("help"), "SecondaryButton", 88))
 	root.add_child(top)
 	# order progress + queue
 	progress = _ProgressBar.new()
 	progress.custom_minimum_size = Vector2(0, 92)
 	progress.game = self
 	root.add_child(progress)
+	if ledger:
+		root.add_child(ledger.make_strip())
 	# orders
 	orders_row = UI.hbox(12)
 	orders_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -188,6 +201,10 @@ func _build() -> void:
 	var h := UI.icon_button("hint", Loc.t("hint"), _on_hint, "SecondaryButton", 100)
 	hint_btn = h.get_meta("button")
 	bottom.add_child(h)
+	if kind == "ledger":
+		var rd := UI.icon_button("next", Loc.t("redo"), _on_redo, "SecondaryButton", 100)
+		redo_btn = rd.get_meta("button")
+		bottom.add_child(rd)
 	bottom.add_child(UI.icon_button("restart", Loc.t("restart"), _on_restart, "SecondaryButton", 100))
 	root.add_child(bottom)
 	fx_layer = Control.new()
@@ -212,6 +229,8 @@ func _process(delta: float) -> void:
 			sub_label.visible = true
 
 func _title() -> String:
+	if kind == "ledger":
+		return LedgerPlay.title(def)
 	match kind:
 		"daily": return Loc.t("daily_title")
 		"rush": return Loc.t("rush_title_n", [App.rush.index + 1 if App.rush else 1, RushRun.LENGTH])
@@ -220,6 +239,8 @@ func _title() -> String:
 	return Loc.t("level_n", [App.progression.campaign_index(level_id) + 1])
 
 func _subtitle() -> String:
+	if kind == "ledger":
+		return LedgerPlay.subtitle(def)
 	if kind == "rush" and App.rush:
 		return RushRun.fmt_time(int(App.rush.elapsed_ms))
 	if kind == "challenge":
@@ -259,7 +280,7 @@ func _refresh() -> void:
 		oc.in_flight = {}
 		oc.highlight = false
 		oc.special = Specials.is_special_order(def, o)
-		oc.set_bell(Rules.can_ring(s, t), s.pin == t)
+		oc.set_bell(def.allow_bell and o >= 0, s.pin == t, Rules.rings_left(s) == 0)
 	var coach_action := _coach_action()
 	var coach_target := coach_action if coach_action >= 0 else -1
 	for t in order_cards.size():
@@ -285,6 +306,10 @@ func _refresh() -> void:
 	counter_label.text = Loc.t("counter_label", [s.counter_used(), s.counter.size()])
 	counter_label.add_theme_color_override("font_color", Style.WARN if free <= 1 and s.counter.size() > 1 else Style.INK_SOFT)
 	undo_btn.disabled = not ps.can_undo()
+	if redo_btn:
+		redo_btn.disabled = not ps.can_redo()
+	if ledger:
+		ledger.refresh()
 	if status_label.get_meta("sticky", false) == false:
 		status_label.text = Loc.t("counter_full") if free == 0 else (Loc.t("counter_one_left") if free == 1 and s.counter.size() > 1 else "")
 
@@ -309,6 +334,11 @@ func _on_ticket(t: int) -> void:
 		return
 	var ev := ps.ring(t)
 	if ev.is_empty():
+		if ledger and ps.state.tray_order[t] >= 0 and Rules.rings_left(ps.state) == 0:
+			App.audio.play("invalid")
+			order_cards[t].wiggle()
+			status_label.text = Loc.t("invalid_no_rings")
+			status_label.set_meta("sticky", true)
 		return
 	hint_crate = -1
 	hint_bell = -1
@@ -414,6 +444,7 @@ func _invalid(i: int) -> void:
 		Rules.Block.LOCKED: msg = Loc.t("invalid_locked", [Rules.lock_remaining(ps.state, i)])
 		Rules.Block.FRESH: msg = Loc.t("invalid_fresh")
 		Rules.Block.FULL: msg = Loc.t("invalid_no_space")
+		Rules.Block.SEQUENCE: msg = LedgerPlay.sequence_message(ps.state)
 	if msg != "":
 		status_label.text = msg
 		status_label.set_meta("sticky", true)
@@ -617,6 +648,22 @@ func _finish_effects() -> void:
 
 # --------------------------------------------------------------------- actions
 
+## v4: re-applies the last undone action (expert mode).
+func _on_redo() -> void:
+	_finish_effects()
+	var before := ps.state.copy()
+	var ev := ps.redo()
+	if ev.is_empty():
+		return
+	App.audio.play("undo", 1.2)
+	_refresh()
+	_animate(before, ev)
+	persist()
+	if ps.is_won():
+		_on_won()
+	elif ps.is_lost():
+		_show_lost()
+
 func _on_undo() -> void:
 	_finish_effects()
 	if ps.undo():
@@ -639,6 +686,9 @@ func _on_restart() -> void:
 
 func _on_hint() -> void:
 	_finish_effects()
+	if ledger:
+		ledger.open_hint()
+		return
 	if _hint_thread_busy or ps.is_won():
 		return
 	if free_hints > 0:
@@ -723,6 +773,10 @@ func _on_won() -> void:
 	if _finished_handled:
 		return
 	_finished_handled = true
+	if ledger:
+		App.data.current = {}
+		ledger.on_won()
+		return
 	var stars := ps.stars()
 	var secs := (Time.get_ticks_msec() - started_ms) / 1000
 	var summary := {"kind": kind, "level": level_id, "stars": stars, "moves": ps.state.moves,
@@ -785,6 +839,9 @@ func _celebrate() -> void:
 func _show_lost() -> void:
 	if not ps.is_lost():
 		return
+	if ledger:
+		_delay(App.dur(0.45), func(): if ps.is_lost(): ledger.on_lost())
+		return
 	if not _lost_reported:
 		_lost_reported = true
 		App.analytics.event("level_failed", {"level": level_id, "moves": ps.state.moves})
@@ -845,6 +902,8 @@ func _leave() -> void:
 		App.main.goto("daily")
 	elif kind == "bakery":
 		App.main.goto("bakery")
+	elif kind == "ledger":
+		App.main.goto("ledger")
 
 func on_back() -> bool:
 	_open_pause()
@@ -913,10 +972,14 @@ func _advance_coach() -> void:
 func persist() -> void:
 	if ps == null or ps.is_won() or kind == "rush":
 		return
-	App.data.current = {"kind": kind, "id": level_id, "date": date_key, "ch": challenge_id, "attempt": attempt, "session": ps.to_dict()}
+	App.data.current = {"kind": kind, "id": level_id, "date": date_key, "ch": challenge_id, "attempt": attempt,
+		"session": ps.to_dict(), "hash": def.content_hash()}
 	App.save_soon()
 
 func next_level() -> void:
+	if kind == "ledger":
+		ledger.next_page()
+		return
 	if kind == "bakery":
 		var bi := App.progression.bakery_index(level_id)
 		if bi + 1 < App.progression.bakery.size():

@@ -9,6 +9,9 @@ extends RefCounted
 ##   UNSOLVABLE - the entire reachable space was exhausted without a win.
 ##   TIMEOUT    - the node budget ran out; NOTHING is known. Never treat as pass/fail.
 
+## Bumped whenever search semantics change; recorded in expert puzzle proofs.
+const VERSION := "4.0-ledger"
+
 const SOLVED := "SOLVED"
 const UNSOLVABLE := "UNSOLVABLE"
 const TIMEOUT := "TIMEOUT"

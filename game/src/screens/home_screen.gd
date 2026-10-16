@@ -45,6 +45,12 @@ func setup(params: Dictionary) -> void:
 	if cur.get("kind", "") == "campaign" and cur.has("id") and App.progression.campaign_index(cur.id) >= 0:
 		play_id = cur.id
 		play_text = Loc.t("continue_level", [App.progression.campaign_index(cur.id) + 1])
+	if Ledger.is_open(App.data) and not bool(App.data.ledger.offer_seen):
+		# An early, optional invitation right after the bell lesson.
+		var lb := UI.button(Loc.t("ledger_try"), func(): App.main.goto("ledger"), "SecondaryButton", 80)
+		lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lb.custom_minimum_size = Vector2(0, 80)
+		root.add_child(lb)
 	if Bakery.is_unlocked(App.data):
 		# v3 second destination: a clear door next door, never a placeholder.
 		var bk := UI.button(Loc.t("bakery_go") + (" •" if Bakery.can_unlock(App.data) else ""), func(): App.main.goto("bakery"),

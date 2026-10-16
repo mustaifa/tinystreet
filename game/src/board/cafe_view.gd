@@ -106,6 +106,8 @@ func _scene() -> void:
 		_chalkboard(s)
 	if extras.has("breadbasket"):
 		_breadbasket(s)
+	if extras.has("lamp"):
+		_lamp()
 	_extras_back(s)
 	_seating(s)
 	_plants(s)
@@ -612,3 +614,15 @@ func _breadbasket(s: int) -> void:
 			var t := TAU * i / 16.0
 			pts.append(c + Vector2(-12 + k * 12, -12) + Vector2(cos(t) * 10, sin(t) * 6))
 		draw_colored_polygon(pts, Color("c8873f"))
+
+## The Midnight Ledger lantern (reward for stamping every expert page).
+func _lamp() -> void:
+	var c := Vector2(206, 112)
+	draw_line(Vector2(c.x, 72), c + Vector2(0, -16), Color("2f2a28"), 2)
+	_rect(c.x - 12, c.y - 16, 24, 6, Style.GOLD.darkened(0.2), 2)
+	_rect(c.x - 10, c.y - 10, 20, 26, Color("26365a"), 5)
+	var glow := 0.75 + (0.15 * sin(_t * 2.2) if not App.reduced_motion() else 0.0)
+	draw_circle(c + Vector2(0, 3), 7, Color(1, 0.86, 0.45, glow))
+	draw_circle(c + Vector2(3, 0), 6, Color("26365a"))   # crescent moon cut-out
+	draw_circle(c + Vector2(0, 3), 22, Color(1, 0.86, 0.45, 0.12))
+	_rect(c.x - 12, c.y + 16, 24, 4, Style.GOLD.darkened(0.2), 2)

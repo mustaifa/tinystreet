@@ -8,7 +8,7 @@ signal data_changed
 signal language_changed
 signal settings_changed
 
-const VERSION := "0.3.0"
+const VERSION := "0.4.0"
 
 var data: Dictionary = {}
 var store: SaveStore

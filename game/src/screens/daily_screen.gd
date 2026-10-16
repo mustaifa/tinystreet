@@ -14,6 +14,16 @@ func setup(_p: Dictionary) -> void:
 	root.add_child(UI.header(Loc.t("challenges"), func(): App.main.back()))
 	var v := UI.vbox(16)
 	root.add_child(UI.scroll(v))
+	# --- the Midnight Ledger (v4 expert mode)
+	var lg := UI.vbox(10)
+	lg.add_child(UI.label(Loc.t("ledger_title"), "TitleLabel"))
+	lg.add_child(UI.label(Loc.t("ledger_card"), "SoftLabel"))
+	if Ledger.is_open(App.data):
+		lg.add_child(UI.label(Loc.t("ledger_progress", [Ledger.done_count(App.data), Ledger.pages().size()]), ""))
+		lg.add_child(UI.button(Loc.t("ledger_enter"), func(): App.main.goto("ledger"), "", 96))
+	else:
+		lg.add_child(UI.label(Loc.t("ledger_locked", [App.progression.campaign_index(Ledger.UNLOCK_LEVEL) + 1]), "SoftLabel"))
+	v.add_child(UI.card(lg))
 	# --- challenge cards
 	_cards(v)
 	# --- daily

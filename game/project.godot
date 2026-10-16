@@ -6,7 +6,7 @@ config_version=5
 
 config/name="Tiny Street: Sort & Restore"
 config/description="Sort deliveries, complete orders, and restore a neighborhood café."
-config/version="0.3.0"
+config/version="0.4.0"
 run/main_scene="res://src/app/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/bg_color=Color(0.984, 0.957, 0.91, 1)

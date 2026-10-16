@@ -221,6 +221,8 @@ func _extras() -> void:
 		var sub := ""
 		if e.has("ach") and not owned:
 			sub = Loc.t("extra_from_ach", [Loc.t("ach_" + str(e.ach))])
+		elif e.has("special") and not owned and str(e.special) == "ledger":
+			sub = Loc.t("extra_from_ledger")
 		elif e.has("special") and not owned:
 			sub = Loc.t("extra_from_special", [App.progression.campaign_index(str(e.special)) + 1])
 		elif not owned and Restoration.steps(App.data) < int(e.step):

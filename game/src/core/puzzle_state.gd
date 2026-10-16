@@ -15,6 +15,8 @@ var completed: int = 0               # orders fully delivered
 var moves: int = 0
 var peak_counter: int = 0            # highest simultaneous counter occupancy reached
 var pin: int = -1                    # v3: tray whose bell is rung (served first), -1 = none
+var rings_used: int = 0              # v4: bell rings so far (counts against level.bell_budget)
+var violation := false               # v4: set only on simulation copies when a delivery breaks level.sequence
 
 static func create(def: LevelDef) -> PuzzleState:
 	var s := PuzzleState.new()
@@ -52,6 +54,7 @@ func copy() -> PuzzleState:
 	s.moves = moves
 	s.peak_counter = peak_counter
 	s.pin = pin
+	s.rings_used = rings_used
 	return s
 
 func front(crate: int) -> int:
@@ -93,4 +96,12 @@ func tray_stage_complete(tray: int) -> bool:
 
 ## Stable string key used by the solver's transposition table.
 func key() -> String:
-	return "%s|%s|%s|%s|%s|%d|%d" % [crate_pos, counter, tray_order, tray_stage, tray_fill, next_order, pin]
+	# Rings used only matter when the level has a bell budget. Leaving them
+	# out otherwise keeps unlimited-bell searches finite (ring cycles repeat
+	# the same key and are cut by the solver).
+	var rings := rings_used if level.bell_budget >= 0 else -1
+	return "%s|%s|%s|%s|%s|%d|%d|%d" % [crate_pos, counter, tray_order, tray_stage, tray_fill, next_order, pin, rings]
+
+## v4: has order o been delivered? (Arrived and left its tray.)
+func delivered(o: int) -> bool:
+	return o < next_order and not (o in tray_order)

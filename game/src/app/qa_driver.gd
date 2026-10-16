@@ -105,6 +105,8 @@ func _run() -> void:
 		await _slice()
 	elif scenario == "v3":
 		await _v3()
+	elif scenario == "ledger":
+		await _ledger()
 	print("QA: done ", scenario)
 	get_tree().quit()
 
@@ -538,6 +540,135 @@ func _v3() -> void:
 	App.main.goto("bakery", {}, false)
 	await _wait(0.5)
 	await shot("v3_bakery_done")
+
+## v4 Midnight Ledger through the real UI.
+func _ledger() -> void:
+	App.data.tutorial.done = {"tut_tap": true, "tut_counter": true, "tut_priority": true, "tut_fresh": true, "tut_bell": true}
+	App.data.story.seen = {"intro": true, "first_served": true}
+	Progression.record_win(App.data, "p01", 3)
+	App.main.goto("home", {}, false)
+	await _wait(0.4)
+	await shot("ledger_home_offer")
+	App.main.goto("daily", {}, false)
+	await _wait(0.4)
+	await shot("ledger_challenges_entry")
+	App.main.goto("ledger", {}, false)
+	await _wait(0.4)
+	await shot("ledger_list")
+	_expect(bool(App.data.ledger.offer_seen), "visiting the ledger retires the home invitation")
+	# --- e01: budget enforcement, then solve through input
+	App.main.goto("game", {"kind": "ledger", "id": "e01"}, false)
+	await _wait(0.5)
+	var g := game()
+	await shot("ledger_e01_start")
+	g.ledger.show_rules()
+	await _wait(0.3)
+	await shot("ledger_rules_card")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	var w: Array = g.def.meta.ledger.witness
+	for a in w:
+		await act(int(a))
+		await _wait(0.06)
+		if int(a) < 0:
+			# budget spent: another ring is refused with a message
+			await act(Rules.bell_action(0))
+			_expect(g.ps.state.rings_used == 1 and g.status_label.text == Loc.t("invalid_no_rings"), "bell budget enforced in the UI")
+	await _wait(1.4)
+	await shot("ledger_e01_won")
+	_expect(Ledger.is_done(App.data, "e01") and bool(App.data.ledger.nohint.get("e01", false)), "stamp + no-hint badge")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	_expect(Array(g.ps.moves_log) == Array(PackedInt32Array(g.def.meta.ledger.witness)), "played the reference route")
+	g.ledger._why()
+	await _wait(0.3)
+	await shot("ledger_why")
+	_expect(App.main.overlays.size() == 1, "why panel shown")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	# --- e02: sequence refusal, hints, wrong turn and recovery, redo
+	Ledger.record(App.data, "e01", 99, 1)
+	App.main.goto("game", {"kind": "ledger", "id": "e02"}, false)
+	await _wait(0.5)
+	g = game()
+	# crate 2's croissant would feed Mr. Basil's ticket (allowed), so find a tap the sequence refuses
+	var refused := -1
+	for c in g.def.crates.size():
+		if Rules.preview(g.ps.state, c).block == Rules.Block.SEQUENCE:
+			refused = c
+	if refused >= 0:
+		await tap_crate(refused)
+		_expect(g.ps.state.moves == 0 and g.status_label.text.begins_with(Loc.t("invalid_sequence", ["X"]).split("X")[0]), "sequence refusal explained")
+	g._on_hint()
+	await _wait(0.3)
+	await shot("ledger_hint1")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._show_stage(2)
+	await _wait(0.3)
+	await shot("ledger_hint2")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._show_stage(3)
+	await _wait(0.4)
+	await shot("ledger_hint3")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	_expect(g.hint_crate == int(g.def.meta.ledger.witness[0]), "stage 3 = the verified next move")
+	# a proven dead end: feed ticket 2 early (croissant from crate 2)
+	await tap_crate(1)
+	await _wait(0.2)
+	var st := LedgerAnalysis.status(g.ps.state)
+	_expect(st == Solver.UNSOLVABLE, "a wrong turn is proven unsolvable")
+	g.ledger._show_stage(3)
+	await _wait(1.5)
+	await shot("ledger_stuck_hint")
+	_expect(App.main.overlays.size() >= 1, "stuck position offers recovery")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._undo_n(g.ledger._witness_checkpoint())
+	_expect(g.ps.moves_log.size() == 0, "recovered to a point on the proven solution")
+	await tap_crate(int(g.def.meta.ledger.witness[0]))
+	g._on_undo()
+	g._on_redo()
+	_expect(g.ps.moves_log.size() == 1, "redo re-applies")
+	# --- resume: leave and come back
+	g.persist()
+	App.main.goto("ledger", {}, false)
+	await _wait(0.3)
+	App.main.goto("game", {"kind": "ledger", "id": "e02"}, false)
+	await _wait(0.4)
+	_expect(game().ps.moves_log.size() == 1, "resume restores the attempt")
+	# a changed page (hash mismatch) is not resumed
+	App.main.goto("ledger", {}, false)
+	await _wait(0.2)
+	App.data.current.hash = "stale"
+	App.main.goto("game", {"kind": "ledger", "id": "e02"}, false)
+	await _wait(0.4)
+	_expect(game().ps.moves_log.size() == 0, "stale saved attempt is set aside")
+	# --- final page and collection lantern
+	for p in Ledger.pages():
+		if p.id != "e13":
+			Ledger.record(App.data, p.id, 99, 1)
+	App.main.goto("game", {"kind": "ledger", "id": "e13"}, false)
+	await _wait(0.5)
+	g = game()
+	await shot("ledger_final_start")
+	for a in g.def.meta.ledger.witness:
+		await act(int(a))
+		await _wait(0.05)
+	await _wait(1.4)
+	await shot("ledger_final_won")
+	_expect(Restoration.owns_extra(App.data, "lamp"), "lantern for the full collection")
+	var tok := int(App.data.tokens)
+	g._on_restart()
+	_expect(int(App.data.tokens) == tok, "restart grants nothing")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	App.data.restoration.steps = 8
+	App.main.goto("home", {}, false)
+	await _wait(0.5)
+	await shot("ledger_lantern_cafe")
 
 func _drag(from: Vector2, to: Vector2) -> void:
 	var tf := get_tree().root.get_final_transform()

@@ -11,6 +11,8 @@ extends RefCounted
 ##   "?coffee"  BAG:   wrapped; its product is hidden until it reaches the front.
 ## Optional "locks": [n0, n1, ...] per crate: the crate stays strapped shut
 ## until n orders have been delivered (0 = open from the start).
+## Optional "bell": false disables the priority bell (v3) for this level; the
+## bell is allowed by default. Only the first tutorials turn it off.
 
 const FRESH := 1
 const BAG := 2
@@ -19,6 +21,7 @@ var id: String = ""
 var crates: Array = []          # Array[PackedInt32Array]
 var flags: Array = []           # Array[PackedInt32Array], parallel to crates (FRESH | BAG)
 var locks: PackedInt32Array = PackedInt32Array()  # per crate: deliveries needed to open
+var allow_bell := true          # v3: the player may ring a ticket's bell
 var counter_slots: int = 4
 var trays: int = 2
 var orders: Array = []          # Array[Array[PackedInt32Array]]
@@ -56,6 +59,7 @@ static func from_dict(d: Dictionary) -> LevelDef:
 					need.append(-999) # poison: validator reports unknown product
 			stages.append(need)
 		L.orders.append(stages)
+	L.allow_bell = bool(d.get("bell", true))
 	L.meta = d.get("meta", {})
 	return L
 
@@ -99,7 +103,29 @@ func to_dict() -> Dictionary:
 	var out := {"id": id, "counter": counter_slots, "trays": trays, "crates": cr, "orders": od, "meta": meta}
 	if has_locks():
 		out["locks"] = Array(locks)
+	if not allow_bell:
+		out["bell"] = false
 	return out
+
+## Same level with the bell disabled (used to measure what the bell adds).
+func without_bell() -> LevelDef:
+	var L := LevelDef.new()
+	L.id = id
+	L.crates = crates
+	L.flags = flags
+	L.locks = locks
+	L.counter_slots = counter_slots
+	L.trays = trays
+	L.orders = orders
+	L.meta = meta
+	L.allow_bell = false
+	return L
+
+func max_stages() -> int:
+	var n := 0
+	for o in orders:
+		n = maxi(n, o.size())
+	return n
 
 func total_items() -> int:
 	var n := 0
@@ -127,7 +153,8 @@ func count_flag(f: int) -> int:
 				n += 1
 	return n
 
-## Mechanics this level uses: any of "fresh", "bag", "lock", "two_stage".
+## Mechanics this level uses: any of "fresh", "bag", "lock", "two_stage"
+## (an order in 2 parts), "special" (a 3-part special order).
 func mechanics() -> Array:
 	var m: Array = []
 	if count_flag(FRESH) > 0:
@@ -136,6 +163,10 @@ func mechanics() -> Array:
 		m.append("bag")
 	if has_locks():
 		m.append("lock")
-	if has_two_stage():
-		m.append("two_stage")
+	for o in orders:
+		if o.size() == 2:
+			m.append("two_stage")
+			break
+	if max_stages() >= 3:
+		m.append("special")
 	return m

@@ -11,10 +11,13 @@ const TUTORIAL_STEPS := {
 	"tut_bag": ["tut_bag_1", "tut_bag_2"],
 	"tut_lock": ["tut_lock_1", "tut_lock_2"],
 	"tut_two_stage": ["tut_two_stage_1", "tut_two_stage_2"],
+	"tut_bell": ["tut_bell_1", "tut_bell_2", "tut_bell_3"],
+	"tut_oven": ["tut_oven_1", "tut_oven_2"],
 }
 const STREAK_WORDS := {3: "streak_3", 5: "streak_5", 8: "streak_8", 12: "streak_12"}
 
-var kind := "campaign"          # "campaign" | "daily" | "rush"
+var kind := "campaign"          # "campaign" | "daily" | "rush" | "challenge"
+var challenge_id := ""          # v3 challenge card being played
 var level_id := ""
 var date_key := ""
 var def: LevelDef
@@ -22,6 +25,7 @@ var ps: PuzzleSession
 var attempt := 0
 var started_ms := 0
 var hint_crate := -1
+var hint_bell := -1             # ticket the hint/coach says to ring
 var free_hints := 1
 var streak := 0
 var best_streak := 0
@@ -55,13 +59,15 @@ func setup(params: Dictionary) -> void:
 	kind = params.get("kind", "campaign")
 	level_id = params.get("id", "")
 	date_key = params.get("date", "")
+	challenge_id = str(params.get("challenge", ""))
 	def = App.progression.def_for(level_id)
 	if def == null or (kind == "rush" and App.rush == null):
 		App.main.goto("home", {}, false)
 		return
 	_build()
 	var cur: Dictionary = App.data.current
-	if kind != "rush" and cur.get("id", "") == level_id and cur.get("kind", "") == kind and cur.has("session"):
+	if kind != "rush" and cur.get("id", "") == level_id and cur.get("kind", "") == kind and cur.has("session") \
+			and str(cur.get("ch", "")) == challenge_id:
 		ps = PuzzleSession.restore(def, cur.session)
 		attempt = int(cur.get("attempt", 1))
 	if ps == null:
@@ -132,6 +138,7 @@ func _build() -> void:
 		oc.tray = t
 		oc.custom_minimum_size = Vector2(0, card_h)
 		oc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		oc.tapped.connect(_on_ticket)
 		orders_row.add_child(oc)
 		order_cards.append(oc)
 	root.add_child(orders_row)
@@ -165,6 +172,7 @@ func _build() -> void:
 		cv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cv.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		cv.custom_minimum_size = Vector2(0, 220)
+		cv.oven = def.id.begins_with("m")
 		cv.pressed_down.connect(_on_crate_down)
 		cv.released.connect(_on_crate_up)
 		cv.dragged.connect(_on_crate_drag)
@@ -207,11 +215,17 @@ func _title() -> String:
 	match kind:
 		"daily": return Loc.t("daily_title")
 		"rush": return Loc.t("rush_title_n", [App.rush.index + 1 if App.rush else 1, RushRun.LENGTH])
+		"challenge": return Loc.t("challenge_n", [int(challenge_id.substr(2))])
+		"bakery": return Loc.t("bakery_level_n", [App.progression.bakery_index(level_id) + 1])
 	return Loc.t("level_n", [App.progression.campaign_index(level_id) + 1])
 
 func _subtitle() -> String:
 	if kind == "rush" and App.rush:
 		return RushRun.fmt_time(int(App.rush.elapsed_ms))
+	if kind == "challenge":
+		return Challenges.goal_text(Challenges.def(challenge_id), def)
+	if kind == "bakery":
+		return Loc.t("bakery_title")
 	if kind != "campaign":
 		return ""
 	var ch := App.progression.chapter_of(App.progression.campaign_index(level_id))
@@ -244,8 +258,12 @@ func _refresh() -> void:
 		oc.mood = 2
 		oc.in_flight = {}
 		oc.highlight = false
-		oc.hint_glow = false
-	var coach_target := _coach_target()
+		oc.special = Specials.is_special_order(def, o)
+		oc.set_bell(Rules.can_ring(s, t), s.pin == t)
+	var coach_action := _coach_action()
+	var coach_target := coach_action if coach_action >= 0 else -1
+	for t in order_cards.size():
+		order_cards[t].hint_glow = (t == hint_bell) or (coach_action < 0 and Rules.action_tray(coach_action) == t and coach_action != _NO_ACTION)
 	for i in crate_views.size():
 		var cv: CrateView = crate_views[i]
 		var c: PackedInt32Array = def.crates[i]
@@ -281,6 +299,26 @@ func _badge_for(i: int) -> Dictionary:
 	return {}
 
 # --------------------------------------------------------------------- input
+
+## Ringing a ticket's bell: that customer is served first. A free action
+## (not a move), undoable, and the crate badges update at once so the player
+## sees the consequence before tapping anything.
+func _on_ticket(t: int) -> void:
+	_finish_effects()
+	if ps.is_won():
+		return
+	var ev := ps.ring(t)
+	if ev.is_empty():
+		return
+	hint_crate = -1
+	hint_bell = -1
+	App.audio.play("bell", 1.0 if ps.state.pin == t else 0.85)
+	App.haptic(10)
+	status_label.set_meta("sticky", false)
+	_refresh()
+	order_cards[t].wiggle()
+	_advance_coach()
+	persist()
 
 func _on_crate_down(i: int) -> void:
 	_finish_effects()
@@ -354,6 +392,7 @@ func tap(i: int) -> void:
 		return
 	status_label.set_meta("sticky", false)
 	hint_crate = -1
+	hint_bell = -1
 	App.haptic(12)
 	_track_streak(ev, i)
 	_refresh()
@@ -453,6 +492,10 @@ func _animate(before: PuzzleState, ev: Array) -> void:
 					App.audio.play("bag")
 					_pop(cv)
 					_fx_nodes.append(Fx.burst(fx_layer, cv.front_global_center(), "sparkle", [Color("c9a26b"), Style.GOLD])))
+			Rules.EV_BELL:
+				if not e.on:
+					var oc5: OrderCard = order_cards[e.tray]
+					_delay(t + fly, func(): oc5.wiggle())
 			Rules.EV_UNLOCK:
 				var cv2: CrateView = crate_views[e.crate]
 				_delay(t + fly + App.dur(0.15), func():
@@ -580,6 +623,7 @@ func _on_undo() -> void:
 		App.audio.play("undo")
 		App.analytics.event("undo", {"level": level_id})
 		hint_crate = -1
+		hint_bell = -1
 		streak = 0
 		status_label.set_meta("sticky", false)
 		_refresh()
@@ -623,7 +667,7 @@ func _run_hint(free: bool) -> void:
 		var back := -1
 		if r.status == Solver.UNSOLVABLE:
 			back = _undos_needed(hist)
-		_hint_done.call_deferred(r.status, r.path[0] if r.path.size() > 0 else -1, back, snapshot.key())
+		_hint_done.call_deferred(r.status, r.path[0] if r.path.size() > 0 else _NO_ACTION, back, snapshot.key())
 	_hint_task = WorkerThreadPool.add_task(task)
 
 ## Never free the screen (or quit) while a hint solve is still running on the
@@ -640,7 +684,8 @@ static func _undos_needed(hist: Array) -> int:
 			return back
 	return -1
 
-func _hint_done(status: String, crate: int, back: int, key: String) -> void:
+## `action` is the solver's next action: a crate (>= 0) or a bell ring (< 0).
+func _hint_done(status: String, action: int, back: int, key: String) -> void:
 	_hint_thread_busy = false
 	if _hint_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_hint_task)
@@ -651,11 +696,17 @@ func _hint_done(status: String, crate: int, back: int, key: String) -> void:
 		return
 	match status:
 		Solver.SOLVED:
-			hint_crate = crate
-			var pv := Rules.preview(ps.state, crate)
-			status_label.text = Loc.t("hint_tap_glow")
-			if pv.dest == Rules.Dest.TRAY:
-				order_cards[pv.tray].hint_glow = true
+			if action < 0 and action != _NO_ACTION:
+				hint_bell = Rules.action_tray(action)
+				order_cards[hint_bell].hint_glow = true
+				order_cards[hint_bell].queue_redraw()
+				status_label.text = Loc.t("hint_ring", [hint_bell + 1])
+			else:
+				hint_crate = action
+				var pv := Rules.preview(ps.state, action)
+				status_label.text = Loc.t("hint_tap_glow")
+				if pv.dest == Rules.Dest.TRAY:
+					order_cards[pv.tray].hint_glow = true
 		Solver.UNSOLVABLE:
 			status_label.text = Loc.t("hint_stuck_undo", [back]) if back > 0 else Loc.t("hint_stuck_restart")
 		_:
@@ -679,8 +730,14 @@ func _on_won() -> void:
 		"peak": ps.state.peak_counter}
 	var res := {}
 	match kind:
-		"campaign":
+		"campaign", "bakery":
 			res = Progression.record_win(App.data, level_id, stars)
+			res.merge(Progression.record_mastery(App.data, def, ps.state.peak_counter, ps.hints_used))
+			res["special"] = Specials.on_win(App.data, def)
+		"challenge":
+			var c := Challenges.def(challenge_id)
+			res = Challenges.record(App.data, challenge_id,
+				Challenges.goal_met(c, def, stars, ps.hints_used, ps.undo_count, ps.state.peak_counter))
 		"daily":
 			res = {"first_daily": Progression.record_daily(App.data, date_key, stars, ps.state.moves)}
 			if res.first_daily:
@@ -702,7 +759,18 @@ func _on_won() -> void:
 		_delay(App.dur(0.9), func(): App.on_rush_win())
 		return
 	var d := WinPanel.create(self, kind, stars, res, ps)
-	_delay(App.dur(1.0), func(): App.main.show_overlay(d))
+	# A short story beat (shown once) comes before the card: the very first
+	# customer served, or a special order solved.
+	var beat := ""
+	if kind == "campaign" and bool(res.get("special", {}).get("new", false)):
+		beat = "special:" + level_id
+	elif kind == "campaign" and int(App.data.stats.wins) == 1:
+		beat = "first_served"
+	_delay(App.dur(1.0), func():
+		if beat != "" and Story.has_beat(beat) and not Story.seen(App.data, beat):
+			Story.play(beat, func(): App.main.show_overlay(d))
+		else:
+			App.main.show_overlay(d))
 
 ## Finish sequence: every ticket cheers, confetti falls, then the card.
 func _celebrate() -> void:
@@ -755,7 +823,7 @@ func _open_pause() -> void:
 	_pressed_crate = -1
 	var info := UI.label(Loc.t("star_rules", [Scoring.par_counter(def)]), "SoftLabel")
 	info.custom_minimum_size = Vector2(540, 0)
-	var leave_text := Loc.t("quit_to_map") if kind == "campaign" else Loc.t("quit_to_home")
+	var leave_text := Loc.t("quit_to_map") if kind == "campaign" else (Loc.t("bakery_title") if kind == "bakery" else Loc.t("quit_to_home"))
 	var d := Dialog.make(Loc.t("paused"), "", [
 		[Loc.t("resume"), func(): pass, ""],
 		[Loc.t("restart"), _on_restart, "SecondaryButton"],
@@ -773,6 +841,10 @@ func _leave() -> void:
 	elif kind == "rush":
 		App.rush = null
 		App.main.goto("daily")
+	elif kind == "challenge":
+		App.main.goto("daily")
+	elif kind == "bakery":
+		App.main.goto("bakery")
 
 func on_back() -> bool:
 	_open_pause()
@@ -786,11 +858,19 @@ func _tut_key() -> String:
 	var k := str(def.meta.get("tutorial", ""))
 	return k if k != "" and not App.data.tutorial.done.has(k) else ""
 
-func _coach_target() -> int:
+const _NO_ACTION := -1000
+
+## Next action of a solution from here, for the tutorial coach: a crate to
+## glow (>= 0), a ticket to ring (< 0), or _NO_ACTION.
+func _coach_action() -> int:
 	if _tut_key() == "" or ps == null or ps.is_won():
-		return -1
-	var r := Solver.new(2000).solve(ps.state)
-	return r.path[0] if r.status == Solver.SOLVED and r.path.size() > 0 else -1
+		return _NO_ACTION
+	var r := Solver.new(4000).solve(ps.state)
+	return r.path[0] if r.status == Solver.SOLVED and r.path.size() > 0 else _NO_ACTION
+
+func _coach_target() -> int:
+	var a := _coach_action()
+	return a if a >= 0 else -1
 
 func _update_coach() -> void:
 	var k := _tut_key()
@@ -804,26 +884,47 @@ func _update_coach() -> void:
 		return
 	_coach_step = mini(ps.state.moves, steps.size() - 1)
 	coach_label.text = Loc.t(steps[_coach_step])
+	if k == "tut_bell":
+		# The bell lesson follows the solution: explain the ring exactly when
+		# it is the next right action, and what it did right after.
+		var a := _coach_action()
+		if a < 0 and a != _NO_ACTION:
+			coach_label.text = Loc.t("tut_bell_2", [Rules.action_tray(a) + 1])
+		elif ps.state.pin >= 0:
+			coach_label.text = Loc.t("tut_bell_3")
+		else:
+			coach_label.text = Loc.t("tut_bell_1")
 	coach.visible = true
 	status_label.visible = false
 
 func _advance_coach() -> void:
 	if _tut_key() != "":
 		_update_coach()
-	var ct := _coach_target()
+	var ca := _coach_action()
 	for cv in crate_views:
-		cv.highlight = cv.index == ct or cv.index == hint_crate
+		cv.highlight = cv.index == ca or cv.index == hint_crate
 		cv.queue_redraw()
+	for t in order_cards.size():
+		order_cards[t].hint_glow = t == hint_bell or (ca < 0 and ca != _NO_ACTION and Rules.action_tray(ca) == t)
+		order_cards[t].queue_redraw()
 
 # --------------------------------------------------------------------- persistence
 
 func persist() -> void:
 	if ps == null or ps.is_won() or kind == "rush":
 		return
-	App.data.current = {"kind": kind, "id": level_id, "date": date_key, "attempt": attempt, "session": ps.to_dict()}
+	App.data.current = {"kind": kind, "id": level_id, "date": date_key, "ch": challenge_id, "attempt": attempt, "session": ps.to_dict()}
 	App.save_soon()
 
 func next_level() -> void:
+	if kind == "bakery":
+		var bi := App.progression.bakery_index(level_id)
+		if bi + 1 < App.progression.bakery.size():
+			App.main.replace("game", {"kind": "bakery", "id": App.progression.bakery[bi + 1].id})
+		else:
+			App.main.goto("home", {}, false)
+			App.main.goto("bakery")
+		return
 	var i := App.progression.campaign_index(level_id)
 	if i + 1 < App.progression.campaign.size():
 		App.main.replace("game", {"kind": "campaign", "id": App.progression.campaign[i + 1].id})
@@ -831,7 +932,7 @@ func next_level() -> void:
 		App.main.goto("home", {"finale": true}, false)
 
 func replay() -> void:
-	App.main.replace("game", {"kind": kind, "id": level_id, "date": date_key})
+	App.main.replace("game", {"kind": kind, "id": level_id, "date": date_key, "challenge": challenge_id})
 
 ## Orders delivered so far as a segmented bar, with the next customers queued.
 class _ProgressBar extends Control:

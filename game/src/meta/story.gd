@@ -17,6 +17,14 @@ const BEATS := {
 	"lvl:c031": [["basil", "st_two_1"]],
 	"lvl:k01": [["basil", "st_lock_1"], ["theo", "st_lock_2"]],
 	"lvl:c053": [["mira", "st_ch6_1"], ["theo", "st_ch6_2"]],
+	"first_served": [["mira", "st_first_served"]],
+	"lvl:p01": [["theo", "st_bell_1"], ["mira", "st_bell_2"]],
+	"lvl:p06": [["theo", "st_p06_intro"]],
+	"special:p06": [["theo", "st_p06_done"], ["mira", "st_p06_done_2"]],
+	"lvl:p12": [["mira", "st_p12_intro"]],
+	"special:p12": [["mira", "st_p12_done"], ["basil", "st_p12_done_2"], ["mira", "st_p12_done_3"]],
+	"bakery_open": [["mira", "st_bakery_open"], ["mira", "st_bakery_open_2"]],
+	"special:m08": [["basil", "st_m08_done"], ["mira", "st_m08_done_2"]],
 	"step:clean": [["mira", "st_step_clean"]],
 	"step:walls": [["theo", "st_step_walls"]],
 	"step:floor": [["basil", "st_step_floor"]],
@@ -28,7 +36,8 @@ const BEATS := {
 }
 
 ## Order for the Journal's "replay story" list.
-const JOURNAL := ["intro", "lvl:c004", "step:clean", "lvl:f01", "step:walls", "lvl:c008", "step:floor",
+const JOURNAL := ["intro", "first_served", "lvl:c004", "step:clean", "lvl:f01", "lvl:p01", "lvl:p06", "special:p06",
+	"step:walls", "lvl:p12", "special:p12", "bakery_open", "special:m08", "lvl:c008", "step:floor",
 	"lvl:c016", "step:counter", "lvl:b01", "step:lights", "lvl:c031", "step:seating", "lvl:k01",
 	"step:plants", "lvl:c053", "step:opening"]
 

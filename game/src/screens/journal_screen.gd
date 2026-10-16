@@ -155,7 +155,8 @@ func _progress() -> void:
 			owned += 1
 	cafe.add_child(UI.label(Loc.t("extras_progress", [owned, Restoration.EXTRAS.size()]), "", _al()))
 	cafe.add_child(UI.label(Loc.t("ach_count", [Achievements.unlocked_ids(App.data).size(), Achievements.LIST.size()]), "", _al()))
-	cafe.add_child(UI.label(Loc.t("daily_streak", [Progression.daily_streak(App.data, Progression.today_key())]), "", _al()))
+	cafe.add_child(UI.label(Loc.t("daily_days", [App.data.daily.completed.size()]), "", _al()))
+	cafe.add_child(UI.label(Loc.t("challenge_intro", [Challenges.done_count(App.data), Challenges.LIST.size()]), "", _al()))
 	var best := int(App.data.stats.rush_best_ms)
 	if best > 0:
 		cafe.add_child(UI.label(Loc.t("rush_best", [RushRun.fmt_time(best)]), "", _al()))

@@ -22,6 +22,15 @@ extends RefCounted
 ##     the front item. Routing is unchanged (the rules always know contents).
 ##   LOCKED crate: illegal to tap until `completed >= locks[crate]`. The crate
 ##     opens during resolution, the moment the required delivery happens.
+##   BELL (v3, on unless the level says "bell": false): the player may ring
+##     one ticket's bell (a free action, not a move). While rung, that ticket
+##     takes priority over the leftmost rule in step 1 and resolution b.
+##     Ringing another ticket moves the bell; ringing the same one clears it;
+##     delivering that order clears it. The bell never makes an illegal tap
+##     legal (it only chooses between tickets that both need the item), so it
+##     doesn't change win/loss detection.
+##
+## ACTIONS: an int >= 0 taps that crate; an int < 0 rings tray (-a - 1).
 
 enum Dest { NONE, TRAY, COUNTER }
 ## Why a tap is illegal (for feedback). NONE when the tap is legal.
@@ -36,6 +45,27 @@ const EV_DELIVER := "order_complete"    # {tray, order}
 const EV_ARRIVE := "order_arrive"       # {tray, order}
 const EV_REVEAL := "reveal"             # {crate, product} a bagged item became the front
 const EV_UNLOCK := "crate_unlock"       # {crate}
+const EV_BELL := "bell"                 # {tray, on}
+
+static func bell_action(tray: int) -> int:
+	return -tray - 1
+
+static func action_tray(a: int) -> int:
+	return -a - 1 if a < 0 else -1
+
+## Applies a crate tap (a >= 0) or a bell ring (a < 0). [] if illegal.
+static func apply_action(s: PuzzleState, a: int) -> Array:
+	return apply_move(s, a) if a >= 0 else ring(s, action_tray(a))
+
+static func can_ring(s: PuzzleState, tray: int) -> bool:
+	return s.level.allow_bell and tray >= 0 and tray < s.tray_order.size() and s.tray_order[tray] >= 0
+
+## Rings (or clears) a ticket's bell. Not a move: `moves` doesn't change.
+static func ring(s: PuzzleState, tray: int) -> Array:
+	if not can_ring(s, tray):
+		return []
+	s.pin = -1 if s.pin == tray else tray
+	return [{"type": EV_BELL, "tray": tray, "on": s.pin == tray}]
 
 ## Which tray (or counter) a tap on `crate` would send its product to.
 ## Returns {dest: Dest, tray: int, slot: int, product: int, block: Block, fresh: bool}.
@@ -90,6 +120,8 @@ static func visible_product(s: PuzzleState, crate: int, k: int) -> int:
 	return c[k]
 
 static func first_tray_needing(s: PuzzleState, p: int) -> int:
+	if s.pin >= 0 and s.tray_needs(s.pin, p) > 0:
+		return s.pin
 	for t in s.tray_order.size():
 		if s.tray_needs(t, p) > 0:
 			return t
@@ -155,6 +187,9 @@ static func resolve(s: PuzzleState, events: Array) -> void:
 					s.tray_stage[t] = 0
 					s.tray_order[t] = -1
 					events.append({"type": EV_DELIVER, "tray": t, "order": o})
+					if s.pin == t:
+						s.pin = -1
+						events.append({"type": EV_BELL, "tray": t, "on": false})
 					for c in s.level.locks.size():
 						if s.level.locks[c] == s.completed:
 							events.append({"type": EV_UNLOCK, "crate": c})

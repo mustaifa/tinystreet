@@ -1,5 +1,7 @@
 class_name OrderCard
 extends Control
+
+signal tapped(tray: int)
 ## One customer order ticket. Shows who ordered (portrait), the current
 ## stage's requirements with fill pips, and the SECOND stage (if any) in
 ## advance, marked "then".
@@ -15,10 +17,56 @@ var hint_glow := false
 var show_number := true
 var customer := ""
 var mood := 2                   # CharacterArt mood: waiting until served
+var bell_allowed := false       # v3: tap the ticket to ring its bell
+var bell_on := false            # this customer is served first
+var special := false            # 3-part special order (gold frame + banner)
+var _wiggle := 0.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
+
+func set_bell(allowed: bool, on: bool) -> void:
+	bell_allowed = allowed
+	bell_on = on
+	mouse_filter = Control.MOUSE_FILTER_STOP if allowed else Control.MOUSE_FILTER_IGNORE
+	queue_redraw()
+
+func wiggle() -> void:
+	if App.reduced_motion():
+		return
+	var tw := create_tween()
+	tw.tween_method(func(v): _wiggle = v; queue_redraw(), 1.0, 0.0, 0.5)
+
+func _gui_input(e: InputEvent) -> void:
+	if bell_allowed and e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
+		if Rect2(Vector2.ZERO, size).has_point(e.position):
+			tapped.emit(tray)
+			accept_event()
+	elif bell_allowed and e is InputEventMouseButton and e.pressed:
+		accept_event()
+
+func bell_center() -> Vector2:
+	return Vector2(96, 32) if Loc.is_rtl() else Vector2(size.x - 96, 32)
+
+## Bell drawn as a shape (dome, rim, clapper), filled when rung, outlined
+## when not, so the state never depends on colour alone.
+static func draw_bell(ci: CanvasItem, c: Vector2, r: float, on: bool, wig: float = 0.0) -> void:
+	var col := Style.GOLD.darkened(0.15) if on else Style.INK_SOFT
+	var ang := sin(wig * 18.0) * 0.35 * wig
+	var pts := PackedVector2Array()
+	for i in 13:
+		var t := PI + PI * i / 12.0
+		pts.append(c + Vector2(cos(t) * r * 0.8, sin(t) * r * 0.95 + r * 0.25).rotated(ang))
+	pts.append(c + Vector2(r, r * 0.45).rotated(ang))
+	pts.append(c + Vector2(-r, r * 0.45).rotated(ang))
+	if on:
+		ci.draw_colored_polygon(pts, Style.GOLD)
+	var closed := pts.duplicate()
+	closed.append(pts[0])
+	ci.draw_polyline(closed, col, maxf(2.0, r * 0.14), true)
+	ci.draw_circle(c + Vector2(0, r * 0.62).rotated(ang), r * 0.18, col)
+	ci.draw_circle(c + Vector2(0, -r * 0.78).rotated(ang), r * 0.13, col)
 
 func set_order(o: int, st: Array, stg: int, f: PackedInt32Array) -> void:
 	order = o
@@ -71,8 +119,17 @@ func _draw() -> void:
 	var f := Style.font_bold
 	var rtl := Loc.is_rtl()
 	# ticket header strip with a perforated edge
+	if special and order >= 0:
+		var sp := StyleBoxFlat.new()
+		sp.bg_color = Color.TRANSPARENT
+		sp.border_color = Style.GOLD
+		sp.set_border_width_all(5)
+		sp.set_corner_radius_all(22)
+		draw_style_box(sp, rect)
 	var head := StyleBoxFlat.new()
 	head.bg_color = Color(Style.TEAL_SOFT, 0.75) if order >= 0 else Color(Style.CREAM_DEEP, 0.6)
+	if bell_on and order >= 0:
+		head.bg_color = Color("f6dd9c")
 	head.corner_radius_top_left = 22
 	head.corner_radius_top_right = 22
 	draw_style_box(head, Rect2(Vector2(4, 4), Vector2(size.x - 8, 60)))
@@ -88,9 +145,16 @@ func _draw() -> void:
 	var cpos := Vector2(40, 32) if rtl else Vector2(size.x - 40, 32)
 	draw_circle(cpos, 30, Style.PAPER)
 	CharacterArt.draw(self, customer, cpos + Vector2(0, 2), 58, mood)
+	if bell_allowed:
+		var bc := bell_center()
+		draw_circle(bc, 22, Style.PAPER if not bell_on else Color("fff3d0"))
+		draw_bell(self, bc, 15, bell_on, _wiggle)
+	if special:
+		draw_string(Style.font_bold, Vector2(0, size.y - 14), Loc.t("special_tag"), HORIZONTAL_ALIGNMENT_CENTER, size.x, Style.fs(18), Style.WOOD_DARK)
 	if stages.size() > 1:
 		var lbl := "%d/%d" % [stage + 1, stages.size()]
-		draw_string(Style.font_regular, Vector2(0, 46), lbl, HORIZONTAL_ALIGNMENT_CENTER, size.x, Style.fs(22), Style.INK_SOFT)
+		var lx := 58.0 if not rtl else size.x - 58.0 - 40
+		draw_string(Style.font_regular, Vector2(lx, 42), lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22), Style.INK_SOFT)
 	# current stage rows
 	var req: PackedInt32Array = stages[stage]
 	var rows := _rows(req)

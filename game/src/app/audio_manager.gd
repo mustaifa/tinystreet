@@ -3,7 +3,7 @@ extends Node
 ## Separate Music and SFX buses with independent volume settings.
 
 const SFX := ["tap", "place", "counter", "invalid", "stage", "deliver", "win", "star",
-	"lose", "restore", "undo", "warn", "combo", "coin", "bag", "unlock"]
+	"lose", "restore", "undo", "warn", "combo", "coin", "bag", "unlock", "bell"]
 
 var _streams := {}
 var _pool: Array[AudioStreamPlayer] = []

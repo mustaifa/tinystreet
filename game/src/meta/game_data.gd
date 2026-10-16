@@ -8,7 +8,7 @@ static func fresh() -> Dictionary:
 		"settings": {"music": 0.6, "sfx": 0.9, "haptics": true, "reduced_motion": false,
 			"lang": "", "large_text": false},
 		"tutorial": {"done": {}},
-		"campaign": {"stars": {}, "cleared": {}},
+		"campaign": {"stars": {}, "cleared": {}, "mastery": {}},
 		"tokens": 0,
 		"tokens_earned": 0,
 		"grants": {},
@@ -26,6 +26,9 @@ static func fresh() -> Dictionary:
 		"tasks": {"date": "", "list": [], "base": {}},
 		"achievements": {"announced": {}},
 		"story": {"seen": {}},
+		"bakery": {"unlocked": false, "steps": 0, "choices": {}},
+		"challenges": {"done": {}},
+		"daily_days": 0,
 	}
 
 static func sanitize(d: Dictionary) -> Dictionary:

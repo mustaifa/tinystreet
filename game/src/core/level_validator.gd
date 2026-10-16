@@ -10,7 +10,7 @@ const UNVERIFIED := "UNVERIFIED"
 const LIMITS := {
 	"crates_min": 2, "crates_max": 7, "crate_depth_max": 7,
 	"counter_min": 1, "counter_max": 6, "trays_min": 1, "trays_max": 3,
-	"stage_items_max": 6, "stages_max": 2,
+	"stage_items_max": 6, "stages_max": 3,
 }
 
 ## Structural checks on the raw dictionary (before parsing).
@@ -42,6 +42,8 @@ static func schema_errors(d: Dictionary) -> Array:
 				e.append("unknown product '%s'" % p)
 	if d.orders.is_empty():
 		e.append("no orders")
+	if d.has("bell") and typeof(d.get("bell")) != TYPE_BOOL:
+		e.append("bell must be true or false")
 	if d.has("locks"):
 		var lk = d.get("locks")
 		if typeof(lk) != TYPE_ARRAY or lk.size() != nc:
@@ -158,15 +160,39 @@ static func metrics(def: LevelDef, budget: int = 300000, playouts: int = 200) ->
 	m.merge(mech)
 	return m
 
+## What the bell adds to a level, proven by search (not structure):
+##   "required"  no solution exists without the bell, one exists with it
+##   "tidier"    the bell lowers the minimum counter needed
+##   "optional"  the bell changes nothing provable
+##   "unknown"   a probe timed out
+static func bell_value(def: LevelDef, budget: int = 150000) -> String:
+	if not def.allow_bell:
+		return "optional"
+	var nb := def.without_bell()
+	var r := Solver.new(budget).solve(PuzzleState.create(nb))
+	if r.status == Solver.TIMEOUT:
+		return "unknown"
+	if r.status == Solver.UNSOLVABLE:
+		return "required"
+	var with_b := Solver.min_counter_needed(def, budget)
+	var without_b := Solver.min_counter_needed(nb, budget)
+	if with_b < 0 or without_b < 0:
+		return "unknown"
+	return "tidier" if with_b < without_b else "optional"
+
 ## How much a winning line actually exercises each mechanic. Counted along the
 ## solver's solution: positions where a fresh front item was blocked (the
 ## player had to wait for an order), moves made while a crate was still
 ## locked, and bagged items revealed. A mechanic level whose solution never
 ## touches its mechanic is decorative; the generator rejects those.
 static func mechanic_engagement(def: LevelDef, path: PackedInt32Array) -> Dictionary:
-	var out := {"fresh_waits": 0, "lock_moves": 0, "reveals": 0}
+	var out := {"fresh_waits": 0, "lock_moves": 0, "reveals": 0, "bell_rings": 0}
 	var s := PuzzleState.create(def)
 	for c in path:
+		if c < 0:
+			out.bell_rings += 1
+			Rules.apply_action(s, c)
+			continue
 		for k in s.crate_pos.size():
 			if Rules.preview(s, k).block == Rules.Block.FRESH:
 				out.fresh_waits += 1
@@ -175,7 +201,7 @@ static func mechanic_engagement(def: LevelDef, path: PackedInt32Array) -> Dictio
 			if Rules.is_locked(s, k):
 				out.lock_moves += 1
 				break
-		for e in Rules.apply_move(s, c):
+		for e in Rules.apply_action(s, c):
 			if e.type == Rules.EV_REVEAL:
 				out.reveals += 1
 	return out

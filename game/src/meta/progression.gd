@@ -7,6 +7,7 @@ extends RefCounted
 
 var campaign: Array = []   # Array[Dictionary] raw level dicts in PLAY order
 var daily_pool: Array = []
+var bakery: Array = []     # v3: Mira's Bakery levels, in play order
 var chapters: Array = []   # [{title, first}] from campaign.json
 var _defs := {}            # id -> LevelDef cache
 
@@ -14,6 +15,7 @@ func load_levels(campaign_path: String = "res://data/levels/campaign.json",
 		daily_path: String = "res://data/levels/daily.json") -> void:
 	campaign = _read(campaign_path)
 	daily_pool = _read(daily_path)
+	bakery = _read("res://data/levels/bakery.json")
 	chapters = []
 	if FileAccess.file_exists(campaign_path):
 		var d = JSON.parse_string(FileAccess.get_file_as_string(campaign_path))
@@ -49,7 +51,7 @@ func chapter_range(ci: int) -> Vector2i:
 func def_for(id: String) -> LevelDef:
 	if _defs.has(id):
 		return _defs[id]
-	for l in campaign + daily_pool:
+	for l in campaign + daily_pool + bakery:
 		if l.id == id:
 			_defs[id] = LevelDef.from_dict(l)
 			return _defs[id]
@@ -102,6 +104,47 @@ static func record_win(data: Dictionary, id: String, stars: int) -> Dictionary:
 	data.campaign.stars[id] = maxi(prev, stars)
 	out.tokens = Wallet.grant_stars(data, id, stars)
 	return out
+
+func bakery_index(id: String) -> int:
+	for i in bakery.size():
+		if bakery[i].id == id:
+			return i
+	return -1
+
+## First uncleared bakery level (or the last one).
+func next_bakery_index(data: Dictionary) -> int:
+	for i in bakery.size():
+		if not is_cleared(data, bakery[i].id):
+			return i
+	return bakery.size() - 1
+
+func bakery_cleared_count(data: Dictionary) -> int:
+	var n := 0
+	for l in bakery:
+		if is_cleared(data, l.id):
+			n += 1
+	return n
+
+## Mastery ribbon (v3), tracked separately from first clear and stars:
+## finish with peak counter use at or below the solver-proven minimum for the
+## level (meta.metrics.min_counter) and without a hint. It is optional; main
+## progression never needs it. Pays 1 token once ("mastery:<id>").
+static func mastery_target(def: LevelDef) -> int:
+	return int(def.meta.get("metrics", {}).get("min_counter", def.counter_slots))
+
+static func record_mastery(data: Dictionary, def: LevelDef, peak: int, hints: int) -> Dictionary:
+	var earned := peak <= mastery_target(def) and hints == 0
+	var out := {"mastery": earned, "mastery_new": false, "mastery_tokens": 0}
+	if not earned:
+		return out
+	out.mastery_new = not bool(data.campaign.mastery.get(def.id, false))
+	data.campaign.mastery[def.id] = true
+	if Wallet.grant(data, "mastery:" + def.id, 1):
+		out.mastery_tokens = 1
+	return out
+
+static func has_mastery(data: Dictionary, id: String) -> bool:
+	return bool(data.campaign.mastery.get(id, false))
 
 # --- Daily challenge -------------------------------------------------------
 # Basis: the DEVICE'S LOCAL CALENDAR DATE (resets at local midnight). The same

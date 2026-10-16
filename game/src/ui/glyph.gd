@@ -120,6 +120,16 @@ func _draw() -> void:
 			pts2.append(pts2[0])
 			draw_polyline(pts2, color, w * 0.8, true)
 			draw_circle(c, 0.07 * s, color)
+		"ribbon":
+			# mastery rosette: a disc with two tails
+			draw_colored_polygon(PackedVector2Array([c + Vector2(-0.12, 0.05) * s, c + Vector2(-0.2, 0.32) * s,
+				c + Vector2(-0.08, 0.26) * s, c + Vector2(0.0, 0.08) * s]), color.darkened(0.2))
+			draw_colored_polygon(PackedVector2Array([c + Vector2(0.12, 0.05) * s, c + Vector2(0.2, 0.32) * s,
+				c + Vector2(0.08, 0.26) * s, c + Vector2(0.0, 0.08) * s]), color.darkened(0.2))
+			draw_circle(c + Vector2(0, -0.06) * s, r * 0.85, color)
+			draw_arc(c + Vector2(0, -0.06) * s, r * 0.6, 0, TAU, 20, Color.WHITE, w * 0.5, true)
+		"bell":
+			OrderCard.draw_bell(self, c, s * 0.3, true)
 		"paint":
 			draw_rect(Rect2(c + Vector2(-0.18, -0.2) * s, Vector2(0.36, 0.14) * s), color)
 			draw_line(c + Vector2(0.18, -0.13) * s, c + Vector2(0.24, -0.13) * s, color, w)

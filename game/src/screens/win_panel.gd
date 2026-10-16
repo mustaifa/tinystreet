@@ -32,8 +32,8 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		tip.custom_minimum_size = Vector2(540, 0)
 		extra.add_child(tip)
 	var meta: Dictionary = res.get("meta", {})
-	if kind == "campaign":
-		var tok := int(res.get("tokens", 0))
+	if kind in ["campaign", "bakery"]:
+		var tok := int(res.get("tokens", 0)) + int(res.get("mastery_tokens", 0))
 		var row := UI.hbox(10)
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
 		var coin := Glyph.new()
@@ -48,6 +48,21 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		row.add_child(tl)
 		extra.add_child(row)
 		extra.add_child(GoalBar.make(App.data))
+	if bool(res.get("mastery", false)):
+		var ml := UI.label(Loc.t("win_mastery_new") if bool(res.get("mastery_new", false)) else Loc.t("win_mastery"), "")
+		ml.add_theme_color_override("font_color", Style.TEAL_DARK)
+		ml.custom_minimum_size = Vector2(540, 0)
+		extra.add_child(ml)
+	elif kind in ["campaign", "bakery"]:
+		var mt := UI.label(Loc.t("win_mastery_tip", [Progression.mastery_target(ps.level)]), "SoftLabel")
+		mt.custom_minimum_size = Vector2(540, 0)
+		extra.add_child(mt)
+	var sp: Dictionary = res.get("special", {})
+	if bool(sp.get("new", false)):
+		var sl := UI.label(Loc.t("reward_" + str(sp.reward).replace(":", "_")), "HeaderLabel")
+		sl.add_theme_color_override("font_color", Style.TERRACOTTA)
+		sl.custom_minimum_size = Vector2(540, 0)
+		extra.add_child(sl)
 	var news: Array = meta.get("new_achievements", [])
 	for i in mini(news.size(), 2):
 		var a: String = news[i]
@@ -58,10 +73,17 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		al.add_theme_color_override("font_color", Style.TERRACOTTA)
 		al.custom_minimum_size = Vector2(540, 0)
 		extra.add_child(al)
+	if kind == "challenge":
+		var gl := UI.label(Loc.t("challenge_met") if bool(res.get("met", false)) else Loc.t("challenge_missed"), "HeaderLabel")
+		gl.add_theme_color_override("font_color", Style.TEAL_DARK if bool(res.get("met", false)) else Style.INK_SOFT)
+		gl.custom_minimum_size = Vector2(540, 0)
+		extra.add_child(gl)
+		if int(res.get("tokens", 0)) > 0:
+			extra.add_child(UI.label(Loc.t("got_tokens", [int(res.tokens)]), "HeaderLabel"))
 	if int(meta.get("tasks_ready", 0)) > 0:
 		extra.add_child(UI.label(Loc.t("tasks_ready_n", [int(meta.tasks_ready)]), "SoftLabel"))
 	var buttons: Array = []
-	if kind == "campaign":
+	if kind in ["campaign", "bakery"]:
 		var can_restore := Restoration.can_unlock(App.data)
 		var first_restore := can_restore and Restoration.steps(App.data) == 0
 		if first_restore:
@@ -72,11 +94,22 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 			if can_restore:
 				buttons.append([Loc.t("restore_now"), func(): App.main.goto("restore"), "WarmButton"])
 		buttons.append([Loc.t("replay"), func(): game.replay(), "SecondaryButton"])
-		buttons.append([Loc.t("to_cafe"), func(): App.main.goto("home", {}, false), "SecondaryButton"])
+		if kind == "bakery":
+			buttons.append([Loc.t("bakery_title"), func(): App.main.goto("home", {}, false); App.main.goto("bakery"), "SecondaryButton"])
+		else:
+			buttons.append([Loc.t("to_cafe"), func(): App.main.goto("home", {}, false), "SecondaryButton"])
+	elif kind == "challenge":
+		buttons.append([Loc.t("replay"), func(): game.replay(), ""])
+		buttons.append([Loc.t("challenges"), func(): App.main.goto("home", {}, false); App.main.goto("daily"), "SecondaryButton"])
 	else:
 		buttons.append([Loc.t("share_result"), func():
 			App.share_text(Progression.share_text(game.date_key, stars, ps.state.moves))
 			App.main.toast(Loc.t("share_copied")), ""])
 		buttons.append([Loc.t("to_cafe"), func(): App.main.goto("home", {}, false), "SecondaryButton"])
-	d._build(Loc.t("win_title") if kind == "campaign" else Loc.t("daily_done_title"), "", buttons, extra)
+	var title := Loc.t("win_title")
+	if kind == "daily":
+		title = Loc.t("daily_done_title")
+	elif kind == "challenge":
+		title = Loc.t("challenge_done_title")
+	d._build(title, "", buttons, extra)
 	return d

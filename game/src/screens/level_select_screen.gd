@@ -53,10 +53,32 @@ func _cell(i: int) -> Control:
 	b.disabled = not unlocked
 	# Levels that introduce a mechanic say so until cleared.
 	var tut := str(App.progression.campaign[i].get("meta", {}).get("tutorial", ""))
-	var intro := tut in ["tut_fresh", "tut_bag", "tut_lock", "tut_two_stage"]
+	var intro := tut in ["tut_fresh", "tut_bag", "tut_lock", "tut_two_stage", "tut_bell"]
 	var second := UI.stars_text(stars) if cleared else (Loc.t("new_mark") if intro and unlocked else ("" if unlocked else "·"))
 	b.text = str(i + 1) + "\n" + second
 	b.add_theme_font_size_override("font_size", Style.fs(28))
+	var lvl: Dictionary = App.progression.campaign[i]
+	if tut == "tut_bell" or lvl.get("meta", {}).has("special"):
+		# special orders and the bell lesson carry a small gold bell
+		var g := Glyph.new()
+		g.kind = "bell"
+		g.color = Style.GOLD
+		g.size = Vector2(34, 34)
+		g.position = Vector2(4, 4)
+		g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(g)
+	if Progression.has_mastery(App.data, id):
+		var rg := Glyph.new()
+		rg.kind = "ribbon"
+		rg.color = Style.TEAL
+		rg.anchor_left = 1.0
+		rg.anchor_right = 1.0
+		rg.offset_left = -40
+		rg.offset_right = -4
+		rg.offset_top = 2
+		rg.offset_bottom = 38
+		rg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(rg)
 	if not unlocked:
 		b.tooltip_text = Loc.t("locked")
 	b.pressed.connect(func():

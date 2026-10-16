@@ -30,6 +30,26 @@ func tap(crate: int) -> Array:
 	moves_log.append(crate)
 	return ev
 
+## Rings or clears a ticket's bell (v3). Undoable, recorded, not a move.
+func ring(tray: int) -> Array:
+	if is_finished():
+		return []
+	var snap := state.copy()
+	var ev := Rules.ring(state, tray)
+	if ev.is_empty():
+		return []
+	history.append(snap)
+	moves_log.append(Rules.bell_action(tray))
+	return ev
+
+## Number of crate taps in the log (bell rings excluded).
+func taps() -> int:
+	var n := 0
+	for a in moves_log:
+		if a >= 0:
+			n += 1
+	return n
+
 func can_undo() -> bool:
 	return not history.is_empty() and not Rules.is_won(state)
 
@@ -72,10 +92,13 @@ func grant_continue() -> bool:
 ## UNSOLVABLE (suggest undo/restart), TIMEOUT (no claim made).
 func compute_hint(budget: int = 20000) -> Dictionary:
 	var r := Solver.new(budget).solve(state)
+	var action := 0
 	var crate := -1
 	if r.status == Solver.SOLVED and r.path.size() > 0:
-		crate = r.path[0]
-	return {"status": r.status, "crate": crate}
+		action = r.path[0]
+		crate = action if action >= 0 else -1
+	return {"status": r.status, "crate": crate, "action": action,
+		"bell": Rules.action_tray(action) if r.status == Solver.SOLVED and r.path.size() > 0 else -1}
 
 ## How many undos are needed to reach a solvable state (searching back up to
 ## `max_back` snapshots). -1 if none found within budget.
@@ -104,7 +127,8 @@ static func restore(def: LevelDef, d: Dictionary) -> PuzzleSession:
 	for i in mv.size():
 		if i == cont_at and bool(d.get("cont", false)):
 			ps.grant_continue()
-		if ps.tap(int(mv[i])).is_empty():
+		var a := int(mv[i])
+		if (ps.tap(a) if a >= 0 else ps.ring(Rules.action_tray(a))).is_empty():
 			return null # incompatible with current level data
 	if bool(d.get("cont", false)) and not ps.continue_used:
 		ps.grant_continue()

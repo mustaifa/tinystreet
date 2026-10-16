@@ -16,6 +16,7 @@ const SCREENS := {
 	"privacy": "res://src/screens/privacy_screen.gd",
 	"shop": "res://src/screens/shop_screen.gd",
 	"journal": "res://src/screens/journal_screen.gd",
+	"bakery": "res://src/screens/bakery_screen.gd",
 }
 
 var bg: ColorRect

@@ -14,6 +14,7 @@ var next_order: int = 0              # index of the next queued order
 var completed: int = 0               # orders fully delivered
 var moves: int = 0
 var peak_counter: int = 0            # highest simultaneous counter occupancy reached
+var pin: int = -1                    # v3: tray whose bell is rung (served first), -1 = none
 
 static func create(def: LevelDef) -> PuzzleState:
 	var s := PuzzleState.new()
@@ -50,6 +51,7 @@ func copy() -> PuzzleState:
 	s.completed = completed
 	s.moves = moves
 	s.peak_counter = peak_counter
+	s.pin = pin
 	return s
 
 func front(crate: int) -> int:
@@ -91,4 +93,4 @@ func tray_stage_complete(tray: int) -> bool:
 
 ## Stable string key used by the solver's transposition table.
 func key() -> String:
-	return "%s|%s|%s|%s|%s|%d" % [crate_pos, counter, tray_order, tray_stage, tray_fill, next_order]
+	return "%s|%s|%s|%s|%s|%d|%d" % [crate_pos, counter, tray_order, tray_stage, tray_fill, next_order, pin]

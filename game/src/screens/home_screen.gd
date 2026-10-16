@@ -45,6 +45,11 @@ func setup(params: Dictionary) -> void:
 	if cur.get("kind", "") == "campaign" and cur.has("id") and App.progression.campaign_index(cur.id) >= 0:
 		play_id = cur.id
 		play_text = Loc.t("continue_level", [App.progression.campaign_index(cur.id) + 1])
+	if Bakery.is_unlocked(App.data):
+		# v3 second destination: a clear door next door, never a placeholder.
+		var bk := UI.button(Loc.t("bakery_go") + (" •" if Bakery.can_unlock(App.data) else ""), func(): App.main.goto("bakery"),
+			"WarmButton" if not Story.seen(App.data, "bakery_open") or Bakery.can_unlock(App.data) else "SecondaryButton", 80)
+		root.add_child(bk)
 	var play := UI.button(play_text, func(): App.main.goto("game", {"kind": "campaign", "id": play_id}), "", 112)
 	play.add_theme_font_size_override("font_size", Style.fs(38))
 	root.add_child(play)

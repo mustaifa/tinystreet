@@ -28,6 +28,7 @@ var best_streak := 0
 var _finished_handled := false
 var _lost_reported := false
 var _hint_thread_busy := false
+var _hint_task := -1
 
 var backdrop: Backdrop
 var orders_row: HBoxContainer
@@ -623,7 +624,14 @@ func _run_hint(free: bool) -> void:
 		if r.status == Solver.UNSOLVABLE:
 			back = _undos_needed(hist)
 		_hint_done.call_deferred(r.status, r.path[0] if r.path.size() > 0 else -1, back, snapshot.key())
-	WorkerThreadPool.add_task(task)
+	_hint_task = WorkerThreadPool.add_task(task)
+
+## Never free the screen (or quit) while a hint solve is still running on the
+## worker pool: wait for it (bounded: 30k solver nodes, well under a second).
+func _exit_tree() -> void:
+	if _hint_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_hint_task)
+		_hint_task = -1
 
 ## Runs on a worker thread over private copies of recent snapshots.
 static func _undos_needed(hist: Array) -> int:
@@ -634,6 +642,9 @@ static func _undos_needed(hist: Array) -> int:
 
 func _hint_done(status: String, crate: int, back: int, key: String) -> void:
 	_hint_thread_busy = false
+	if _hint_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_hint_task)
+		_hint_task = -1
 	if not is_inside_tree() or ps.state.key() != key:
 		status_label.set_meta("sticky", false)
 		_refresh()

@@ -461,6 +461,10 @@ func _nav() -> void:
 	await _wait(0.3)
 	App.main.goto("game", {"kind": "campaign", "id": "c004"})
 	await _wait(0.4)
+	_expect(App.main.overlays.size() == 1, "c004 opens with Theo's story bubble")
+	App.main.handle_back()           # back skips the story
+	await _wait(0.2)
+	_expect(App.main.overlays.is_empty() and App.main.current_name() == "game", "back skips the story, stays in game")
 	await tap_crate(int(game().def.meta.solution[0]))
 	App.main.handle_back()           # back in game -> pause overlay
 	await _wait(0.3)

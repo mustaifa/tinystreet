@@ -65,9 +65,15 @@ func _dfs(s: PuzzleState, after_ring: bool) -> bool:
 	if int(_dead.get(k, 0)) >= (1 if after_ring else 2) or _onpath.has(k):
 		return false
 	_onpath[k] = true
-	for c in _ordered_moves(s, not after_ring):
-		var n := s.copy()
-		Rules.apply_action(n, c)
+	var previews := {}
+	for c in _ordered_moves(s, not after_ring, previews):
+		var n: PuzzleState
+		var pv: Dictionary = previews.get(c, {})
+		if pv.has("after"):
+			n = pv.after  # sequence levels: the preview already simulated this tap
+		else:
+			n = s.copy()
+			Rules.apply_action(n, c)
 		_path.append(c)
 		if _dfs(n, c < 0):
 			return true
@@ -82,11 +88,14 @@ func _dfs(s: PuzzleState, after_ring: bool) -> bool:
 ## Direct-to-tray moves first (they never consume counter space), then counter
 ## moves. Duplicate fronts with identical products are de-duplicated only when
 ## the crates' remaining contents are identical (pure symmetry).
-func _ordered_moves(s: PuzzleState, rings: bool = true) -> PackedInt32Array:
+## Fills `previews` (crate -> Rules.preview) when given, for apply_previewed.
+func _ordered_moves(s: PuzzleState, rings: bool = true, previews = null) -> PackedInt32Array:
 	var direct := PackedInt32Array()
 	var buffered := PackedInt32Array()
 	for c in s.crate_pos.size():
 		var pv := Rules.preview(s, c)
+		if previews != null:
+			previews[c] = pv
 		if pv.dest == Rules.Dest.TRAY:
 			direct.append(c)
 		elif pv.dest == Rules.Dest.COUNTER:

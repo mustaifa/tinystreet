@@ -181,7 +181,14 @@ func _search_done(status: String, action: int, key: String) -> void:
 	if g._hint_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(g._hint_task)
 		g._hint_task = -1
-	if not g.is_inside_tree() or g.ps.state.key() != key:
+	if not g.is_inside_tree():
+		return
+	if g.ps.state.key() != key:
+		# The player moved on while the search ran: drop the stale answer,
+		# and the "thinking" label if nothing has replaced it yet.
+		if g.status_label.text == Loc.t("hint_thinking"):
+			g.status_label.set_meta("sticky", false)
+			g._refresh()
 		return
 	g.status_label.set_meta("sticky", false)
 	g.status_label.text = ""

@@ -44,6 +44,23 @@ static func schema_errors(d: Dictionary) -> Array:
 		e.append("no orders")
 	if d.has("bell") and typeof(d.get("bell")) != TYPE_BOOL:
 		e.append("bell must be true or false")
+	if d.has("bell_budget"):
+		var bb = d.get("bell_budget")
+		if not (typeof(bb) in [TYPE_INT, TYPE_FLOAT]) or float(bb) != floorf(float(bb)) or int(bb) < 0:
+			e.append("bell_budget must be a whole number >= 0")
+	if d.has("sequence"):
+		var sq = d.get("sequence")
+		if typeof(sq) != TYPE_ARRAY or sq.size() < 2:
+			e.append("sequence must list at least two orders")
+		else:
+			var seen := {}
+			for v in sq:
+				if not (typeof(v) in [TYPE_INT, TYPE_FLOAT]) or int(v) < 0 or int(v) >= d.orders.size():
+					e.append("sequence order %s out of range" % [v])
+				elif seen.has(int(v)):
+					e.append("sequence lists order %d twice" % int(v))
+				else:
+					seen[int(v)] = true
 	if d.has("locks"):
 		var lk = d.get("locks")
 		if typeof(lk) != TYPE_ARRAY or lk.size() != nc:

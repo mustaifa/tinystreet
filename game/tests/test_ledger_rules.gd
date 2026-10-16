@@ -152,3 +152,29 @@ func test_solver_matches_reference_on_tiny_boards() -> void:
 		checked += 1
 	check(checked >= 100, "compared %d boards" % checked)
 	check(solvable >= 20 and solvable < checked, "mix of solvable (%d) and unsolvable" % solvable)
+
+func test_applying_a_preview_reuses_its_simulation_safely() -> void:
+	var L := lvl({"counter": 2, "trays": 2, "sequence": [1, 0], "crates": [["coffee"], ["tea"]],
+		"orders": [[{"coffee": 1}], [{"tea": 1}]]})
+	var s := PuzzleState.create(L)
+	var pv := Rules.preview(s, 1)
+	check(pv.has("after"), "a legal sequence preview carries its result")
+	var a := s.copy()
+	var b := s.copy()
+	var ea := Rules.apply_previewed(a, 1, pv)
+	var eb := Rules.apply_previewed(b, 1, pv)
+	eq(a.key(), b.key(), "the same preview applies identically twice")
+	eq(ea, eb)
+	Rules.apply_move(a, 0)
+	check(Rules.is_won(a) and not Rules.is_won(b), "states applied from one preview stay independent")
+	var c := s.copy()
+	eq(Rules.apply_move(c, 1), eb, "apply_move matches apply_previewed")
+	eq(c.key(), b.key())
+
+func test_schema_checks_sequence_and_bell_budget() -> void:
+	var base := {"id": "t", "counter": 2, "trays": 2, "crates": [["coffee"], ["tea"]],
+		"orders": [[{"coffee": 1}], [{"tea": 1}]]}
+	eq(LevelValidator.schema_errors(base.merged({"sequence": [1, 0], "bell_budget": 0})), [], "valid expert keys")
+	for bad in [{"sequence": [2, 0]}, {"sequence": [0, 0]}, {"sequence": [1]}, {"sequence": "0,1"},
+			{"sequence": [-1, 0]}, {"bell_budget": -3}, {"bell_budget": "2"}, {"bell_budget": 1.5}]:
+		check(not LevelValidator.schema_errors(base.merged(bad)).is_empty(), "rejects %s" % JSON.stringify(bad))

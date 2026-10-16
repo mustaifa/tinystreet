@@ -23,6 +23,7 @@ var challenge_id := ""          # v3 challenge card being played
 var level_id := ""
 var date_key := ""
 var def: LevelDef
+var _def_hash := ""             # def.content_hash(), computed once per screen
 var ps: PuzzleSession
 var attempt := 0
 var started_ms := 0
@@ -68,6 +69,7 @@ func setup(params: Dictionary) -> void:
 	if def == null or (kind == "rush" and App.rush == null):
 		App.main.goto("home", {}, false)
 		return
+	_def_hash = def.content_hash()
 	if kind == "ledger":
 		ledger = LedgerPlay.new(self)
 	screen_mode = "night" if kind == "ledger" else ("bakery" if kind == "bakery" else "cafe")
@@ -76,7 +78,7 @@ func setup(params: Dictionary) -> void:
 	if kind != "rush" and cur.get("id", "") == level_id and cur.get("kind", "") == kind and cur.has("session") \
 			and str(cur.get("ch", "")) == challenge_id:
 		# Expert pages resume only against identical rules (content hash).
-		if kind != "ledger" or str(cur.get("hash", "")) == def.content_hash():
+		if kind != "ledger" or str(cur.get("hash", "")) == _def_hash:
 			ps = PuzzleSession.restore(def, cur.session)
 			attempt = int(cur.get("attempt", 1))
 		elif kind == "ledger":
@@ -94,11 +96,16 @@ func setup(params: Dictionary) -> void:
 		Story.level_start(level_id)
 
 func _new_attempt(is_retry: bool) -> void:
+	# Ledger: hint stages opened on this page stay counted across restarts,
+	# so the no-hint badge can't be earned by replaying a revealed line.
+	var carried_hints := ps.hints_used if ledger and ps != null else 0
 	ps = PuzzleSession.start(def)
+	ps.hints_used = carried_hints
 	attempt += 1
 	started_ms = Time.get_ticks_msec()
 	free_hints = 1
 	hint_crate = -1
+	hint_bell = -1
 	streak = 0
 	best_streak = 0
 	_finished_handled = false
@@ -401,6 +408,8 @@ func _on_ticket(t: int) -> void:
 	order_cards[t].wiggle()
 	_advance_coach()
 	persist()
+	if ps.is_lost():
+		_show_lost()
 
 func _on_crate_down(i: int) -> void:
 	_finish_effects()
@@ -708,8 +717,13 @@ func _on_redo() -> void:
 	if ev.is_empty():
 		return
 	App.audio.play("undo", 1.2)
+	hint_crate = -1
+	hint_bell = -1
+	streak = 0
+	status_label.set_meta("sticky", false)
 	_refresh()
 	_animate(before, ev)
+	_advance_coach()
 	persist()
 	if ps.is_won():
 		_on_won()
@@ -868,7 +882,7 @@ func _on_won() -> void:
 	# A short story beat (shown once) comes before the card: the very first
 	# customer served, or a special order solved.
 	var beat := ""
-	if kind == "campaign" and bool(res.get("special", {}).get("new", false)):
+	if kind in ["campaign", "bakery"] and bool(res.get("special", {}).get("new", false)):
 		beat = "special:" + level_id
 	elif kind == "campaign" and int(App.data.stats.wins) == 1:
 		beat = "first_served"
@@ -1025,7 +1039,7 @@ func persist() -> void:
 	if ps == null or ps.is_won() or kind == "rush":
 		return
 	App.data.current = {"kind": kind, "id": level_id, "date": date_key, "ch": challenge_id, "attempt": attempt,
-		"session": ps.to_dict(), "hash": def.content_hash()}
+		"session": ps.to_dict(), "hash": _def_hash}
 	App.save_soon()
 
 func next_level() -> void:

@@ -634,8 +634,19 @@ func _ledger() -> void:
 	_expect(g.ps.moves_log.size() == 0, "recovered to a point on the proven solution")
 	await tap_crate(int(g.def.meta.ledger.witness[0]))
 	g._on_undo()
+	g.hint_crate = 0
+	g.hint_bell = 0
 	g._on_redo()
 	_expect(g.ps.moves_log.size() == 1, "redo re-applies")
+	_expect(g.hint_crate == -1 and g.hint_bell == -1, "redo clears the old hint")
+	# restart keeps the page's hint count (no-hint badge) and drops the bell hint
+	var hints_before: int = g.ps.hints_used
+	g.hint_bell = 0
+	g._on_restart()
+	await _wait(0.2)
+	_expect(g.ps.hints_used == hints_before and hints_before >= 3, "restart keeps hint stages opened")
+	_expect(g.hint_bell == -1 and not g.order_cards[0].hint_glow, "restart clears the bell hint")
+	await tap_crate(int(g.def.meta.ledger.witness[0]))
 	# --- resume: leave and come back
 	g.persist()
 	App.main.goto("ledger", {}, false)

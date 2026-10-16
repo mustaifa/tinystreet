@@ -57,6 +57,23 @@ func copy() -> PuzzleState:
 	s.rings_used = rings_used
 	return s
 
+## Takes over another state's contents (e.g. a simulated copy that turned out legal).
+func assign(o: PuzzleState) -> void:
+	level = o.level
+	crate_pos = o.crate_pos
+	counter = o.counter
+	bonus_slots = o.bonus_slots
+	tray_order = o.tray_order
+	tray_stage = o.tray_stage
+	tray_fill = o.tray_fill
+	next_order = o.next_order
+	completed = o.completed
+	moves = o.moves
+	peak_counter = o.peak_counter
+	pin = o.pin
+	rings_used = o.rings_used
+	violation = o.violation
+
 func front(crate: int) -> int:
 	var c: PackedInt32Array = level.crates[crate]
 	var p := crate_pos[crate]

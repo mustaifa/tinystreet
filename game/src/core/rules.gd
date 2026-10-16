@@ -82,15 +82,21 @@ static func ring(s: PuzzleState, tray: int) -> Array:
 
 ## Which tray (or counter) a tap on `crate` would send its product to.
 ## Returns {dest: Dest, tray: int, slot: int, product: int, block: Block, fresh: bool}.
+## On sequence levels a legal preview also carries the simulated result
+## ("after", "events") so applying it does not run the cascade again.
 static func preview(s: PuzzleState, crate: int) -> Dictionary:
 	var r := _route(s, crate)
 	if r.dest != Dest.NONE and not s.level.sequence.is_empty():
 		# The tap is only legal if its whole cascade respects the sequence.
 		var sim := s.copy()
-		_apply_routed(sim, crate, r, [])
+		var ev: Array = []
+		_apply_routed(sim, crate, r, ev)
 		if sim.violation:
 			r.dest = Dest.NONE
 			r.block = Block.SEQUENCE
+		else:
+			r["after"] = sim
+			r["events"] = ev
 	return r
 
 ## Where a tap would go, ignoring the order-sequence constraint.
@@ -184,9 +190,16 @@ static func is_lost(s: PuzzleState) -> bool:
 ## Applies a tap. Mutates `s` and returns the ordered event list for
 ## presentation, or an empty array if the move was illegal (state unchanged).
 static func apply_move(s: PuzzleState, crate: int) -> Array:
-	var pv := preview(s, crate)
+	return apply_previewed(s, crate, preview(s, crate))
+
+## Applies a tap whose preview(s, crate) the caller already has.
+static func apply_previewed(s: PuzzleState, crate: int, pv: Dictionary) -> Array:
 	if pv.dest == Dest.NONE:
 		return []
+	if pv.has("after"):
+		s.assign((pv.after as PuzzleState).copy())
+		var ev: Array = pv.events
+		return ev.duplicate(true)
 	var events: Array = []
 	_apply_routed(s, crate, pv, events)
 	return events

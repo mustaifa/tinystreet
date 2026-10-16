@@ -11,17 +11,24 @@ const TUTORIAL_STEPS := {
 	"tut_bag": ["tut_bag_1", "tut_bag_2"],
 	"tut_lock": ["tut_lock_1", "tut_lock_2"],
 	"tut_two_stage": ["tut_two_stage_1", "tut_two_stage_2"],
+	"tut_bell": ["tut_bell_1", "tut_bell_2", "tut_bell_3"],
+	"tut_oven": ["tut_oven_1", "tut_oven_2"],
 }
+const BLEED := 160.0
 const STREAK_WORDS := {3: "streak_3", 5: "streak_5", 8: "streak_8", 12: "streak_12"}
 
-var kind := "campaign"          # "campaign" | "daily" | "rush"
+var kind := "campaign"          # "campaign" | "daily" | "rush" | "challenge"
+var screen_mode := "cafe"       # full-bleed background around the board
+var challenge_id := ""          # v3 challenge card being played
 var level_id := ""
 var date_key := ""
 var def: LevelDef
+var _def_hash := ""             # def.content_hash(), computed once per screen
 var ps: PuzzleSession
 var attempt := 0
 var started_ms := 0
 var hint_crate := -1
+var hint_bell := -1             # ticket the hint/coach says to ring
 var free_hints := 1
 var streak := 0
 var best_streak := 0
@@ -43,6 +50,8 @@ var fx_layer: Control
 var title_label: Label
 var sub_label: Label
 var undo_btn: Button
+var redo_btn: Button
+var ledger: LedgerPlay          # v4 expert-mode helper (kind == "ledger")
 var hint_btn: Button
 var coach: PanelContainer
 var coach_label: Label
@@ -55,15 +64,25 @@ func setup(params: Dictionary) -> void:
 	kind = params.get("kind", "campaign")
 	level_id = params.get("id", "")
 	date_key = params.get("date", "")
+	challenge_id = str(params.get("challenge", ""))
 	def = App.progression.def_for(level_id)
 	if def == null or (kind == "rush" and App.rush == null):
 		App.main.goto("home", {}, false)
 		return
+	_def_hash = def.content_hash()
+	if kind == "ledger":
+		ledger = LedgerPlay.new(self)
+	screen_mode = "night" if kind == "ledger" else ("bakery" if kind == "bakery" else "cafe")
 	_build()
 	var cur: Dictionary = App.data.current
-	if kind != "rush" and cur.get("id", "") == level_id and cur.get("kind", "") == kind and cur.has("session"):
-		ps = PuzzleSession.restore(def, cur.session)
-		attempt = int(cur.get("attempt", 1))
+	if kind != "rush" and cur.get("id", "") == level_id and cur.get("kind", "") == kind and cur.has("session") \
+			and str(cur.get("ch", "")) == challenge_id:
+		# Expert pages resume only against identical rules (content hash).
+		if kind != "ledger" or str(cur.get("hash", "")) == _def_hash:
+			ps = PuzzleSession.restore(def, cur.session)
+			attempt = int(cur.get("attempt", 1))
+		elif kind == "ledger":
+			App.main.toast(Loc.t("ledger_page_changed"))
 	if ps == null:
 		_new_attempt(false)
 	else:
@@ -77,11 +96,16 @@ func setup(params: Dictionary) -> void:
 		Story.level_start(level_id)
 
 func _new_attempt(is_retry: bool) -> void:
+	# Ledger: hint stages opened on this page stay counted across restarts,
+	# so the no-hint badge can't be earned by replaying a revealed line.
+	var carried_hints := ps.hints_used if ledger and ps != null else 0
 	ps = PuzzleSession.start(def)
+	ps.hints_used = carried_hints
 	attempt += 1
 	started_ms = Time.get_ticks_msec()
 	free_hints = 1
 	hint_crate = -1
+	hint_bell = -1
 	streak = 0
 	best_streak = 0
 	_finished_handled = false
@@ -98,31 +122,47 @@ func _new_attempt(is_retry: bool) -> void:
 func _build() -> void:
 	for c in get_children():
 		c.queue_free()
+	var night := kind == "ledger"
 	backdrop = Backdrop.new()
+	backdrop.mode = "night" if night else ("bakery" if kind == "bakery" else "cafe")
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# bleed under the safe-area margins so the setting reaches the screen edges
+	for side in ["offset_left", "offset_top"]:
+		backdrop.set(side, -BLEED)
+	for side in ["offset_right", "offset_bottom"]:
+		backdrop.set(side, BLEED)
 	add_child(backdrop)
 	var root := UI.vbox(6)
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
-	# top bar
+	# top bar: pause, title, rules/help (secondary chips, out of the board)
 	var top := UI.hbox(12)
-	top.add_child(UI.icon_button("pause", "", _open_pause, "SecondaryButton", 88))
+	top.add_child(UI.chip("pause", _open_pause, "NightChip" if night else "ChipButton", Style.CHIP, 0, Loc.t("paused")))
 	var titles := UI.vbox(0)
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_label = UI.label(_title(), "TitleLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	titles.alignment = BoxContainer.ALIGNMENT_CENTER
+	title_label = UI.label(_title(), "NightTitle" if night else "TitleLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	UI.fit_font(title_label, 720 - 2 * Style.CHIP - 120, 38, 28)
+	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	title_label.clip_text = true
 	titles.add_child(title_label)
-	sub_label = UI.label(_subtitle(), "SoftLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
-	sub_label.add_theme_font_size_override("font_size", Style.fs(22))
+	sub_label = UI.label(_subtitle(), "NightCaption" if night else "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
 	sub_label.visible = sub_label.text != ""
 	titles.add_child(sub_label)
 	top.add_child(titles)
-	top.add_child(UI.icon_button("help", "", func(): App.main.goto("help"), "SecondaryButton", 88))
+	if kind == "ledger":
+		top.add_child(UI.chip("book", func(): ledger.show_rules(), "NightChip", Style.CHIP, 0, Loc.t("ledger_rules")))
+	else:
+		top.add_child(UI.chip("help", func(): App.main.goto("help"), "ChipButton", Style.CHIP, 0, Loc.t("help")))
 	root.add_child(top)
 	# order progress + queue
 	progress = _ProgressBar.new()
 	progress.custom_minimum_size = Vector2(0, 92)
 	progress.game = self
+	progress.night = night
 	root.add_child(progress)
+	if ledger:
+		root.add_child(ledger.make_strip())
 	# orders
 	orders_row = UI.hbox(12)
 	orders_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -132,27 +172,37 @@ func _build() -> void:
 		oc.tray = t
 		oc.custom_minimum_size = Vector2(0, card_h)
 		oc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		oc.tapped.connect(_on_ticket)
 		orders_row.add_child(oc)
 		order_cards.append(oc)
 	root.add_child(orders_row)
-	# counter
-	counter_label = UI.label("", "SoftLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	# counter, with its caption
+	counter_label = UI.label("", "NightSoft" if night else "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
 	root.add_child(counter_label)
 	counter = CounterView.new()
-	counter.custom_minimum_size = Vector2(0, 112)
+	counter.custom_minimum_size = Vector2(0, 108)
 	root.add_child(counter)
-	status_label = UI.label("", "", HORIZONTAL_ALIGNMENT_CENTER)
-	status_label.custom_minimum_size = Vector2(0, 40)
-	status_label.add_theme_font_size_override("font_size", Style.fs(26))
+	# status line: a reserved row, so messages never shift the board
+	status_label = StatusPill.new()
+	status_label.custom_minimum_size = Vector2(0, 52)
 	root.add_child(status_label)
 	# coach bubble (tutorial) sits in the layout flow, never over crates
 	coach = PanelContainer.new()
-	coach.add_theme_stylebox_override("panel", Style.box(Style.PAPER, 22, Style.GOLD, 3))
+	var csb := Style.box(Style.PAPER, 22, Style.GOLD, 3)
+	csb.content_margin_left = 14
+	csb.content_margin_top = 10
+	csb.content_margin_bottom = 10
+	coach.add_theme_stylebox_override("panel", csb)
 	coach.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	coach_label = UI.label("")
+	var crow := UI.hbox(14)
+	crow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	crow.add_child(UI.medallion("hint", Style.GOLD_SOFT, Style.GOLD_EDGE, 56))
+	coach_label = UI.label("", "", UI.al())
 	coach_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	coach_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	coach_label.add_theme_font_size_override("font_size", Style.fs(26))
-	coach.add_child(coach_label)
+	crow.add_child(coach_label)
+	coach.add_child(crow)
 	coach.visible = false
 	root.add_child(coach)
 	# crates
@@ -165,23 +215,36 @@ func _build() -> void:
 		cv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cv.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		cv.custom_minimum_size = Vector2(0, 220)
+		cv.oven = def.id.begins_with("m")
 		cv.pressed_down.connect(_on_crate_down)
 		cv.released.connect(_on_crate_up)
 		cv.dragged.connect(_on_crate_drag)
 		crates_row.add_child(cv)
 		crate_views.append(cv)
 	root.add_child(crates_row)
-	# bottom controls (thumb zone)
-	var bottom := UI.hbox(18)
+	# bottom dock (thumb zone): secondary tools, clearly separate from the board
+	var dock := PanelContainer.new()
+	var dsb := Style.box(Color(Style.NIGHT_2, 0.92) if night else Color(Style.PAPER, 0.9), 30,
+		Style.NIGHT_LINE if night else Style.PAPER_EDGE, 2, true)
+	dsb.content_margin_top = 10
+	dsb.content_margin_bottom = 8
+	dock.add_theme_stylebox_override("panel", dsb)
+	var bottom := UI.hbox(10)
 	bottom.alignment = BoxContainer.ALIGNMENT_CENTER
-	var u := UI.icon_button("undo", Loc.t("undo"), _on_undo, "SecondaryButton", 100)
+	dock.add_child(bottom)
+	var chip_var := "NightChip" if night else "ChipButton"
+	var u := _dock_item("undo", Loc.t("undo"), _on_undo, chip_var, night)
 	undo_btn = u.get_meta("button")
 	bottom.add_child(u)
-	var h := UI.icon_button("hint", Loc.t("hint"), _on_hint, "SecondaryButton", 100)
+	var h := _dock_item("hint", Loc.t("hint"), _on_hint, chip_var, night)
 	hint_btn = h.get_meta("button")
 	bottom.add_child(h)
-	bottom.add_child(UI.icon_button("restart", Loc.t("restart"), _on_restart, "SecondaryButton", 100))
-	root.add_child(bottom)
+	if kind == "ledger":
+		var rd := _dock_item("redo", Loc.t("redo"), _on_redo, chip_var, night)
+		redo_btn = rd.get_meta("button")
+		bottom.add_child(rd)
+	bottom.add_child(_dock_item("restart", Loc.t("restart"), _on_restart, chip_var, night))
+	root.add_child(dock)
 	fx_layer = Control.new()
 	fx_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -191,9 +254,28 @@ func _build() -> void:
 	guide.visible = false
 	fx_layer.add_child(guide)
 
+## One dock tool: a chip with its caption underneath (never icon-only).
+func _dock_item(glyph: String, caption: String, cb: Callable, variation: String, night: bool) -> Control:
+	var w := UI.icon_button(glyph, caption, cb, variation, 84)
+	w.custom_minimum_size = Vector2(132, 0)
+	var l := w.get_child(1) as Label
+	if l and night:
+		l.add_theme_color_override("font_color", Style.MOON_SOFT)
+	return w
+
+## Free-hint count on the hint chip (campaign-style hints only).
+func _update_hint_badge() -> void:
+	if hint_btn == null:
+		return
+	for c in hint_btn.get_children():
+		if c is UI.Bubble:
+			c.queue_free()
+	if not ledger and free_hints > 0 and not ps.is_won():
+		UI.badge(hint_btn, free_hints)
+
 func _process(delta: float) -> void:
 	if crates_row and backdrop:
-		var y := (crates_row.get_global_rect().position.y - get_global_rect().position.y) + 40
+		var y := (crates_row.get_global_rect().position.y - backdrop.get_global_rect().position.y) + 40
 		backdrop.set_split(y)
 	# Rush clock: counts up only while the puzzle is in play and unobstructed.
 	if kind == "rush" and App.rush and ps and not ps.is_won() and App.main.overlays.is_empty():
@@ -204,14 +286,24 @@ func _process(delta: float) -> void:
 			sub_label.visible = true
 
 func _title() -> String:
+	if kind == "ledger":
+		return LedgerPlay.title(def)
 	match kind:
 		"daily": return Loc.t("daily_title")
 		"rush": return Loc.t("rush_title_n", [App.rush.index + 1 if App.rush else 1, RushRun.LENGTH])
+		"challenge": return Loc.t("challenge_n", [int(challenge_id.substr(2))])
+		"bakery": return Loc.t("bakery_level_n", [App.progression.bakery_index(level_id) + 1])
 	return Loc.t("level_n", [App.progression.campaign_index(level_id) + 1])
 
 func _subtitle() -> String:
+	if kind == "ledger":
+		return LedgerPlay.subtitle(def)
 	if kind == "rush" and App.rush:
 		return RushRun.fmt_time(int(App.rush.elapsed_ms))
+	if kind == "challenge":
+		return Challenges.goal_text(Challenges.def(challenge_id), def)
+	if kind == "bakery":
+		return Loc.t("bakery_title")
 	if kind != "campaign":
 		return ""
 	var ch := App.progression.chapter_of(App.progression.campaign_index(level_id))
@@ -244,8 +336,12 @@ func _refresh() -> void:
 		oc.mood = 2
 		oc.in_flight = {}
 		oc.highlight = false
-		oc.hint_glow = false
-	var coach_target := _coach_target()
+		oc.special = Specials.is_special_order(def, o)
+		oc.set_bell(def.allow_bell and o >= 0, s.pin == t, Rules.rings_left(s) == 0)
+	var coach_action := _coach_action()
+	var coach_target := coach_action if coach_action >= 0 else -1
+	for t in order_cards.size():
+		order_cards[t].hint_glow = (t == hint_bell) or (coach_action < 0 and Rules.action_tray(coach_action) == t and coach_action != _NO_ACTION)
 	for i in crate_views.size():
 		var cv: CrateView = crate_views[i]
 		var c: PackedInt32Array = def.crates[i]
@@ -265,8 +361,14 @@ func _refresh() -> void:
 	progress.queue_redraw()
 	var free := s.counter_free()
 	counter_label.text = Loc.t("counter_label", [s.counter_used(), s.counter.size()])
-	counter_label.add_theme_color_override("font_color", Style.WARN if free <= 1 and s.counter.size() > 1 else Style.INK_SOFT)
+	var calm := Style.MOON_SOFT if ledger else Style.INK_SOFT
+	counter_label.add_theme_color_override("font_color", (Style.LANTERN if ledger else Style.WARN) if free <= 1 and s.counter.size() > 1 else calm)
 	undo_btn.disabled = not ps.can_undo()
+	_update_hint_badge()
+	if redo_btn:
+		redo_btn.disabled = not ps.can_redo()
+	if ledger:
+		ledger.refresh()
 	if status_label.get_meta("sticky", false) == false:
 		status_label.text = Loc.t("counter_full") if free == 0 else (Loc.t("counter_one_left") if free == 1 and s.counter.size() > 1 else "")
 
@@ -281,6 +383,33 @@ func _badge_for(i: int) -> Dictionary:
 	return {}
 
 # --------------------------------------------------------------------- input
+
+## Ringing a ticket's bell: that customer is served first. A free action
+## (not a move), undoable, and the crate badges update at once so the player
+## sees the consequence before tapping anything.
+func _on_ticket(t: int) -> void:
+	_finish_effects()
+	if ps.is_won():
+		return
+	var ev := ps.ring(t)
+	if ev.is_empty():
+		if ledger and ps.state.tray_order[t] >= 0 and Rules.rings_left(ps.state) == 0:
+			App.audio.play("invalid")
+			order_cards[t].wiggle()
+			status_label.text = Loc.t("invalid_no_rings")
+			status_label.set_meta("sticky", true)
+		return
+	hint_crate = -1
+	hint_bell = -1
+	App.audio.play("bell", 1.0 if ps.state.pin == t else 0.85)
+	App.haptic(10)
+	status_label.set_meta("sticky", false)
+	_refresh()
+	order_cards[t].wiggle()
+	_advance_coach()
+	persist()
+	if ps.is_lost():
+		_show_lost()
 
 func _on_crate_down(i: int) -> void:
 	_finish_effects()
@@ -354,6 +483,7 @@ func tap(i: int) -> void:
 		return
 	status_label.set_meta("sticky", false)
 	hint_crate = -1
+	hint_bell = -1
 	App.haptic(12)
 	_track_streak(ev, i)
 	_refresh()
@@ -375,6 +505,7 @@ func _invalid(i: int) -> void:
 		Rules.Block.LOCKED: msg = Loc.t("invalid_locked", [Rules.lock_remaining(ps.state, i)])
 		Rules.Block.FRESH: msg = Loc.t("invalid_fresh")
 		Rules.Block.FULL: msg = Loc.t("invalid_no_space")
+		Rules.Block.SEQUENCE: msg = LedgerPlay.sequence_message(ps.state)
 	if msg != "":
 		status_label.text = msg
 		status_label.set_meta("sticky", true)
@@ -453,6 +584,10 @@ func _animate(before: PuzzleState, ev: Array) -> void:
 					App.audio.play("bag")
 					_pop(cv)
 					_fx_nodes.append(Fx.burst(fx_layer, cv.front_global_center(), "sparkle", [Color("c9a26b"), Style.GOLD])))
+			Rules.EV_BELL:
+				if not e.on:
+					var oc5: OrderCard = order_cards[e.tray]
+					_delay(t + fly, func(): oc5.wiggle())
 			Rules.EV_UNLOCK:
 				var cv2: CrateView = crate_views[e.crate]
 				_delay(t + fly + App.dur(0.15), func():
@@ -574,12 +709,34 @@ func _finish_effects() -> void:
 
 # --------------------------------------------------------------------- actions
 
+## v4: re-applies the last undone action (expert mode).
+func _on_redo() -> void:
+	_finish_effects()
+	var before := ps.state.copy()
+	var ev := ps.redo()
+	if ev.is_empty():
+		return
+	App.audio.play("undo", 1.2)
+	hint_crate = -1
+	hint_bell = -1
+	streak = 0
+	status_label.set_meta("sticky", false)
+	_refresh()
+	_animate(before, ev)
+	_advance_coach()
+	persist()
+	if ps.is_won():
+		_on_won()
+	elif ps.is_lost():
+		_show_lost()
+
 func _on_undo() -> void:
 	_finish_effects()
 	if ps.undo():
 		App.audio.play("undo")
 		App.analytics.event("undo", {"level": level_id})
 		hint_crate = -1
+		hint_bell = -1
 		streak = 0
 		status_label.set_meta("sticky", false)
 		_refresh()
@@ -595,6 +752,9 @@ func _on_restart() -> void:
 
 func _on_hint() -> void:
 	_finish_effects()
+	if ledger:
+		ledger.open_hint()
+		return
 	if _hint_thread_busy or ps.is_won():
 		return
 	if free_hints > 0:
@@ -604,7 +764,7 @@ func _on_hint() -> void:
 	if App.rewards.available():
 		buttons.append([Loc.t("hint_watch_ad"), func(): App.rewards.request("hint", func(): _run_hint(false)), ""])
 	buttons.append([Loc.t("close"), func(): pass, "SecondaryButton"])
-	App.main.show_overlay(Dialog.make(Loc.t("hint_title"), Loc.t("hint_used_body") if App.rewards.available() else Loc.t("hint_used_noads"), buttons))
+	App.main.show_overlay(Dialog.make(Loc.t("hint_title"), Loc.t("hint_used_body") if App.rewards.available() else Loc.t("hint_used_noads"), buttons, null, "hint"))
 
 func _run_hint(free: bool) -> void:
 	App.analytics.event("hint_requested", {"level": level_id, "source": "free" if free else "ad"})
@@ -623,7 +783,7 @@ func _run_hint(free: bool) -> void:
 		var back := -1
 		if r.status == Solver.UNSOLVABLE:
 			back = _undos_needed(hist)
-		_hint_done.call_deferred(r.status, r.path[0] if r.path.size() > 0 else -1, back, snapshot.key())
+		_hint_done.call_deferred(r.status, r.path[0] if r.path.size() > 0 else _NO_ACTION, back, snapshot.key())
 	_hint_task = WorkerThreadPool.add_task(task)
 
 ## Never free the screen (or quit) while a hint solve is still running on the
@@ -640,7 +800,8 @@ static func _undos_needed(hist: Array) -> int:
 			return back
 	return -1
 
-func _hint_done(status: String, crate: int, back: int, key: String) -> void:
+## `action` is the solver's next action: a crate (>= 0) or a bell ring (< 0).
+func _hint_done(status: String, action: int, back: int, key: String) -> void:
 	_hint_thread_busy = false
 	if _hint_task >= 0:
 		WorkerThreadPool.wait_for_task_completion(_hint_task)
@@ -651,11 +812,17 @@ func _hint_done(status: String, crate: int, back: int, key: String) -> void:
 		return
 	match status:
 		Solver.SOLVED:
-			hint_crate = crate
-			var pv := Rules.preview(ps.state, crate)
-			status_label.text = Loc.t("hint_tap_glow")
-			if pv.dest == Rules.Dest.TRAY:
-				order_cards[pv.tray].hint_glow = true
+			if action < 0 and action != _NO_ACTION:
+				hint_bell = Rules.action_tray(action)
+				order_cards[hint_bell].hint_glow = true
+				order_cards[hint_bell].queue_redraw()
+				status_label.text = Loc.t("hint_ring", [hint_bell + 1])
+			else:
+				hint_crate = action
+				var pv := Rules.preview(ps.state, action)
+				status_label.text = Loc.t("hint_tap_glow")
+				if pv.dest == Rules.Dest.TRAY:
+					order_cards[pv.tray].hint_glow = true
 		Solver.UNSOLVABLE:
 			status_label.text = Loc.t("hint_stuck_undo", [back]) if back > 0 else Loc.t("hint_stuck_restart")
 		_:
@@ -672,6 +839,10 @@ func _on_won() -> void:
 	if _finished_handled:
 		return
 	_finished_handled = true
+	if ledger:
+		App.data.current = {}
+		ledger.on_won()
+		return
 	var stars := ps.stars()
 	var secs := (Time.get_ticks_msec() - started_ms) / 1000
 	var summary := {"kind": kind, "level": level_id, "stars": stars, "moves": ps.state.moves,
@@ -679,8 +850,14 @@ func _on_won() -> void:
 		"peak": ps.state.peak_counter}
 	var res := {}
 	match kind:
-		"campaign":
+		"campaign", "bakery":
 			res = Progression.record_win(App.data, level_id, stars)
+			res.merge(Progression.record_mastery(App.data, def, ps.state.peak_counter, ps.hints_used))
+			res["special"] = Specials.on_win(App.data, def)
+		"challenge":
+			var c := Challenges.def(challenge_id)
+			res = Challenges.record(App.data, challenge_id,
+				Challenges.goal_met(c, def, stars, ps.hints_used, ps.undo_count, ps.state.peak_counter))
 		"daily":
 			res = {"first_daily": Progression.record_daily(App.data, date_key, stars, ps.state.moves)}
 			if res.first_daily:
@@ -702,7 +879,18 @@ func _on_won() -> void:
 		_delay(App.dur(0.9), func(): App.on_rush_win())
 		return
 	var d := WinPanel.create(self, kind, stars, res, ps)
-	_delay(App.dur(1.0), func(): App.main.show_overlay(d))
+	# A short story beat (shown once) comes before the card: the very first
+	# customer served, or a special order solved.
+	var beat := ""
+	if kind in ["campaign", "bakery"] and bool(res.get("special", {}).get("new", false)):
+		beat = "special:" + level_id
+	elif kind == "campaign" and int(App.data.stats.wins) == 1:
+		beat = "first_served"
+	_delay(App.dur(1.0), func():
+		if beat != "" and Story.has_beat(beat) and not Story.seen(App.data, beat):
+			Story.play(beat, func(): App.main.show_overlay(d))
+		else:
+			App.main.show_overlay(d))
 
 ## Finish sequence: every ticket cheers, confetti falls, then the card.
 func _celebrate() -> void:
@@ -716,6 +904,9 @@ func _celebrate() -> void:
 
 func _show_lost() -> void:
 	if not ps.is_lost():
+		return
+	if ledger:
+		_delay(App.dur(0.45), func(): if ps.is_lost(): ledger.on_lost())
 		return
 	if not _lost_reported:
 		_lost_reported = true
@@ -731,7 +922,7 @@ func _show_lost() -> void:
 					_refresh()
 					persist()), "WarmButton"])
 	buttons.append([Loc.t("restart"), _on_restart, "SecondaryButton"])
-	var d := Dialog.make(Loc.t("lost_title"), _lost_reason(), buttons)
+	var d := Dialog.make(Loc.t("lost_title"), _lost_reason(), buttons, null, "undo")
 	_delay(App.dur(0.45), func(): if ps.is_lost(): App.main.show_overlay(d))
 
 ## Says why no move is left, naming the blocking mechanic if there is one.
@@ -755,13 +946,13 @@ func _open_pause() -> void:
 	_pressed_crate = -1
 	var info := UI.label(Loc.t("star_rules", [Scoring.par_counter(def)]), "SoftLabel")
 	info.custom_minimum_size = Vector2(540, 0)
-	var leave_text := Loc.t("quit_to_map") if kind == "campaign" else Loc.t("quit_to_home")
+	var leave_text := Loc.t("quit_to_map") if kind == "campaign" else (Loc.t("bakery_title") if kind == "bakery" else Loc.t("quit_to_home"))
 	var d := Dialog.make(Loc.t("paused"), "", [
 		[Loc.t("resume"), func(): pass, ""],
 		[Loc.t("restart"), _on_restart, "SecondaryButton"],
 		[Loc.t("settings"), func(): App.main.goto("settings"), "SecondaryButton"],
 		[leave_text, _leave, "SecondaryButton"],
-	], info)
+	], info, "pause")
 	App.main.show_overlay(d)
 
 ## Leaves the level; progress is kept in App.data.current for "Continue".
@@ -773,6 +964,12 @@ func _leave() -> void:
 	elif kind == "rush":
 		App.rush = null
 		App.main.goto("daily")
+	elif kind == "challenge":
+		App.main.goto("daily")
+	elif kind == "bakery":
+		App.main.goto("bakery")
+	elif kind == "ledger":
+		App.main.goto("ledger")
 
 func on_back() -> bool:
 	_open_pause()
@@ -786,11 +983,19 @@ func _tut_key() -> String:
 	var k := str(def.meta.get("tutorial", ""))
 	return k if k != "" and not App.data.tutorial.done.has(k) else ""
 
-func _coach_target() -> int:
+const _NO_ACTION := -1000
+
+## Next action of a solution from here, for the tutorial coach: a crate to
+## glow (>= 0), a ticket to ring (< 0), or _NO_ACTION.
+func _coach_action() -> int:
 	if _tut_key() == "" or ps == null or ps.is_won():
-		return -1
-	var r := Solver.new(2000).solve(ps.state)
-	return r.path[0] if r.status == Solver.SOLVED and r.path.size() > 0 else -1
+		return _NO_ACTION
+	var r := Solver.new(4000).solve(ps.state)
+	return r.path[0] if r.status == Solver.SOLVED and r.path.size() > 0 else _NO_ACTION
+
+func _coach_target() -> int:
+	var a := _coach_action()
+	return a if a >= 0 else -1
 
 func _update_coach() -> void:
 	var k := _tut_key()
@@ -804,26 +1009,51 @@ func _update_coach() -> void:
 		return
 	_coach_step = mini(ps.state.moves, steps.size() - 1)
 	coach_label.text = Loc.t(steps[_coach_step])
+	if k == "tut_bell":
+		# The bell lesson follows the solution: explain the ring exactly when
+		# it is the next right action, and what it did right after.
+		var a := _coach_action()
+		if a < 0 and a != _NO_ACTION:
+			coach_label.text = Loc.t("tut_bell_2", [Rules.action_tray(a) + 1])
+		elif ps.state.pin >= 0:
+			coach_label.text = Loc.t("tut_bell_3")
+		else:
+			coach_label.text = Loc.t("tut_bell_1")
 	coach.visible = true
 	status_label.visible = false
 
 func _advance_coach() -> void:
 	if _tut_key() != "":
 		_update_coach()
-	var ct := _coach_target()
+	var ca := _coach_action()
 	for cv in crate_views:
-		cv.highlight = cv.index == ct or cv.index == hint_crate
+		cv.highlight = cv.index == ca or cv.index == hint_crate
 		cv.queue_redraw()
+	for t in order_cards.size():
+		order_cards[t].hint_glow = t == hint_bell or (ca < 0 and ca != _NO_ACTION and Rules.action_tray(ca) == t)
+		order_cards[t].queue_redraw()
 
 # --------------------------------------------------------------------- persistence
 
 func persist() -> void:
 	if ps == null or ps.is_won() or kind == "rush":
 		return
-	App.data.current = {"kind": kind, "id": level_id, "date": date_key, "attempt": attempt, "session": ps.to_dict()}
+	App.data.current = {"kind": kind, "id": level_id, "date": date_key, "ch": challenge_id, "attempt": attempt,
+		"session": ps.to_dict(), "hash": _def_hash}
 	App.save_soon()
 
 func next_level() -> void:
+	if kind == "ledger":
+		ledger.next_page()
+		return
+	if kind == "bakery":
+		var bi := App.progression.bakery_index(level_id)
+		if bi + 1 < App.progression.bakery.size():
+			App.main.replace("game", {"kind": "bakery", "id": App.progression.bakery[bi + 1].id})
+		else:
+			App.main.goto("home", {}, false)
+			App.main.goto("bakery")
+		return
 	var i := App.progression.campaign_index(level_id)
 	if i + 1 < App.progression.campaign.size():
 		App.main.replace("game", {"kind": "campaign", "id": App.progression.campaign[i + 1].id})
@@ -831,11 +1061,12 @@ func next_level() -> void:
 		App.main.goto("home", {"finale": true}, false)
 
 func replay() -> void:
-	App.main.replace("game", {"kind": kind, "id": level_id, "date": date_key})
+	App.main.replace("game", {"kind": kind, "id": level_id, "date": date_key, "challenge": challenge_id})
 
 ## Orders delivered so far as a segmented bar, with the next customers queued.
 class _ProgressBar extends Control:
 	var game: Node
+	var night := false
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -851,7 +1082,9 @@ class _ProgressBar extends Control:
 		var txt := Loc.t("orders_progress", [s.completed, total])
 		var tw := Style.font_bold.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24)).x
 		var x0 := 6.0
-		draw_string(Style.font_bold, Vector2(size.x - x0 - tw if rtl else x0, 24), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24), Style.INK)
+		var ink := Style.MOON if night else Style.INK
+		var soft := Style.MOON_SOFT if night else Style.INK_SOFT
+		draw_string(Style.font_bold, Vector2(size.x - x0 - tw if rtl else x0, 24), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24), ink)
 		# segmented bar
 		var bx := x0 + tw + 16
 		var bw := size.x - bx - x0
@@ -861,7 +1094,7 @@ class _ProgressBar extends Control:
 			var sx := bx + i * (seg + 4)
 			if rtl:
 				sx = size.x - sx - seg
-			var col := Style.TEAL if i < s.completed else Color(Style.INK_SOFT, 0.18)
+			var col := (Style.LANTERN if night else Style.TEAL) if i < s.completed else Color(soft, 0.22)
 			var sb := StyleBoxFlat.new()
 			sb.bg_color = col
 			sb.set_corner_radius_all(7)
@@ -873,7 +1106,7 @@ class _ProgressBar extends Control:
 		var y := 66.0
 		var label := Loc.t("next_label") if s.next_order < total else Loc.t("queue_last")
 		var lw := Style.font_regular.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22)).x
-		draw_string(Style.font_regular, Vector2(size.x - x0 - lw if rtl else x0, y + 8), label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22), Style.INK_SOFT)
+		draw_string(Style.font_regular, Vector2(size.x - x0 - lw if rtl else x0, y + 8), label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22), soft)
 		var x := x0 + lw + 14
 		for k in 3:
 			var o := s.next_order + k
@@ -892,6 +1125,41 @@ class _ProgressBar extends Control:
 					x += 33
 			if d.orders[o].size() > 1:
 				var t := "+"
-				draw_string(Style.font_bold, Vector2(size.x - x - 14 if rtl else x, y + 9), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Style.INK_SOFT)
+				draw_string(Style.font_bold, Vector2(size.x - x - 14 if rtl else x, y + 9), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, soft)
 				x += 18
 			x += 18
+
+## The status line: a reserved row that shows a short message in a soft pill
+## (gold for refusals and hints, paper for information); empty shows nothing.
+class StatusPill extends Label:
+	var _last := "\u0001"
+	var _sticky := false
+
+	func _ready() -> void:
+		horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_theme_font_override("font", Style.font_bold)
+		add_theme_font_size_override("font_size", Style.fs(24))
+		_restyle()
+
+	func _process(_d: float) -> void:
+		var st := bool(get_meta("sticky", false))
+		if text != _last or st != _sticky:
+			_restyle()
+
+	func _restyle() -> void:
+		_last = text
+		_sticky = bool(get_meta("sticky", false))
+		if text == "":
+			add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+			return
+		var sb := Style.box(Style.GOLD_SOFT if _sticky else Color(Style.PAPER, 0.92), 22,
+			Color(Style.GOLD, 0.6) if _sticky else Style.PAPER_EDGE, 2, false)
+		sb.content_margin_top = 6
+		sb.content_margin_bottom = 8
+		sb.content_margin_left = 18
+		sb.content_margin_right = 18
+		add_theme_stylebox_override("normal", sb)
+		add_theme_color_override("font_color", Style.INK)

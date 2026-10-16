@@ -12,6 +12,15 @@ const CAST := ["mira", "theo", "basil"]
 static func for_order(def: LevelDef, o: int) -> String:
 	if o < 0 or o >= def.orders.size():
 		return "n0"
+	var sp := Specials.customer(def, o)
+	if sp != "":
+		return sp
+	var fixed = def.meta.get("customers", [])
+	if fixed is Array and o < fixed.size():
+		return str(fixed[o])   # v4 ledger pages name every customer
+	if def.id.begins_with("m"):
+		# Mira's Bakery: Mira serves; the neighbours come to buy.
+		return "n%d" % posmod(hash(def.id + ":" + str(o)), 6)
 	var st: PackedInt32Array = def.orders[o][0]
 	var kinds := {}
 	for p in Products.COUNT:

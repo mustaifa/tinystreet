@@ -31,6 +31,39 @@ const CHOICES := {
 		{"id": "gilded", "ach": "perfectionist"}, {"id": "evening", "sku": "theme_evening"}]},
 }
 
+## v3 décor themes: coherent presets over the free options. Applying a theme
+## only touches categories the player has restored; nothing is bought.
+const THEMES := {
+	"classic": {"walls": "cream", "floor": "oak", "counter": "oakwood", "lights": "pendant", "seating": "bistro", "plants": "ferns", "sign": "script"},
+	"garden": {"walls": "sage", "floor": "terracotta", "counter": "oakwood", "lights": "string", "seating": "rattan", "plants": "olive", "sign": "painted"},
+	"parisian": {"walls": "blush", "floor": "checker", "counter": "marble", "lights": "globe", "seating": "bistro", "plants": "flowers", "sign": "script"},
+	"harbour": {"walls": "cream", "floor": "checker", "counter": "teal", "lights": "globe", "seating": "booth", "plants": "ferns", "sign": "block"},
+}
+
+## The theme's choices restricted to what is available now.
+static func theme_choices(data: Dictionary, theme: String) -> Dictionary:
+	var out := {}
+	var t: Dictionary = THEMES.get(theme, {})
+	for cat in t:
+		if is_option_available(data, cat, t[cat]):
+			out[cat] = t[cat]
+	return out
+
+## Which theme the current effective choices match exactly (on open
+## categories), or "".
+static func current_theme(data: Dictionary) -> String:
+	for th in THEMES:
+		var tc := theme_choices(data, th)
+		if tc.is_empty():
+			continue
+		var ok := true
+		for cat in tc:
+			if effective_choice(data, cat) != tc[cat]:
+				ok = false
+		if ok:
+			return th
+	return ""
+
 const DEFAULTS := {"walls": "cream", "floor": "oak", "counter": "oakwood", "lights": "pendant",
 	"seating": "bistro", "plants": "ferns", "sign": "script"}
 
@@ -42,6 +75,9 @@ const EXTRAS := [
 	{"id": "gramophone", "cost": 15, "step": 5},
 	{"id": "cat", "cost": 18, "step": 6},
 	{"id": "photos", "cost": 0, "step": 3, "ach": "regulars"},
+	{"id": "chalkboard", "cost": 0, "step": 0, "special": "p06"},
+	{"id": "breadbasket", "cost": 0, "step": 0, "special": "m08"},
+	{"id": "lamp", "cost": 0, "step": 0, "special": "ledger"},
 ]
 
 static func total_cost() -> int:
@@ -141,7 +177,7 @@ static func owns_extra(data: Dictionary, id: String) -> bool:
 
 static func can_buy_extra(data: Dictionary, id: String) -> bool:
 	var e := extra_def(id)
-	return not e.is_empty() and not e.has("ach") and not owns_extra(data, id) \
+	return not e.is_empty() and not e.has("ach") and not e.has("special") and not owns_extra(data, id) \
 		and steps(data) >= int(e.step) and int(data.tokens) >= int(e.cost)
 
 static func buy_extra(data: Dictionary, id: String) -> bool:

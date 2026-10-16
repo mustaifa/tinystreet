@@ -9,6 +9,8 @@ extends Node
 ##   lifecycle_b relaunch and verify the in-progress puzzle was restored
 ##   cafe        capture the café at every restoration step and decor variant
 ##   v2          v2 flows: mechanics, drag, restore via UI, tasks, rush, pause
+##   tour        every screen, popup and state, in a fixed order (before/after
+##               comparisons; --qa-lang=ar for Arabic)
 ## Results are printed as lines starting with "QA:".
 
 var scenario := ""
@@ -67,6 +69,15 @@ func tap_crate(i: int) -> void:
 	var cv: CrateView = g.crate_views[i]
 	await click(cv.get_global_rect().get_center())
 
+## Plays one solver action through real input: a crate tap, or a tap on the
+## order ticket for a bell ring (v3).
+func act(a: int) -> void:
+	if a >= 0:
+		await tap_crate(a)
+	else:
+		var oc: OrderCard = game().order_cards[Rules.action_tray(a)]
+		await click(oc.get_global_rect().get_center())
+
 func _run() -> void:
 	await _wait(1.5)
 	if scenario == "shots":
@@ -92,6 +103,14 @@ func _run() -> void:
 		await _cafe()
 	elif scenario == "v2":
 		await _v2()
+	elif scenario == "slice":
+		await _slice()
+	elif scenario == "v3":
+		await _v3()
+	elif scenario == "ledger":
+		await _ledger()
+	elif scenario == "tour":
+		await _tour()
 	print("QA: done ", scenario)
 	get_tree().quit()
 
@@ -170,7 +189,7 @@ func _play(from: int, to: int) -> void:
 		var g := game()
 		var path: Array = g.def.meta.get("solution", [])
 		for c in path:
-			await tap_crate(int(c))
+			await act(int(c))
 			await _wait(0.08)
 		await _wait(0.8)
 		if g.ps.is_won() and Progression.is_cleared(App.data, id):
@@ -375,6 +394,297 @@ func _v2() -> void:
 	await shot("v2_rush_done")
 	App.main.close_all_overlays()
 
+## v3 slice p01..p12 through real input, with screenshots at key moments.
+func _slice() -> void:
+	App.data.tutorial.done = {"tut_tap": true, "tut_counter": true, "tut_priority": true, "tut_fresh": true}
+	for id in ["c001", "c002", "c003", "c004", "c005", "c006", "f01", "c007"]:
+		Progression.record_win(App.data, id, 3)
+	App.data.stats.wins = 8
+	var ok := 0
+	for n in range(1, 13):
+		var id := "p%02d" % n
+		App.main.goto("game", {"kind": "campaign", "id": id}, false)
+		await _wait(0.5)
+		if n == 1 or n == 6 or n == 12:
+			await shot("slice_%s_story" % id)
+		App.main.close_all_overlays()
+		await _wait(0.2)
+		var g := game()
+		if n == 1:
+			await shot("slice_p01_start")
+		var path: Array = g.def.meta.solution
+		for k in path.size():
+			var a := int(path[k])
+			if n == 1 and a < 0:
+				await shot("slice_p01_before_ring")
+			await act(a)
+			await _wait(0.12)
+			if n == 1 and a < 0:
+				await _wait(0.3)
+				await shot("slice_p01_after_ring")
+			if n == 6 and k == 6:
+				await _wait(0.5)
+				await shot("slice_p06_special")
+		await _wait(1.4)
+		if n == 6 or n == 12:
+			await shot("slice_%s_win" % id)
+		App.main.close_all_overlays()
+		await _wait(0.3)
+		App.main.close_all_overlays()
+		if g.ps.is_won() and Progression.is_cleared(App.data, id):
+			ok += 1
+		else:
+			print("QA: FAIL slice ", id)
+	_expect(ok == 12, "slice p01-p12 won through input (%d/12)" % ok)
+	_expect(Restoration.owns_extra(App.data, "chalkboard"), "p06 special reward: chalkboard")
+	_expect(bool(App.data.bakery.unlocked), "p12 special reward: bakery unlocked")
+	var before := int(App.data.tokens)
+	Specials.on_win(App.data, App.progression.def_for("p06"))
+	_expect(int(App.data.tokens) == before and Wallet.has_grant(App.data, "special:p06"), "special reward once")
+	App.main.goto("levels", {}, false)
+	await _wait(0.5)
+	await shot("slice_levels")
+
+## v3: café life, customization preview/keep/revert, challenge cards, bakery.
+func _v3() -> void:
+	App.data.tutorial.done = {"tut_tap": true, "tut_counter": true, "tut_priority": true, "tut_fresh": true, "tut_bell": true}
+	App.data.story.seen = {"intro": true, "first_served": true}
+	# --- café life at several moments of the visit cycle
+	App.data.restoration.steps = 6
+	App.data.restoration.choices = {}
+	App.data.restoration.extras = {"chalkboard": true}
+	App.main.goto("home", {}, false)
+	await _wait(0.4)
+	var cafe: CafeView = App.main.current.cafe
+	for t in [1.5, 4.8, 7.0]:
+		cafe._t = t
+		cafe.queue_redraw()
+		await shot("v3_cafe_t%d" % int(t * 10))
+	_expect(not cafe._visit_state().is_empty(), "a visitor is in the café once the counter is restored")
+	cafe.cheer()
+	await shot("v3_cafe_cheer")
+	# --- customization: theme preview, revert, keep
+	App.data.tokens = 40
+	App.main.goto("restore", {}, false)
+	await _wait(0.4)
+	var rs = App.main.current
+	var before := Restoration.effective_choices(App.data)
+	rs._preview = Restoration.theme_choices(App.data, "parisian")
+	rs._refresh_cafe()
+	rs._fill_panel()
+	await _wait(0.3)
+	await shot("v3_restore_theme_preview")
+	_expect(Restoration.effective_choices(App.data) == before, "preview saves nothing")
+	rs._revert()
+	_expect(Restoration.effective_choices(App.data) == before and rs.cafe.choices == before, "revert restores the saved look")
+	rs._preview = Restoration.theme_choices(App.data, "garden")
+	rs._keep()
+	_expect(Restoration.current_theme(App.data) == "garden", "keep saves the theme")
+	var tok := int(App.data.tokens)
+	rs._try("walls", "blush")
+	rs._keep()
+	_expect(int(App.data.tokens) == tok and Restoration.choice(App.data, "walls") == "blush", "switching owned choices is free")
+	rs._preview_extra = "cat"
+	rs._refresh_cafe()
+	rs._fill_panel()
+	await _wait(0.3)
+	await shot("v3_restore_extra_preview")
+	_expect(not Restoration.owns_extra(App.data, "cat"), "extra preview doesn't buy")
+	rs._revert()
+	# --- challenge card
+	Progression.record_win(App.data, "p01", 3)
+	App.main.goto("daily", {}, false)
+	await _wait(0.4)
+	await shot("v3_challenges")
+	App.main.goto("game", {"kind": "challenge", "id": "d004", "challenge": "ch01"}, false)
+	await _wait(0.4)
+	App.main.close_all_overlays()
+	var g := game()
+	var tok2 := int(App.data.tokens)
+	for c in g.def.meta.solution:
+		await act(int(c))
+		await _wait(0.05)
+	await _wait(1.4)
+	await shot("v3_challenge_win")
+	_expect(Challenges.is_done(App.data, "ch01") and int(App.data.tokens) == tok2 + 2, "challenge pays its reward")
+	_expect(Challenges.record(App.data, "ch01", true).tokens == 0, "challenge reward pays once")
+	App.main.close_all_overlays()
+	# --- bakery: unlock, first visit beat, a step, the oven level
+	App.data.bakery.unlocked = true
+	App.data.tokens = 30
+	App.main.goto("home", {}, false)
+	await _wait(0.4)
+	await shot("v3_home_bakery_door")
+	App.main.goto("bakery", {}, false)
+	await _wait(0.6)
+	await shot("v3_bakery_intro")
+	App.main.close_all_overlays()
+	var bs = App.main.current
+	bs._unlock()
+	await _wait(0.5)
+	bs._unlock()
+	await _wait(0.5)
+	_expect(Bakery.steps(App.data) == 2 and int(App.data.tokens) == 30 - 16, "two bakery steps bought once each")
+	await shot("v3_bakery_steps2")
+	App.main.goto("game", {"kind": "bakery", "id": "m01"}, false)
+	await _wait(0.5)
+	App.main.close_all_overlays()
+	g = game()
+	await tap_crate(2)
+	_expect(g.ps.state.moves == 0, "oven closed until the first order")
+	await shot("v3_bakery_oven")
+	for c in g.def.meta.solution:
+		await act(int(c))
+		await _wait(0.06)
+	await _wait(1.4)
+	_expect(g.ps.is_won() and Progression.is_cleared(App.data, "m01"), "bakery level won through input")
+	App.main.close_all_overlays()
+	App.data.bakery.steps = 4
+	App.data.bakery.choices = {"awning": "mint", "shelf": "whitewash", "bsign": "whisk"}
+	App.main.goto("bakery", {}, false)
+	await _wait(0.5)
+	await shot("v3_bakery_done")
+
+## v4 Midnight Ledger through the real UI.
+func _ledger() -> void:
+	App.data.tutorial.done = {"tut_tap": true, "tut_counter": true, "tut_priority": true, "tut_fresh": true, "tut_bell": true}
+	App.data.story.seen = {"intro": true, "first_served": true}
+	Progression.record_win(App.data, "p01", 3)
+	App.main.goto("home", {}, false)
+	await _wait(0.4)
+	await shot("ledger_home_offer")
+	App.main.goto("daily", {}, false)
+	await _wait(0.4)
+	await shot("ledger_challenges_entry")
+	App.main.goto("ledger", {}, false)
+	await _wait(0.4)
+	await shot("ledger_list")
+	_expect(bool(App.data.ledger.offer_seen), "visiting the ledger retires the home invitation")
+	# --- e01: budget enforcement, then solve through input
+	App.main.goto("game", {"kind": "ledger", "id": "e01"}, false)
+	await _wait(0.5)
+	var g := game()
+	await shot("ledger_e01_start")
+	g.ledger.show_rules()
+	await _wait(0.3)
+	await shot("ledger_rules_card")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	var w: Array = g.def.meta.ledger.witness
+	for a in w:
+		await act(int(a))
+		await _wait(0.06)
+		if int(a) < 0:
+			# budget spent: another ring is refused with a message
+			await act(Rules.bell_action(0))
+			_expect(g.ps.state.rings_used == 1 and g.status_label.text == Loc.t("invalid_no_rings"), "bell budget enforced in the UI")
+	await _wait(1.4)
+	await shot("ledger_e01_won")
+	_expect(Ledger.is_done(App.data, "e01") and bool(App.data.ledger.nohint.get("e01", false)), "stamp + no-hint badge")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	_expect(Array(g.ps.moves_log) == Array(PackedInt32Array(g.def.meta.ledger.witness)), "played the reference route")
+	g.ledger._why()
+	await _wait(0.3)
+	await shot("ledger_why")
+	_expect(App.main.overlays.size() == 1, "why panel shown")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	# --- e02: sequence refusal, hints, wrong turn and recovery, redo
+	Ledger.record(App.data, "e01", 99, 1)
+	App.main.goto("game", {"kind": "ledger", "id": "e02"}, false)
+	await _wait(0.5)
+	g = game()
+	# crate 2's croissant would feed Mr. Basil's ticket (allowed), so find a tap the sequence refuses
+	var refused := -1
+	for c in g.def.crates.size():
+		if Rules.preview(g.ps.state, c).block == Rules.Block.SEQUENCE:
+			refused = c
+	if refused >= 0:
+		await tap_crate(refused)
+		_expect(g.ps.state.moves == 0 and g.status_label.text.begins_with(Loc.t("invalid_sequence", ["X"]).split("X")[0]), "sequence refusal explained")
+	g._on_hint()
+	await _wait(0.3)
+	await shot("ledger_hint1")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._show_stage(2)
+	await _wait(0.3)
+	await shot("ledger_hint2")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._show_stage(3)
+	await _wait(0.4)
+	await shot("ledger_hint3")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	_expect(g.hint_crate == int(g.def.meta.ledger.witness[0]), "stage 3 = the verified next move")
+	# a proven dead end: feed ticket 2 early (croissant from crate 2)
+	await tap_crate(1)
+	await _wait(0.2)
+	var st := LedgerAnalysis.status(g.ps.state)
+	_expect(st == Solver.UNSOLVABLE, "a wrong turn is proven unsolvable")
+	g.ledger._show_stage(3)
+	await _wait(1.5)
+	await shot("ledger_stuck_hint")
+	_expect(App.main.overlays.size() >= 1, "stuck position offers recovery")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._undo_n(g.ledger._witness_checkpoint())
+	_expect(g.ps.moves_log.size() == 0, "recovered to a point on the proven solution")
+	await tap_crate(int(g.def.meta.ledger.witness[0]))
+	g._on_undo()
+	g.hint_crate = 0
+	g.hint_bell = 0
+	g._on_redo()
+	_expect(g.ps.moves_log.size() == 1, "redo re-applies")
+	_expect(g.hint_crate == -1 and g.hint_bell == -1, "redo clears the old hint")
+	# restart keeps the page's hint count (no-hint badge) and drops the bell hint
+	var hints_before: int = g.ps.hints_used
+	g.hint_bell = 0
+	g._on_restart()
+	await _wait(0.2)
+	_expect(g.ps.hints_used == hints_before and hints_before >= 3, "restart keeps hint stages opened")
+	_expect(g.hint_bell == -1 and not g.order_cards[0].hint_glow, "restart clears the bell hint")
+	await tap_crate(int(g.def.meta.ledger.witness[0]))
+	# --- resume: leave and come back
+	g.persist()
+	App.main.goto("ledger", {}, false)
+	await _wait(0.3)
+	App.main.goto("game", {"kind": "ledger", "id": "e02"}, false)
+	await _wait(0.4)
+	_expect(game().ps.moves_log.size() == 1, "resume restores the attempt")
+	# a changed page (hash mismatch) is not resumed
+	App.main.goto("ledger", {}, false)
+	await _wait(0.2)
+	App.data.current.hash = "stale"
+	App.main.goto("game", {"kind": "ledger", "id": "e02"}, false)
+	await _wait(0.4)
+	_expect(game().ps.moves_log.size() == 0, "stale saved attempt is set aside")
+	# --- final page and collection lantern
+	for p in Ledger.pages():
+		if p.id != "e13":
+			Ledger.record(App.data, p.id, 99, 1)
+	App.main.goto("game", {"kind": "ledger", "id": "e13"}, false)
+	await _wait(0.5)
+	g = game()
+	await shot("ledger_final_start")
+	for a in g.def.meta.ledger.witness:
+		await act(int(a))
+		await _wait(0.05)
+	await _wait(1.4)
+	await shot("ledger_final_won")
+	_expect(Restoration.owns_extra(App.data, "lamp"), "lantern for the full collection")
+	var tok := int(App.data.tokens)
+	g._on_restart()
+	_expect(int(App.data.tokens) == tok, "restart grants nothing")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	App.data.restoration.steps = 8
+	App.main.goto("home", {}, false)
+	await _wait(0.5)
+	await shot("ledger_lantern_cafe")
+
 func _drag(from: Vector2, to: Vector2) -> void:
 	var tf := get_tree().root.get_final_transform()
 	var down := InputEventMouseButton.new()
@@ -536,3 +846,205 @@ func _report_frames() -> void:
 	avg /= s.size()
 	print("QA: frames n=%d avg=%.1fms p95=%.1fms max=%.1fms" % [s.size(), avg * 1000, s[int(s.size() * 0.95)] * 1000, s.back() * 1000])
 	frame_times.clear()
+
+## Every player-facing screen and popup in a fixed order, from a staged save.
+## Names are stable so before/after shots line up.
+func _tour() -> void:
+	var lang := "en"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--qa-lang="):
+			lang = a.substr(10)
+		if a == "--qa-large-text":
+			App.set_setting("large_text", true)
+	App.set_setting("lang", lang)
+	await _wait(0.3)
+	# --- a brand-new player
+	App.main.goto("home", {}, false)
+	await _wait(0.5)
+	await shot("t01_home_new")
+	App.main.goto("levels", {}, false)
+	await _wait(0.5)
+	await shot("t02_levels_new")
+	App.main.goto("game", {"kind": "campaign", "id": "c001"}, false)
+	await _wait(0.7)
+	await shot("t03_game_tutorial")
+	# --- a returning player, mid-campaign
+	App.data.tutorial.done = {"tut_tap": true, "tut_counter": true, "tut_priority": true, "tut_fresh": true, "tut_bell": true, "tut_bag": true, "tut_lock": true, "tut_two_stage": true}
+	App.data.story.seen = {"intro": true, "first_served": true}
+	for i in 30:
+		var lid: String = App.progression.campaign[i].id
+		Progression.record_win(App.data, lid, 3 if i % 4 != 1 else 2)
+		if i % 5 == 0:
+			App.data.campaign.mastery[lid] = true
+	App.data.tokens = 23
+	App.data.restoration.steps = 4
+	App.main.goto("home", {}, false)
+	await _wait(0.6)
+	await shot("t04_home_mid")
+	App.main.goto("levels", {}, false)
+	await _wait(0.6)
+	await shot("t05_levels_mid")
+	App.main.goto("game", {"kind": "campaign", "id": "c031"}, false)
+	await _wait(0.6)
+	App.main.close_all_overlays()
+	var g := game()
+	var sol: Array = g.def.meta.solution
+	for k in mini(4, sol.size()):
+		await tap_crate(int(sol[k]))
+		await _wait(0.08)
+	await _wait(0.7)
+	await shot("t06_game_mid")
+	# selection / pressed feedback while a crate is held
+	var cv: CrateView = g.crate_views[int(sol[4])] if sol.size() > 4 else g.crate_views[0]
+	var tf := get_tree().root.get_final_transform()
+	var down := InputEventMouseButton.new()
+	down.button_index = MOUSE_BUTTON_LEFT
+	down.pressed = true
+	down.position = tf * cv.get_global_rect().get_center()
+	down.global_position = down.position
+	Input.parse_input_event(down)
+	await _wait(0.5)
+	await shot("t07_game_hold")
+	var up := down.duplicate()
+	up.pressed = false
+	Input.parse_input_event(up)
+	await _wait(0.8)
+	for id in ["p01", "f01", "k01", "b01", "x05"]:
+		App.main.goto("game", {"kind": "campaign", "id": id}, false)
+		await _wait(0.5)
+		App.main.close_all_overlays()
+		g = game()
+		var s2: Array = g.def.meta.solution
+		for k in mini(2, s2.size()):
+			await act(int(s2[k]))
+			await _wait(0.08)
+		await _wait(0.8)
+		await shot("t08_game_" + id)
+	App.main.goto("game", {"kind": "campaign", "id": "c002"}, false)
+	await _wait(0.5)
+	g = game()
+	g._open_pause()
+	await _wait(0.4)
+	await shot("t09_pause")
+	App.main.close_all_overlays()
+	await _wait(0.1)
+	g._show_lost()
+	await _wait(0.5)
+	await shot("t10_lost")
+	App.main.close_all_overlays()
+	App.main.goto("game", {"kind": "campaign", "id": "c003"}, false)
+	await _wait(0.5)
+	g = game()
+	for c in Solver.new().solve(g.ps.state).path:
+		await act(c)
+		await _wait(0.05)
+	await _wait(1.6)
+	await shot("t11_win")
+	App.main.close_all_overlays()
+	# --- restoration
+	App.data.tokens = 40
+	App.main.goto("restore", {}, false)
+	await _wait(0.6)
+	await shot("t12_restore")
+	App.main.current._unlock()
+	await _wait(2.5)
+	await shot("t13_restore_after_unlock")
+	App.main.close_all_overlays()
+	await _wait(0.2)
+	App.main.goto("restore", {}, false)
+	await _wait(0.5)
+	App.main.current._choice_panel("walls")
+	await _wait(0.4)
+	await shot("t14_restore_choice")
+	# --- challenges, ledger, bakery
+	App.main.goto("daily", {}, false)
+	await _wait(0.5)
+	await shot("t15_challenges")
+	var sc: ScrollContainer = _find_scroll(App.main.current)
+	if sc:
+		sc.scroll_vertical = 900
+		await _wait(0.3)
+		await shot("t16_challenges_scrolled")
+	Ledger.record(App.data, "e01", 99, 0)
+	Ledger.record(App.data, "e02", 99, 1)
+	App.main.goto("ledger", {}, false)
+	await _wait(0.5)
+	await shot("t17_ledger_list")
+	App.main.goto("game", {"kind": "ledger", "id": "e03"}, false)
+	await _wait(0.6)
+	g = game()
+	var w: Array = g.def.meta.ledger.witness
+	for k in 3:
+		await act(int(w[k]))
+		await _wait(0.1)
+	await _wait(0.6)
+	await shot("t18_ledger_play")
+	g.ledger.show_rules()
+	await _wait(0.4)
+	await shot("t19_ledger_rules")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._show_stage(2)
+	await _wait(0.4)
+	await shot("t20_ledger_hint2")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	for k in range(3, w.size()):
+		await act(int(w[k]))
+		await _wait(0.06)
+	await _wait(1.6)
+	await shot("t21_ledger_won")
+	App.main.close_all_overlays()
+	await _wait(0.15)
+	g.ledger._why()
+	await _wait(0.4)
+	await shot("t22_ledger_why")
+	App.main.close_all_overlays()
+	App.data.bakery.unlocked = true
+	App.data.tokens = 30
+	App.main.goto("bakery", {}, false)
+	await _wait(0.6)
+	await shot("t23_bakery")
+	App.main.goto("game", {"kind": "bakery", "id": "m01"}, false)
+	await _wait(0.6)
+	App.main.close_all_overlays()
+	await _wait(0.3)
+	await shot("t24_bakery_game")
+	# --- secondary screens
+	App.data.stats.wins = 30
+	for t in ["tasks", "achievements", "progress"]:
+		App.main.goto("journal", {"tab": t}, false)
+		await _wait(0.5)
+		await shot("t25_journal_" + t)
+	for s in ["settings", "help", "credits", "privacy", "shop"]:
+		App.main.goto(s, {}, false)
+		await _wait(0.5)
+		await shot("t26_" + s)
+	App.main.goto("home", {}, false)
+	await _wait(0.4)
+	App.data.story.seen.erase("lvl:c016")
+	Story.level_start("c016")
+	await _wait(0.7)
+	await shot("t27_story")
+	App.main.close_all_overlays()
+	await _wait(0.2)
+	App.main._confirm_exit()
+	await _wait(0.4)
+	await shot("t28_exit_dialog")
+	App.main.close_all_overlays()
+	# --- a finished café
+	App.data.restoration.steps = 8
+	App.data.restoration.extras = {"cat": true, "clock": true, "gramophone": true, "cakestand": true}
+	App.main.goto("home", {}, false)
+	await _wait(0.6)
+	await shot("t29_home_done")
+	App.set_setting("lang", "en")
+
+func _find_scroll(n: Node) -> ScrollContainer:
+	if n is ScrollContainer:
+		return n
+	for c in n.get_children():
+		var r := _find_scroll(c)
+		if r:
+			return r
+	return null

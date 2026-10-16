@@ -14,6 +14,9 @@ var next_order: int = 0              # index of the next queued order
 var completed: int = 0               # orders fully delivered
 var moves: int = 0
 var peak_counter: int = 0            # highest simultaneous counter occupancy reached
+var pin: int = -1                    # v3: tray whose bell is rung (served first), -1 = none
+var rings_used: int = 0              # v4: bell rings so far (counts against level.bell_budget)
+var violation := false               # v4: set only on simulation copies when a delivery breaks level.sequence
 
 static func create(def: LevelDef) -> PuzzleState:
 	var s := PuzzleState.new()
@@ -50,7 +53,26 @@ func copy() -> PuzzleState:
 	s.completed = completed
 	s.moves = moves
 	s.peak_counter = peak_counter
+	s.pin = pin
+	s.rings_used = rings_used
 	return s
+
+## Takes over another state's contents (e.g. a simulated copy that turned out legal).
+func assign(o: PuzzleState) -> void:
+	level = o.level
+	crate_pos = o.crate_pos
+	counter = o.counter
+	bonus_slots = o.bonus_slots
+	tray_order = o.tray_order
+	tray_stage = o.tray_stage
+	tray_fill = o.tray_fill
+	next_order = o.next_order
+	completed = o.completed
+	moves = o.moves
+	peak_counter = o.peak_counter
+	pin = o.pin
+	rings_used = o.rings_used
+	violation = o.violation
 
 func front(crate: int) -> int:
 	var c: PackedInt32Array = level.crates[crate]
@@ -91,4 +113,12 @@ func tray_stage_complete(tray: int) -> bool:
 
 ## Stable string key used by the solver's transposition table.
 func key() -> String:
-	return "%s|%s|%s|%s|%s|%d" % [crate_pos, counter, tray_order, tray_stage, tray_fill, next_order]
+	# Rings used only matter when the level has a bell budget. Leaving them
+	# out otherwise keeps unlimited-bell searches finite (ring cycles repeat
+	# the same key and are cut by the solver).
+	var rings := rings_used if level.bell_budget >= 0 else -1
+	return "%s|%s|%s|%s|%s|%d|%d|%d" % [crate_pos, counter, tray_order, tray_stage, tray_fill, next_order, pin, rings]
+
+## v4: has order o been delivered? (Arrived and left its tray.)
+func delivered(o: int) -> bool:
+	return o < next_order and not (o in tray_order)

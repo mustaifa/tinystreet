@@ -52,7 +52,7 @@ func _build() -> void:
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(v)
 	var head := UI.hbox(8)
-	name_label = UI.label("", "HeaderLabel", HORIZONTAL_ALIGNMENT_LEFT if not Loc.is_rtl() else HORIZONTAL_ALIGNMENT_RIGHT, false)
+	name_label = UI.label("", "HeaderLabel", UI.al(), false)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(name_label)
 	var skip := UI.button(Loc.t("skip"), _finish, "SecondaryButton", 64)
@@ -60,7 +60,7 @@ func _build() -> void:
 	skip.add_theme_font_size_override("font_size", Style.fs(24))
 	head.add_child(skip)
 	v.add_child(head)
-	text_label = UI.label("", "", HORIZONTAL_ALIGNMENT_LEFT if not Loc.is_rtl() else HORIZONTAL_ALIGNMENT_RIGHT)
+	text_label = UI.label("", "", UI.al())
 	text_label.custom_minimum_size = Vector2(380, 0)
 	text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(text_label)

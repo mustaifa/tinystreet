@@ -8,7 +8,10 @@ Legend: ✅ done and verified here · ⚠️ done but unverified or partial · �
 | Engine and templates pinned (Godot 4.7.2-stable, SHA-512 verified) | ✅ | |
 | targetSdk 36 / minSdk 24 / compileSdk 36 | ✅ | From the APK manifest. Play requires API 36 for new apps and updates since 2026-08-31 (verified 2026-10-15). |
 | Debug APK v1 (`build/tinystreet-debug.apk`) | ✅ | **Debug-signed**. Real-device smoke test by the owner: installs and renders (2026-10-16). Kept for comparison. |
-| Debug APK v2 (`build/tinystreet-v2-debug.apk`) | ⚠️ | **Debug-signed**, versionCode 2 / 0.2.0. Built and inspected here; **not yet run on Android**. |
+| Debug APK v2 (`build/tinystreet-v2-debug.apk`) | ✅ | Debug-signed, 0.2.0 / code 2. Owner reports "the updated Android version works" on a real phone (2026-10-16; exact build not stated). |
+| Debug APK v3 (`build/tinystreet-v3-debug.apk`) | ✅ | 0.3.0 / code 3. Owner: "currently works" on their phone (full feedback pending). |
+| Debug APK v4 (`build/tinystreet-v4-expert-debug.apk`) | ⚠️ | 0.4.0 / code 4, same key. Built and inspected here; **pending the owner's phone test**. |
+| Debug APK v5 (`build/tinystreet-ui-polish-debug.apk`) | ⚠️ | 0.5.0 / code 5, same key; UI polish. Built and inspected here; **pending the owner's phone test** (`docs/ANDROID_ACCEPTANCE_TESTS.md`). |
 | Release AAB (`build/tinystreet-release-unsigned.aab`) | ⚠️ | **Unsigned.** Must be signed with the publisher's upload key. Not store-ready. |
 | Upload key / Play App Signing | 🔒 | Create the upload keystore outside the repo and supply it through Godot export credentials or environment variables (`GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `..._USER`, `..._PASSWORD`). Never commit it. |
 | Package id final | 🔒 | Placeholder `com.tinystreet.sortrestore`. It can't be changed after the first upload. |
@@ -44,10 +47,10 @@ Legend: ✅ done and verified here · ⚠️ done but unverified or partial · �
 | Item | Status |
 |---|---|
 | Automated tests pass | ✅ (see TEST_REPORT.md) |
-| All shipped levels validated (144/144 PASSED, 0 UNVERIFIED, mechanics engaged) | ✅ |
+| All shipped levels validated (164/164 PASSED, 0 UNVERIFIED, mechanics engaged, bell claims re-proven) | ✅ |
 | Human playtest (`docs/PLAYTEST.md`) | ❌ (v1 smoke test only) |
 | Real-device test (low-end and modern phones) | ⚠️ v1 on one phone (renders); v2 none |
-| Save migration v1/v2 → v3 tested on a real install-over-update | ❌ (unit-tested only) |
+| Save migration to schema 4 tested on a real install-over-update | ❌ (unit-tested with a full v2 player; pre-migration backup file written) |
 | Purchase verification server (required before `REAL_PURCHASES_ENABLED`) | ❌ still not built; real purchases stay disabled |
 | Arabic text reviewed by a qualified translator | ❌ |
 | Audio and music final pass | ⚠️ (v2: longer original synthesised loop + 16 SFX; still synthetic) |

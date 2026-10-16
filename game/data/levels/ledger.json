@@ -1,0 +1,1435 @@
+{
+	"pages": [
+		{
+			"bell_budget": 1,
+			"counter": 1,
+			"crates": [
+				[
+					"coffee",
+					"tea",
+					"croissant"
+				],
+				[
+					"coffee",
+					"tea",
+					"croissant"
+				]
+			],
+			"id": "e01",
+			"meta": {
+				"customers": [
+					"mira",
+					"basil",
+					"theo",
+					"n1"
+				],
+				"ledger": {
+					"difficulty_estimate": 1,
+					"group": "lesson",
+					"hint1": "ledger_e01_hint1",
+					"hint2": "ledger_e01_hint2",
+					"idea": "ledger_e01_idea",
+					"idea_tag": "bell_timing",
+					"min_rings": 1,
+					"name": "ledger_e01_name",
+					"number": 1,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 2,
+						"content_hash": "22544d4b39b4ba8c",
+						"dead_end_kinds": {
+							"ring": 2,
+							"to_tray": 1
+						},
+						"dead_ends": 3,
+						"first_actions": [
+							3,
+							4,
+							4
+						],
+						"idea_evidence": "min rings 1 proved; 2 ring dead ends",
+						"min_rings_proved": true,
+						"ms": 7,
+						"nodes": 18,
+						"nonbell_choice_points": 1,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e01_tag",
+					"why": "ledger_e01_why",
+					"witness": [
+						0,
+						-2,
+						0,
+						0,
+						1,
+						1,
+						1
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"croissant": 2,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"tea": 1
+					}
+				],
+				[
+					{
+						"coffee": 1
+					}
+				],
+				[
+					{
+						"coffee": 1
+					}
+				]
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 0,
+			"counter": 1,
+			"crates": [
+				[
+					"cupcake",
+					"coffee",
+					"coffee"
+				],
+				[
+					"croissant",
+					"coffee"
+				],
+				[
+					"cupcake",
+					"croissant"
+				]
+			],
+			"id": "e02",
+			"meta": {
+				"customers": [
+					"n0",
+					"basil",
+					"mira",
+					"theo"
+				],
+				"ledger": {
+					"difficulty_estimate": 1,
+					"group": "lesson",
+					"hint1": "ledger_e02_hint1",
+					"hint2": "ledger_e02_hint2",
+					"idea": "ledger_e02_idea",
+					"idea_tag": "backward",
+					"min_rings": 0,
+					"name": "ledger_e02_name",
+					"number": 2,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 3,
+						"content_hash": "7d8425e394d84ebe",
+						"dead_end_kinds": {
+							"to_tray": 3
+						},
+						"dead_ends": 3,
+						"first_actions": [
+							2,
+							5,
+							3
+						],
+						"idea_evidence": "sequence [3, 1] puts a later arrival first; 3 non-bell dead ends",
+						"min_rings_proved": true,
+						"ms": 10,
+						"nodes": 7,
+						"nonbell_choice_points": 3,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e02_tag",
+					"why": "ledger_e02_why",
+					"witness": [
+						0,
+						0,
+						0,
+						1,
+						1,
+						2,
+						2
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"coffee": 2,
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"croissant": 1,
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"croissant": 1
+					}
+				],
+				[
+					{
+						"coffee": 1
+					}
+				]
+			],
+			"sequence": [
+				3,
+				1
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 2,
+			"counter": 1,
+			"crates": [
+				[
+					"coffee",
+					"tea",
+					"coffee",
+					"tea"
+				],
+				[
+					"tea",
+					"coffee",
+					"coffee",
+					"tea"
+				]
+			],
+			"id": "e03",
+			"meta": {
+				"customers": [
+					"n0",
+					"n1",
+					"basil",
+					"theo",
+					"n2"
+				],
+				"ledger": {
+					"difficulty_estimate": 2,
+					"group": "lesson",
+					"hint1": "ledger_e03_hint1",
+					"hint2": "ledger_e03_hint2",
+					"idea": "ledger_e03_idea",
+					"idea_tag": "precision",
+					"min_rings": 1,
+					"name": "ledger_e03_name",
+					"number": 3,
+					"precision_target": 9,
+					"proof": {
+						"choice_points": 3,
+						"content_hash": "b2a21368fe1a0973",
+						"dead_end_kinds": {
+							"ring": 2,
+							"to_counter": 1,
+							"to_tray": 1
+						},
+						"dead_ends": 4,
+						"first_actions": [
+							4,
+							4,
+							4
+						],
+						"idea_evidence": "budget 2 > proven minimum 1",
+						"min_rings_proved": true,
+						"ms": 8,
+						"nodes": 14,
+						"nonbell_choice_points": 2,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e03_tag",
+					"why": "ledger_e03_why",
+					"witness": [
+						1,
+						0,
+						-2,
+						0,
+						0,
+						0,
+						1,
+						1,
+						1
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"tea": 1
+					}
+				],
+				[
+					{
+						"tea": 1
+					}
+				],
+				[
+					{
+						"tea": 2
+					}
+				],
+				[
+					{
+						"coffee": 1
+					}
+				],
+				[
+					{
+						"coffee": 3
+					}
+				]
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 0,
+			"counter": 1,
+			"crates": [
+				[
+					"coffee",
+					"coffee",
+					"tea",
+					"croissant"
+				],
+				[
+					"croissant",
+					"coffee",
+					"tea"
+				],
+				[
+					"coffee",
+					"coffee",
+					"croissant"
+				]
+			],
+			"id": "e04",
+			"meta": {
+				"customers": [
+					"mira",
+					"n0",
+					"theo",
+					"basil",
+					"n1"
+				],
+				"ledger": {
+					"difficulty_estimate": 2,
+					"group": "puzzle",
+					"hint1": "ledger_e04_hint1",
+					"hint2": "ledger_e04_hint2",
+					"idea": "ledger_e04_idea",
+					"idea_tag": "empty_space",
+					"min_rings": 0,
+					"name": "ledger_e04_name",
+					"number": 1,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 4,
+						"content_hash": "367855e7d8b7bf19",
+						"dead_end_kinds": {
+							"to_counter": 5,
+							"to_tray": 1
+						},
+						"dead_ends": 6,
+						"first_actions": [
+							1,
+							5,
+							3
+						],
+						"idea_evidence": "1 counter space; 5 counter dead ends",
+						"min_rings_proved": true,
+						"ms": 7,
+						"nodes": 11,
+						"nonbell_choice_points": 4,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e04_tag",
+					"why": "ledger_e04_why",
+					"witness": [
+						1,
+						1,
+						1,
+						0,
+						0,
+						0,
+						0,
+						2,
+						2,
+						2
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"croissant": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"croissant": 1
+					}
+				],
+				[
+					{
+						"coffee": 1
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"croissant": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"coffee": 3
+					}
+				]
+			],
+			"sequence": [
+				3,
+				1
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 0,
+			"counter": 2,
+			"crates": [
+				[
+					"coffee",
+					"coffee",
+					"croissant"
+				],
+				[
+					"cupcake",
+					"croissant",
+					"croissant"
+				],
+				[
+					"croissant",
+					"coffee",
+					"cupcake"
+				]
+			],
+			"id": "e05",
+			"meta": {
+				"customers": [
+					"mira",
+					"theo",
+					"n2",
+					"basil"
+				],
+				"ledger": {
+					"difficulty_estimate": 2,
+					"group": "puzzle",
+					"hint1": "ledger_e05_hint1",
+					"hint2": "ledger_e05_hint2",
+					"idea": "ledger_e05_idea",
+					"idea_tag": "delay_completion",
+					"min_rings": 0,
+					"name": "ledger_e05_name",
+					"number": 2,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 4,
+						"content_hash": "fe5bb97b4b9fab05",
+						"dead_end_kinds": {
+							"completes": 5,
+							"to_tray": 1
+						},
+						"dead_ends": 6,
+						"first_actions": [
+							2,
+							5,
+							3
+						],
+						"idea_evidence": "5 premature completions are dead ends",
+						"min_rings_proved": true,
+						"ms": 49,
+						"nodes": 118,
+						"nonbell_choice_points": 4,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e05_tag",
+					"why": "ledger_e05_why",
+					"witness": [
+						2,
+						1,
+						1,
+						0,
+						0,
+						0,
+						2,
+						2,
+						1
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"croissant": 2
+					}
+				],
+				[
+					{
+						"coffee": 1
+					}
+				],
+				[
+					{
+						"croissant": 1,
+						"cupcake": 2
+					}
+				],
+				[
+					{
+						"coffee": 2,
+						"croissant": 1
+					}
+				]
+			],
+			"sequence": [
+				0,
+				2,
+				3
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 0,
+			"counter": 1,
+			"crates": [
+				[
+					"cupcake",
+					"cupcake",
+					"coffee"
+				],
+				[
+					"croissant",
+					"croissant",
+					"coffee"
+				],
+				[
+					"coffee",
+					"cupcake"
+				]
+			],
+			"id": "e06",
+			"meta": {
+				"customers": [
+					"n1",
+					"basil",
+					"n4",
+					"theo"
+				],
+				"ledger": {
+					"difficulty_estimate": 3,
+					"group": "puzzle",
+					"hint1": "ledger_e06_hint1",
+					"hint2": "ledger_e06_hint2",
+					"idea": "ledger_e06_idea",
+					"idea_tag": "backward",
+					"min_rings": 0,
+					"name": "ledger_e06_name",
+					"number": 3,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 4,
+						"content_hash": "efbe4393cfbf494e",
+						"dead_end_kinds": {
+							"completes": 1,
+							"to_tray": 3
+						},
+						"dead_ends": 4,
+						"first_actions": [
+							2,
+							5,
+							3
+						],
+						"idea_evidence": "sequence [0, 3, 1] puts a later arrival first; 4 non-bell dead ends",
+						"min_rings_proved": true,
+						"ms": 17,
+						"nodes": 34,
+						"nonbell_choice_points": 4,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e06_tag",
+					"why": "ledger_e06_why",
+					"witness": [
+						1,
+						1,
+						1,
+						2,
+						0,
+						0,
+						0,
+						2
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"coffee": 2,
+						"croissant": 1
+					}
+				],
+				[
+					{
+						"croissant": 1,
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"cupcake": 1
+					}
+				]
+			],
+			"sequence": [
+				0,
+				3,
+				1
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 1,
+			"counter": 2,
+			"crates": [
+				[
+					"cupcake",
+					"cupcake",
+					"tea",
+					"cupcake"
+				],
+				[
+					"croissant",
+					"tea",
+					"cupcake"
+				],
+				[
+					"tea",
+					"tea",
+					"tea"
+				]
+			],
+			"id": "e07",
+			"meta": {
+				"customers": [
+					"basil",
+					"n2",
+					"n5",
+					"n4",
+					"mira"
+				],
+				"ledger": {
+					"difficulty_estimate": 3,
+					"group": "puzzle",
+					"hint1": "ledger_e07_hint1",
+					"hint2": "ledger_e07_hint2",
+					"idea": "ledger_e07_idea",
+					"idea_tag": "ring_late",
+					"min_rings": 1,
+					"name": "ledger_e07_name",
+					"number": 4,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 9,
+						"content_hash": "b5d2b9c1d7cb208f",
+						"dead_end_kinds": {
+							"ring": 10,
+							"to_counter": 2
+						},
+						"dead_ends": 12,
+						"first_actions": [
+							4,
+							5,
+							5
+						],
+						"idea_evidence": "witness rings at step 8; 9 earlier rings are dead ends",
+						"min_rings_proved": true,
+						"ms": 76,
+						"nodes": 12,
+						"nonbell_choice_points": 2,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e07_tag",
+					"why": "ledger_e07_why",
+					"witness": [
+						0,
+						0,
+						0,
+						2,
+						2,
+						2,
+						1,
+						1,
+						-2,
+						0,
+						1
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"tea": 3
+					}
+				],
+				[
+					{
+						"cupcake": 2,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"croissant": 1,
+						"tea": 1
+					}
+				]
+			],
+			"sequence": [
+				4,
+				2
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 0,
+			"counter": 2,
+			"crates": [
+				[
+					"croissant",
+					"coffee",
+					"tea",
+					"coffee"
+				],
+				[
+					"coffee",
+					"croissant",
+					"tea"
+				],
+				[
+					"tea",
+					"croissant",
+					"coffee"
+				]
+			],
+			"id": "e08",
+			"meta": {
+				"customers": [
+					"n0",
+					"theo",
+					"n1",
+					"basil"
+				],
+				"ledger": {
+					"difficulty_estimate": 3,
+					"group": "puzzle",
+					"hint1": "ledger_e08_hint1",
+					"hint2": "ledger_e08_hint2",
+					"idea": "ledger_e08_idea",
+					"idea_tag": "local_good",
+					"min_rings": 0,
+					"name": "ledger_e08_name",
+					"number": 5,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 4,
+						"content_hash": "78536c06b04a5d1b",
+						"dead_end_kinds": {
+							"completes": 2,
+							"to_tray": 3
+						},
+						"dead_ends": 5,
+						"first_actions": [
+							2,
+							5,
+							3
+						],
+						"idea_evidence": "2 completions of orders outside the sequence are dead ends",
+						"min_rings_proved": true,
+						"ms": 52,
+						"nodes": 38,
+						"nonbell_choice_points": 4,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e08_tag",
+					"why": "ledger_e08_why",
+					"witness": [
+						0,
+						0,
+						1,
+						0,
+						0,
+						1,
+						2,
+						2,
+						2,
+						1
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"coffee": 1,
+						"croissant": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"coffee": 1
+					}
+				],
+				[
+					{
+						"coffee": 2,
+						"croissant": 1
+					}
+				],
+				[
+					{
+						"croissant": 1,
+						"tea": 2
+					}
+				]
+			],
+			"sequence": [
+				1,
+				2,
+				3
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 4,
+			"counter": 1,
+			"crates": [
+				[
+					"tea",
+					"coffee",
+					"tea",
+					"tea"
+				],
+				[
+					"cupcake",
+					"cupcake",
+					"cupcake",
+					"tea"
+				]
+			],
+			"id": "e09",
+			"meta": {
+				"customers": [
+					"basil",
+					"n2",
+					"n0",
+					"mira"
+				],
+				"ledger": {
+					"difficulty_estimate": 3,
+					"group": "puzzle",
+					"hint1": "ledger_e09_hint1",
+					"hint2": "ledger_e09_hint2",
+					"idea": "ledger_e09_idea",
+					"idea_tag": "min_rings",
+					"min_rings": 3,
+					"name": "ledger_e09_name",
+					"number": 6,
+					"precision_target": 11,
+					"proof": {
+						"choice_points": 8,
+						"content_hash": "f9ec017f668d6c6a",
+						"dead_end_kinds": {
+							"ring": 6,
+							"to_tray": 6
+						},
+						"dead_ends": 12,
+						"first_actions": [
+							3,
+							4,
+							4
+						],
+						"idea_evidence": "minimum 3 rings proved",
+						"min_rings_proved": true,
+						"ms": 126,
+						"nodes": 231,
+						"nonbell_choice_points": 5,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e09_tag",
+					"why": "ledger_e09_why",
+					"witness": [
+						1,
+						1,
+						1,
+						-2,
+						0,
+						0,
+						-2,
+						0,
+						-2,
+						0,
+						1
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"coffee": 1,
+						"cupcake": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"cupcake": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"tea": 1
+					}
+				],
+				[
+					{
+						"cupcake": 1,
+						"tea": 1
+					}
+				]
+			],
+			"sequence": [
+				3,
+				0
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 1,
+			"counter": 2,
+			"crates": [
+				[
+					"croissant",
+					"croissant",
+					"croissant",
+					"coffee"
+				],
+				[
+					"coffee!",
+					"coffee",
+					"cupcake",
+					"coffee"
+				],
+				[
+					"croissant!",
+					"croissant!",
+					"cupcake",
+					"cupcake!"
+				]
+			],
+			"id": "e10",
+			"meta": {
+				"customers": [
+					"mira",
+					"n2",
+					"n5",
+					"n1"
+				],
+				"ledger": {
+					"difficulty_estimate": 4,
+					"group": "puzzle",
+					"hint1": "ledger_e10_hint1",
+					"hint2": "ledger_e10_hint2",
+					"idea": "ledger_e10_idea",
+					"idea_tag": "fresh",
+					"min_rings": 1,
+					"name": "ledger_e10_name",
+					"number": 7,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 10,
+						"content_hash": "72231d4dcdf1c04b",
+						"dead_end_kinds": {
+							"completes": 3,
+							"ring": 10,
+							"to_tray": 3
+						},
+						"dead_ends": 16,
+						"first_actions": [
+							4,
+							5,
+							5
+						],
+						"idea_evidence": "4 fresh items; 6 non-bell dead ends",
+						"min_rings_proved": true,
+						"ms": 256,
+						"nodes": 347,
+						"nonbell_choice_points": 6,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e10_tag",
+					"why": "ledger_e10_why",
+					"witness": [
+						0,
+						1,
+						1,
+						1,
+						2,
+						1,
+						2,
+						0,
+						0,
+						-2,
+						2,
+						0,
+						2
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"coffee": 1,
+						"croissant": 2
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"cupcake": 2
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"croissant": 1,
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"croissant": 2
+					}
+				]
+			],
+			"sequence": [
+				3,
+				2
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 1,
+			"counter": 1,
+			"crates": [
+				[
+					"coffee",
+					"coffee",
+					"croissant",
+					"coffee"
+				],
+				[
+					"cupcake",
+					"croissant",
+					"coffee",
+					"coffee"
+				],
+				[
+					"coffee",
+					"croissant",
+					"cupcake",
+					"cupcake"
+				]
+			],
+			"id": "e11",
+			"locks": [
+				0,
+				2,
+				0
+			],
+			"meta": {
+				"customers": [
+					"theo",
+					"n2",
+					"mira",
+					"n0",
+					"basil"
+				],
+				"ledger": {
+					"difficulty_estimate": 4,
+					"group": "puzzle",
+					"hint1": "ledger_e11_hint1",
+					"hint2": "ledger_e11_hint2",
+					"idea": "ledger_e11_idea",
+					"idea_tag": "lock",
+					"min_rings": 1,
+					"name": "ledger_e11_name",
+					"number": 8,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 10,
+						"content_hash": "2feb851bdc22bae1",
+						"dead_end_kinds": {
+							"ring": 6,
+							"to_counter": 4,
+							"to_tray": 4
+						},
+						"dead_ends": 14,
+						"first_actions": [
+							3,
+							4,
+							4
+						],
+						"idea_evidence": "strapped crate matters for 4 moves; 8 non-bell dead ends",
+						"min_rings_proved": true,
+						"ms": 115,
+						"nodes": 117,
+						"nonbell_choice_points": 6,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e11_tag",
+					"why": "ledger_e11_why",
+					"witness": [
+						0,
+						0,
+						2,
+						0,
+						-2,
+						0,
+						1,
+						1,
+						1,
+						2,
+						2,
+						2,
+						1
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"coffee": 3
+					}
+				],
+				[
+					{
+						"coffee": 2,
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"croissant": 1
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"croissant": 2,
+						"cupcake": 1
+					}
+				]
+			],
+			"sequence": [
+				4,
+				3
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 1,
+			"counter": 2,
+			"crates": [
+				[
+					"cupcake",
+					"coffee",
+					"croissant",
+					"croissant"
+				],
+				[
+					"cupcake",
+					"croissant",
+					"coffee",
+					"coffee"
+				],
+				[
+					"coffee",
+					"coffee",
+					"croissant"
+				]
+			],
+			"id": "e12",
+			"meta": {
+				"customers": [
+					"n1",
+					"theo",
+					"mira",
+					"n4"
+				],
+				"ledger": {
+					"difficulty_estimate": 4,
+					"group": "puzzle",
+					"hint1": "ledger_e12_hint1",
+					"hint2": "ledger_e12_hint2",
+					"idea": "ledger_e12_idea",
+					"idea_tag": "combine",
+					"min_rings": 1,
+					"name": "ledger_e12_name",
+					"number": 9,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 10,
+						"content_hash": "e0c693a8c68ff41a",
+						"dead_end_kinds": {
+							"completes": 1,
+							"ring": 14,
+							"to_counter": 1,
+							"to_tray": 5
+						},
+						"dead_ends": 21,
+						"first_actions": [
+							4,
+							5,
+							5
+						],
+						"idea_evidence": "non-bell dead-end kinds: [\"completes\", \"to_counter\", \"to_tray\"]",
+						"min_rings_proved": true,
+						"ms": 155,
+						"nodes": 48,
+						"nonbell_choice_points": 5,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e12_tag",
+					"why": "ledger_e12_why",
+					"witness": [
+						0,
+						0,
+						0,
+						2,
+						2,
+						1,
+						1,
+						1,
+						1,
+						-2,
+						0,
+						2
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"coffee": 2,
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"coffee": 2,
+						"croissant": 1
+					}
+				],
+				[
+					{
+						"croissant": 2
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"croissant": 1,
+						"cupcake": 1
+					}
+				]
+			],
+			"sequence": [
+				3,
+				2
+			],
+			"trays": 2
+		},
+		{
+			"bell_budget": 1,
+			"counter": 1,
+			"crates": [
+				[
+					"cupcake",
+					"tea",
+					"cupcake",
+					"cupcake"
+				],
+				[
+					"tea",
+					"coffee",
+					"cupcake!",
+					"tea!"
+				],
+				[
+					"coffee",
+					"tea",
+					"tea",
+					"cupcake"
+				]
+			],
+			"id": "e13",
+			"meta": {
+				"customers": [
+					"mira",
+					"n2",
+					"basil",
+					"theo",
+					"n1"
+				],
+				"ledger": {
+					"difficulty_estimate": 5,
+					"group": "final",
+					"hint1": "ledger_e13_hint1",
+					"hint2": "ledger_e13_hint2",
+					"idea": "ledger_e13_idea",
+					"idea_tag": "combine",
+					"min_rings": 1,
+					"name": "ledger_e13_name",
+					"number": 1,
+					"precision_target": 0,
+					"proof": {
+						"choice_points": 9,
+						"content_hash": "a12b89742da17884",
+						"dead_end_kinds": {
+							"ring": 3,
+							"to_counter": 3,
+							"to_tray": 8
+						},
+						"dead_ends": 14,
+						"first_actions": [
+							4,
+							5,
+							5
+						],
+						"idea_evidence": "non-bell dead-end kinds: [\"to_tray\", \"to_counter\"]",
+						"min_rings_proved": true,
+						"ms": 163,
+						"nodes": 212,
+						"nonbell_choice_points": 7,
+						"solver": "4.0-ledger",
+						"witness_replay": true
+					},
+					"tagline": "ledger_e13_tag",
+					"why": "ledger_e13_why",
+					"witness": [
+						0,
+						0,
+						-2,
+						1,
+						1,
+						1,
+						1,
+						2,
+						2,
+						2,
+						0,
+						0,
+						2
+					]
+				}
+			},
+			"orders": [
+				[
+					{
+						"cupcake": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"cupcake": 1,
+						"tea": 2
+					}
+				],
+				[
+					{
+						"cupcake": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"tea": 1
+					}
+				],
+				[
+					{
+						"coffee": 1,
+						"cupcake": 2
+					}
+				]
+			],
+			"sequence": [
+				0,
+				3,
+				2
+			],
+			"trays": 2
+		}
+	],
+	"solver": "4.0-ledger",
+	"version": 1
+}

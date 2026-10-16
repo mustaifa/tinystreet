@@ -10,8 +10,8 @@ func _all() -> Array:
 func test_counts() -> void:
 	var p := Progression.new()
 	p.load_levels()
-	eq(p.campaign.size(), 84, "campaign size")
-	eq(p.chapters.size(), 6, "chapters")
+	eq(p.campaign.size(), 96, "campaign size")
+	eq(p.chapters.size(), 7, "chapters")
 	check(p.daily_pool.size() >= 30, "daily pool size %d" % p.daily_pool.size())
 
 func test_every_level_valid_and_solution_replays() -> void:
@@ -71,6 +71,37 @@ func test_mechanic_levels_engage_their_mechanic() -> void:
 			check(int(e.reveals) >= 1, "%s bags never revealed" % l.id)
 		if def.has_locks():
 			check(int(e.lock_moves) >= 1, "%s lock never matters" % l.id)
+
+## v3 slice: the bell chapter follows the tutorials, early levels have no
+## bell, every claimed bell value is proven, and the slice alternates
+## decisions with relaxed levels and has two special orders.
+func test_v3_slice_structure() -> void:
+	var p := Progression.new()
+	p.load_levels()
+	var first := p.campaign_index("p01")
+	eq(first, p.campaign_index("c007") + 1, "slice right after the first chapter")
+	for i in first:
+		check(not LevelDef.from_dict(p.campaign[i]).allow_bell, "%s should not offer the bell" % p.campaign[i].id)
+	eq(LevelValidator.bell_value(p.def_for("p01")), "required", "the bell lesson needs the bell")
+	var needs := 0
+	var relaxed := 0
+	var specials := 0
+	for n in range(1, 13):
+		var id := "p%02d" % n
+		var l: Dictionary = p.campaign[p.campaign_index(id)]
+		var bv := str(l.meta.metrics.get("bell", ""))
+		if bv in ["required", "tidier"]:
+			needs += 1
+		elif float(l.meta.metrics.random_win_rate) >= 0.5:
+			relaxed += 1
+		if l.meta.has("special"):
+			specials += 1
+			check("special" in p.def_for(id).mechanics(), "%s has a 3-part order" % id)
+	check(needs >= 6, "bell decisions in %d slice levels" % needs)
+	check(relaxed >= 3, "%d relaxed breathing levels" % relaxed)
+	eq(specials, 2)
+	# a required-bell level really is impossible without it
+	eq(LevelValidator.bell_value(p.def_for("p04")), "required")
 
 ## The flagged v1 spikes were regenerated inside their tier's band.
 func test_v1_spikes_fixed() -> void:

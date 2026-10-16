@@ -8,11 +8,12 @@ extends RefCounted
 ## Offline saves cannot provide anti-cheat protection; the checksum detects
 ## corruption, not tampering.
 
-const SCHEMA := 3
+const SCHEMA := 4
 
 var path: String
 var last_load_source := ""     # "main", "tmp", "backup", "fresh"
 var last_load_issue := ""      # human-readable reason if recovery happened
+var backup_written := ""       # pre-migration copy written by the last load
 
 func _init(p: String = "user://save.json") -> void:
 	path = p
@@ -51,6 +52,8 @@ func load_data() -> Dictionary:
 			last_load_issue = "%s save unreadable or corrupt" % pair[1]
 			continue
 		last_load_source = pair[1]
+		if int(d.schema) < SCHEMA:
+			_backup_before_migration(pair[0], int(d.schema))
 		return GameData.sanitize(migrate(d.payload, int(d.schema)))
 	last_load_source = "fresh"
 	return GameData.fresh()
@@ -93,7 +96,27 @@ static func migrate(d: Dictionary, from_schema: int) -> Dictionary:
 	if s < 3:
 		d = migrate_v2_to_v3(d)
 		s = 3
+	if s < 4:
+		# v3 game (schema 4) only ADDS state: mastery ribbons, bakery,
+		# challenge cards. Defaults come from GameData.sanitize; nothing
+		# existing is changed, so no reward is granted twice or lost.
+		s = 4
 	return d
+
+## Keeps an untouched copy of an older-schema save (once per schema) before
+## the migrated data is first written, e.g. user://save.json.schema3.bak.
+func _backup_before_migration(src: String, schema: int) -> void:
+	var dst := path + ".schema%d.bak" % schema
+	if FileAccess.file_exists(dst):
+		return
+	var txt := FileAccess.get_file_as_string(src)
+	if txt.is_empty():
+		return
+	var f := FileAccess.open(dst, FileAccess.WRITE)
+	if f:
+		f.store_string(txt)
+		f.close()
+		backup_written = dst
 
 ## v2 -> v3 (Tiny Street v2 economy and café):
 ##  - 5 café milestones become 8 restoration steps without losing anything
@@ -137,6 +160,6 @@ static func migrate_v2_to_v3(d: Dictionary) -> Dictionary:
 	return d
 
 func delete_all() -> void:
-	for suffix in ["", ".tmp", ".bak"]:
+	for suffix in ["", ".tmp", ".bak", ".schema1.bak", ".schema2.bak", ".schema3.bak"]:
 		if FileAccess.file_exists(path + suffix):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))

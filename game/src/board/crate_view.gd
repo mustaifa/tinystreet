@@ -18,6 +18,7 @@ var index := 0
 var items: PackedInt32Array = PackedInt32Array()   # remaining, [0] = front; -1 = bagged
 var fresh: Array = []          # bool per remaining item
 var lock_left := 0             # deliveries still needed to open
+var oven := false              # v3 bakery: locked crates are drawn as ovens
 var badge := {}                # {kind: "tray"|"counter"|"fresh"|"locked"|"full", tray: int}
 var highlight := false         # hint / tutorial ring
 var hide_front := false        # while the front item is flying
@@ -64,7 +65,7 @@ func flash_unlock() -> void:
 	tw.tween_method(func(v): _unlock_flash = v; queue_redraw(), 1.0, 0.0, App.dur(0.6))
 
 func _process(delta: float) -> void:
-	if highlight or (not fresh.is_empty() and fresh[0]):
+	if highlight or (not fresh.is_empty() and fresh[0]) or (oven and lock_left > 0):
 		_pulse = fmod(_pulse + delta * (0.0 if App.reduced_motion() else 1.4), 1.0)
 		queue_redraw()
 
@@ -263,6 +264,9 @@ func _draw_badge(at: Vector2) -> void:
 
 ## Straps across the crate and a padlock tag with the deliveries remaining.
 func _draw_lock(off: Vector2, w: float) -> void:
+	if oven:
+		_draw_oven(off, w)
+		return
 	draw_rect(Rect2(Vector2(4, 0) + off, Vector2(w - 8, size.y - 4)), Color(Style.CREAM_DEEP, 0.45))
 	var strap := Color("7c5034")
 	for y in [size.y * 0.3, size.y * 0.72]:
@@ -283,3 +287,33 @@ func _draw_lock(off: Vector2, w: float) -> void:
 	draw_rect(Rect2(lc + Vector2(-14, -8), Vector2(28, 24)), Style.INK)
 	draw_string(Style.font_bold, c + Vector2(0, 14), str(lock_left), HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Style.INK)
 	draw_string(Style.font_regular, c + Vector2(-tw / 2, 38), Loc.t("lock_orders_short"), HORIZONTAL_ALIGNMENT_CENTER, tw, 17, Style.INK_SOFT)
+
+## Bakery "oven batch": a brick oven front with a glowing door and the same
+## countdown tag (orders until it opens). Shape and number, not colour.
+func _draw_oven(off: Vector2, w: float) -> void:
+	var r := Rect2(Vector2(6, 2) + off, Vector2(w - 12, size.y - 8))
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("b0563f")
+	sb.set_corner_radius_all(20)
+	sb.corner_radius_top_left = int(minf(w * 0.45, 60))
+	sb.corner_radius_top_right = int(minf(w * 0.45, 60))
+	draw_style_box(sb, r)
+	for k in int(r.size.y / 26):
+		var y := r.position.y + 30 + k * 26
+		draw_line(Vector2(r.position.x + 8, y), Vector2(r.end.x - 8, y), Color(0, 0, 0, 0.15), 2)
+	var door := Rect2(r.position + Vector2(r.size.x * 0.18, r.size.y * 0.55), Vector2(r.size.x * 0.64, r.size.y * 0.3))
+	var dsb := StyleBoxFlat.new()
+	dsb.bg_color = Color("2a1d18")
+	dsb.set_corner_radius_all(int(door.size.x * 0.4))
+	draw_style_box(dsb, door)
+	draw_rect(door.grow(-8), Color(1, 0.6, 0.2, 0.35 + 0.15 * sin(_pulse * TAU)))
+	var c := Vector2(w / 2, size.y * 0.3) + off
+	var tag := StyleBoxFlat.new()
+	tag.bg_color = Style.PAPER
+	tag.set_corner_radius_all(16)
+	tag.border_color = Style.WOOD_DARK
+	tag.set_border_width_all(4)
+	var tw := minf(w - 16, 104.0)
+	draw_style_box(tag, Rect2(c - Vector2(tw / 2, 40), Vector2(tw, 80)))
+	draw_string(Style.font_bold, c + Vector2(-tw / 2, 10), str(lock_left), HORIZONTAL_ALIGNMENT_CENTER, tw, 38, Style.INK)
+	draw_string(Style.font_regular, c + Vector2(-tw / 2, 32), Loc.t("lock_orders_short"), HORIZONTAL_ALIGNMENT_CENTER, tw, 17, Style.INK_SOFT)

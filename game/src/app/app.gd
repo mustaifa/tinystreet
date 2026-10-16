@@ -8,7 +8,7 @@ signal data_changed
 signal language_changed
 signal settings_changed
 
-const VERSION := "0.2.0"
+const VERSION := "0.5.0"
 
 var data: Dictionary = {}
 var store: SaveStore
@@ -176,4 +176,4 @@ func on_rush_win() -> void:
 			rush = RushRun.create(progression.daily_pool, int(Time.get_unix_time_from_system()))
 			goto_rush_level(), "WarmButton"],
 		[Loc.t("challenges"), func(): main.goto("home", {}, false); main.goto("daily"), "SecondaryButton"],
-	]))
+	], null, "bolt"))

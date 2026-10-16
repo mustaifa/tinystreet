@@ -1,101 +1,232 @@
 extends Control
-## Café home: the café as it stands, the next restoration goal, and the main
-## actions. Badges point to anything ready to claim or buy.
+## Café home. The café, framed as a little shop front on the street, is the
+## centrepiece. One clear primary action (Play / Continue) sits in the thumb
+## zone; the next restoration goal is a single tappable card; the bakery and
+## the Midnight Ledger appear as "next door" cards once they exist; the three
+## main destinations are illustrated tiles. Badges and dots point to anything
+## ready to claim or buy, never to anything that needs payment.
 
 var cafe: CafeView
+var play_btn: Button
 
 func setup(params: Dictionary) -> void:
 	Tasks.refresh(App.data, Progression.today_key(), Meta.seen_mechanics(App.data, App.progression))
-	var root := UI.vbox(12)
+	var root := UI.vbox(14)
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
-	var top := UI.hbox(10)
-	var pill := UI.hbox(6)
-	var coin := Glyph.new()
-	coin.kind = "coin"
-	coin.color = Style.GOLD
-	coin.custom_minimum_size = Vector2(56, 56)
-	pill.add_child(coin)
-	pill.add_child(UI.label(str(App.data.tokens), "HeaderLabel", HORIZONTAL_ALIGNMENT_LEFT, false))
-	pill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(pill)
-	var journal := UI.icon_button("book", "", func(): App.main.goto("journal"), "SecondaryButton", 88)
-	var ready := Tasks.ready_count(App.data) + Achievements.claimable_count(App.data)
-	if ready > 0:
-		_badge(journal, ready)
-	top.add_child(journal)
-	if App.billing.is_available():
-		top.add_child(UI.icon_button("plus", "", func(): App.main.goto("shop"), "SecondaryButton", 88))
-	top.add_child(UI.icon_button("help", "", func(): App.main.goto("help"), "SecondaryButton", 88))
-	top.add_child(UI.icon_button("gear", "", func(): App.main.goto("settings"), "SecondaryButton", 88))
-	root.add_child(top)
+	root.add_child(_top_bar())
+	# --- the café, centre stage
 	cafe = CafeView.new()
-	cafe.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cafe.custom_minimum_size = Vector2(0, 460)
 	cafe.configure_state(Restoration.view_state(App.data))
-	root.add_child(cafe)
-	var goal := GoalBar.make(App.data)
-	goal.custom_minimum_size = Vector2(0, 92)
-	root.add_child(goal)
-	var nxt := App.progression.next_level_index(App.data)
-	var all_done := App.progression.cleared_count(App.data) >= App.progression.campaign.size()
-	var cur: Dictionary = App.data.current
-	var play_id: String = App.progression.campaign[nxt].id
-	var play_text := Loc.t("play_level", [nxt + 1])
-	if cur.get("kind", "") == "campaign" and cur.has("id") and App.progression.campaign_index(cur.id) >= 0:
-		play_id = cur.id
-		play_text = Loc.t("continue_level", [App.progression.campaign_index(cur.id) + 1])
-	var play := UI.button(play_text, func(): App.main.goto("game", {"kind": "campaign", "id": play_id}), "", 112)
-	play.add_theme_font_size_override("font_size", Style.fs(38))
-	root.add_child(play)
-	var ch := App.progression.chapter_of(App.progression.campaign_index(play_id))
-	if ch != "" and not all_done:
-		var cl := UI.label(Loc.t(ch), "SoftLabel")
-		root.add_child(cl)
-	var row := UI.hbox(14)
-	var can_restore := Restoration.can_unlock(App.data)
-	var lv := UI.button(Loc.t("levels"), func(): App.main.goto("levels"), "SecondaryButton")
-	var rs := UI.button(Loc.t("restore") + (" •" if can_restore else ""), func(): App.main.goto("restore"),
-		"WarmButton" if can_restore else "SecondaryButton")
-	var dy := UI.button(Loc.t("challenges") + ("" if Progression.is_daily_done(App.data, Progression.today_key()) else " •"), func(): App.main.goto("daily"), "SecondaryButton")
-	for b in [lv, rs, dy]:
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(b)
-	root.add_child(row)
-	if can_restore and not App.reduced_motion():
-		var tw := rs.create_tween().set_loops(3)
-		rs.pivot_offset = Vector2(110, 44)
-		tw.tween_property(rs, "scale", Vector2(1.05, 1.05), 0.35)
-		tw.tween_property(rs, "scale", Vector2.ONE, 0.35)
-	if params.get("finale", false) or (all_done and Restoration.is_complete(App.data) and not App.data.tutorial.done.has("finale_seen")):
+	var front := Storefront.new(cafe)
+	front.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	front.custom_minimum_size = Vector2(0, 380)
+	root.add_child(front)
+	root.add_child(_goal_card())
+	# --- next door: bakery and the expert ledger
+	var doors := _doors()
+	if doors:
+		root.add_child(doors)
+	root.add_child(_play_button())
+	root.add_child(_tiles())
+	if params.get("finale", false) or (_all_done() and Restoration.is_complete(App.data) and not App.data.tutorial.done.has("finale_seen")):
 		_finale.call_deferred()
 
-## Small count bubble on an icon button.
-func _badge(btn: Control, n: int) -> void:
-	var b := Label.new()
-	b.text = str(n)
-	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	b.add_theme_font_override("font", Style.font_bold)
-	b.add_theme_font_size_override("font_size", 22)
-	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_stylebox_override("normal", Style.box(Style.TERRACOTTA, 18, Color.TRANSPARENT, 0, false))
-	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := b.get_theme_stylebox("normal") as StyleBoxFlat
-	sb.content_margin_left = 8
-	sb.content_margin_right = 8
-	sb.content_margin_top = 0
-	sb.content_margin_bottom = 0
-	b.position = Vector2(56, -8)
-	b.size = Vector2(36, 36)
-	(btn.get_meta("button") as Control).add_child(b)
+func _all_done() -> bool:
+	return App.progression.cleared_count(App.data) >= App.progression.campaign.size()
+
+func _top_bar() -> Control:
+	var top := UI.hbox(12)
+	var coins := UI.pill("coin", str(App.data.tokens))
+	coins.tooltip_text = Loc.t("tokens_n", [App.data.tokens])
+	top.add_child(coins)
+	top.add_child(UI.spacer(0, true))
+	var ready := Tasks.ready_count(App.data) + Achievements.claimable_count(App.data)
+	top.add_child(UI.chip("journal", func(): App.main.goto("journal"), "ChipButton", Style.CHIP, ready, Loc.t("journal")))
+	if App.billing.is_available():
+		top.add_child(UI.chip("plus", func(): App.main.goto("shop"), "ChipButton", Style.CHIP, 0, Loc.t("shop")))
+	top.add_child(UI.chip("help", func(): App.main.goto("help"), "ChipButton", Style.CHIP, 0, Loc.t("help")))
+	top.add_child(UI.chip("gear", func(): App.main.goto("settings"), "ChipButton", Style.CHIP, 0, Loc.t("settings")))
+	return top
+
+## The next restoration step as one card: tap it to go and restore.
+func _goal_card() -> Control:
+	var i := Restoration.next_index(App.data)
+	var have := int(App.data.tokens)
+	var b := Button.new()
+	b.theme_type_variation = "TileButton"
+	b.custom_minimum_size = Vector2(0, 104)
+	UI._wire(b, func(): App.main.goto("restore"))
+	var r := UI.hbox(16)
+	r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	r.offset_left = 18
+	r.offset_right = -18
+	r.offset_bottom = -Style.EDGE
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(r)
+	var ready := i >= 0 and have >= int(Restoration.STEPS[i].cost)
+	var med := UI.medallion("brush" if i >= 0 else "spark", Style.TERRA_SOFT if ready else Style.GOLD_SOFT, Style.TERRACOTTA if ready else Style.GOLD_EDGE, 68)
+	r.add_child(med)
+	var col := UI.vbox(6)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	r.add_child(col)
+	if i < 0:
+		col.add_child(UI.label(Loc.t("cafe_complete_extras"), "StrongLabel", UI.al()))
+	else:
+		var st: Dictionary = Restoration.STEPS[i]
+		var t := UI.label(Loc.t("next_step", [Loc.t("step_" + str(st.id))]), "StrongLabel", UI.al(), false)
+		t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		t.add_theme_font_size_override("font_size", Style.fs(27))
+		col.add_child(t)
+		var pr := UI.hbox(10)
+		pr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pr.add_child(UI.progress(mini(have, int(st.cost)), int(st.cost), Style.TERRACOTTA if ready else Style.GOLD, 16))
+		var cap := UI.label("%d / %d" % [mini(have, int(st.cost)), int(st.cost)], "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+		pr.add_child(cap)
+		col.add_child(pr)
+	if ready:
+		r.add_child(UI.tag(Loc.t("ready"), Style.TERRACOTTA, Color.WHITE))
+	var chev := Glyph.new()
+	chev.kind = "chevron"
+	chev.color = Style.INK_SOFT
+	chev.custom_minimum_size = Vector2(32, 32)
+	chev.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	r.add_child(chev)
+	for c in r.get_children():
+		(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return b
+
+func _doors() -> Control:
+	var cards: Array = []
+	if Bakery.is_unlocked(App.data):
+		var prog := App.progression
+		var sub := Loc.t("ready") if Bakery.can_unlock(App.data) else Loc.t("door_progress", [prog.bakery_cleared_count(App.data), prog.bakery.size()])
+		cards.append(_door("p_croissant", Loc.t("bakery_title"), sub, func(): App.main.goto("bakery"), false,
+			Bakery.can_unlock(App.data) or not Story.seen(App.data, "bakery_open")))
+	if Ledger.is_open(App.data):
+		var sub2 := Loc.t("door_progress", [Ledger.done_count(App.data), Ledger.pages().size()])
+		cards.append(_door("moon", Loc.t("ledger_title"), sub2, func(): App.main.goto("ledger"), true,
+			not bool(App.data.ledger.offer_seen)))
+	if cards.is_empty():
+		return null
+	var row := UI.hbox(12)
+	for c in cards:
+		row.add_child(c)
+	return row
+
+## A compact "next door" card. Night cards use the ledger palette.
+func _door(glyph: String, title: String, sub: String, cb: Callable, night: bool, flag: bool) -> Control:
+	var b := Button.new()
+	b.theme_type_variation = "NightButton" if night else "TileButton"
+	b.custom_minimum_size = Vector2(0, 96)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UI._wire(b, cb)
+	var r := UI.hbox(12)
+	r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	r.offset_left = 14
+	r.offset_right = -12
+	r.offset_bottom = -Style.EDGE
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(r)
+	r.add_child(UI.medallion(glyph, Style.NIGHT if night else Style.ROSE_SOFT, Style.LANTERN if night else Style.TERRACOTTA, 60))
+	var col := UI.vbox(0)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var t := UI.label(title, "StrongLabel", UI.al(), false)
+	t.add_theme_color_override("font_color", Style.MOON if night else Style.INK)
+	UI.fit_font(t, 200 if (Bakery.is_unlocked(App.data) and Ledger.is_open(App.data)) else 480, 25, 19)
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	t.clip_text = true
+	col.add_child(t)
+	var s := UI.label(sub, "CaptionLabel", UI.al(), false)
+	s.add_theme_color_override("font_color", Style.LANTERN if night else Style.INK_SOFT)
+	col.add_child(s)
+	r.add_child(col)
+	for c in r.get_children():
+		(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c in col.get_children():
+		(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if flag:
+		UI.badge(b, -1)
+	return b
+
+## The primary action: continue the level in progress, or play the next one.
+func _play_button() -> Control:
+	var prog := App.progression
+	var nxt := prog.next_level_index(App.data)
+	var cur: Dictionary = App.data.current
+	var play_id: String = prog.campaign[nxt].id
+	var title := Loc.t("home_play")
+	var n := nxt + 1
+	if cur.get("kind", "") == "campaign" and cur.has("id") and prog.campaign_index(cur.id) >= 0:
+		play_id = cur.id
+		n = prog.campaign_index(cur.id) + 1
+		title = Loc.t("home_continue")
+	var ch := prog.chapter_of(n - 1)
+	var sub := Loc.t("level_n", [n]) + ((" · " + Loc.t(ch)) if ch != "" else "")
+	if _all_done() and title == Loc.t("home_play"):
+		sub = Loc.t("home_all_cleared", [n])
+	play_btn = UI.icon_text_button("play", title, func(): App.main.goto("game", {"kind": "campaign", "id": play_id}), "", 124, sub, 52)
+	_breathe(play_btn)
+	return play_btn
+
+## A slow, limited "breathing" emphasis on the next useful action. Stops on
+## its own; reduced motion turns it off.
+func _breathe(b: Control) -> void:
+	if App.reduced_motion():
+		return
+	var tw := b.create_tween().set_loops(3)
+	tw.tween_interval(1.2)
+	tw.tween_callback(func(): b.pivot_offset = b.size / 2)
+	tw.tween_property(b, "scale", Vector2(1.025, 1.025), 0.55).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(b, "scale", Vector2.ONE, 0.55).set_trans(Tween.TRANS_SINE)
+
+func _tiles() -> Control:
+	var row := UI.hbox(12)
+	var can_restore := Restoration.can_unlock(App.data)
+	var daily_open := not Progression.is_daily_done(App.data, Progression.today_key())
+	row.add_child(_tile("levels", Loc.t("levels"), func(): App.main.goto("levels"), false))
+	row.add_child(_tile("brush", Loc.t("restore"), func(): App.main.goto("restore"), can_restore))
+	row.add_child(_tile("trophy", Loc.t("challenges"), func(): App.main.goto("daily"), daily_open))
+	return row
+
+func _tile(glyph: String, text: String, cb: Callable, dot: bool) -> Control:
+	var b := Button.new()
+	b.theme_type_variation = "TileButton"
+	b.custom_minimum_size = Vector2(0, 116)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UI._wire(b, cb)
+	var v := UI.vbox(2)
+	v.set_anchors_preset(Control.PRESET_FULL_RECT)
+	v.offset_top = 8
+	v.offset_bottom = -Style.EDGE - 4
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var g := Glyph.new()
+	g.kind = glyph
+	g.color = Style.TEAL_DARK
+	g.custom_minimum_size = Vector2(68, 64)
+	g.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(g)
+	var l := UI.label(text, "StrongLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	l.add_theme_font_size_override("font_size", Style.fs(25))
+	l.add_theme_color_override("font_color", Style.TEAL_DARK)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	v.add_child(l)
+	b.add_child(v)
+	if dot:
+		UI.badge(b, -1)
+	return b
 
 func _finale() -> void:
 	if not Restoration.is_complete(App.data):
 		if Restoration.can_unlock(App.data):
 			App.main.show_overlay(Dialog.make(Loc.t("finale_title"), Loc.t("finale_restore_body"),
-				[[Loc.t("restore_now"), func(): App.main.goto("restore"), "WarmButton"]]))
+				[[Loc.t("restore_now"), func(): App.main.goto("restore"), "WarmButton"]], null, "brush"))
 		return
 	App.data.tutorial.done["finale_seen"] = true
 	App.save_soon()
-	App.main.show_overlay(Dialog.make(Loc.t("finale_title"), Loc.t("finale_campaign_body"), [[Loc.t("close"), func(): pass, ""]]))
+	App.main.show_overlay(Dialog.make(Loc.t("finale_title"), Loc.t("finale_campaign_body"), [[Loc.t("close"), func(): pass, ""]], null, "star"))

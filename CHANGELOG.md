@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.0 (v3), 2026-10-16
+Built after the owner reported that the updated Android build works on a phone (exact build unspecified) and asked for deeper gameplay, a livelier world, stronger progression and better presentation. Audit: `docs/V3_AUDIT.md`.
+
+### Deeper puzzles
+- **The bell** (new rule): tap an order ticket to ring its bell, and that customer is served first, from crates and from the counter. Free, undoable, clears on delivery. Crate badges update instantly, so you see the consequence before tapping. The solver, hints ("Ring the bell on ticket 2"), validator and generator all understand it. Bell levels are **proven** by search to need it (`required`) or to be tidier with it (`tidier`).
+- **v3 slice: "Ring the bell"** (levels 9–20): a hand-made bell lesson whose coach follows the real solution, then alternating decision and relaxed levels. Two **special orders** (3-part catering orders with a gold frame, a story beat and a one-time reward). The slice ends with the key to the bakery.
+- **Mastery ribbon** per level: tidiest possible counter (solver-proven minimum) and no hint. Optional, tracked separately from first clear, pays 1 token once.
+
+### A living café
+- Neighbours come in through the new side door, queue, get served by Mira and leave with their drink. Plants sway, the door swings, and the cast cheers on milestones.
+- Décor is **previewed before you keep it** (Keep / Revert). Owned choices switch for free. Four **themes** (Classic, Garden, Parisian, Harbour). Extras can be previewed before buying.
+- New earned decorations: chalkboard menu (special order p06) and bread basket (bakery special m08).
+
+### Progression and replay
+- **Challenge cards**: 12 validated puzzles, each with one goal and a one-time reward; replayable.
+- The Daily shows **days played** instead of a resetting streak.
+- New story beats: first customer served, the bell, both special orders, the bakery opening, Mr. Basil's loaf. All replayable from the Journal.
+- Economy reviewed and documented in `docs/ECONOMY.md`.
+
+### Mira's Bakery (second destination)
+- Unlocked by the p12 special order. It has its own look (brick oven with a live fire, rose-and-mint tiles, awning), a 4-step restoration with choices, and 8 levels with **oven batches**: a locked crate drawn as an oven, full of hot pastries. It shares tokens and saves with the café.
+
+### Technical
+- Save schema **4** (additive). The old save file is copied to `save.json.schema<N>.bak` before the first migrated write. Nothing is reset or paid twice; tests cover a full v2 player.
+- Tests 81 → 102. QA scenarios `slice` and `v3` added. 164 levels validated (96 campaign + 8 bakery + 60 daily), with bell claims re-proven.
+- Version 0.3.0, versionCode 3. Same package and debug signing key as v1/v2, so it installs over them.
+
 ## 0.2.0 (v2), 2026-10-16
 Built after the first real-device smoke test. The owner's report: v1 installs and renders correctly, but feels very basic.
 

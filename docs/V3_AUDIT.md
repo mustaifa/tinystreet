@@ -40,3 +40,16 @@ Signing: v1 and v2 are signed with the same Godot debug key (cert SHA-256 `62fa1
 6. **Café alive**: walk-in customers who queue, get served and leave; door, plants and lights move; the cast reacts to milestones. Decor gets preview/confirm and coherent themes.
 7. **Challenges**: 12 curated challenge cards with goals and one-time rewards. The Daily switches from a streak to a non-punitive "days played".
 8. **Expansion**: only if 1–7 are solid. Mira's Bakery: own art, short restoration arc, a level set where pastries come "hot from the oven", an intro beat, and an unlock tied to the slice.
+
+## Outcome (end of session 3)
+| Planned | Delivered | Evidence |
+|---|---|---|
+| 1 Bell | ✅ | `test_bell.gd` 10/10; slice QA rings via ticket taps; `bell_value` proofs re-checked for 164 levels |
+| 2 Special orders | ✅ p06, p12, m08 | slice QA rewards once; `test_v3_meta` |
+| 3 Keep fresh/bags/locks | ✅ unchanged; combined in slice and bakery | 96/96 campaign levels won via input |
+| 4 Mastery ribbon | ✅ | `test_v3_meta`; ribbon in level select |
+| 5 12-level slice | ✅ p01–p12 at #9–#20 | QA `slice` 12/12; screenshots in `docs/screenshots/v3/` |
+| 6 Café alive + customization | ✅ | QA `v3` 11/11 |
+| 7 Challenges + days played | ✅ | QA `v3`, `test_v3_meta` |
+| 8 Bakery expansion | ✅ 4 steps, 8 levels | QA `v3`, `test_v3_meta` |
+| Android runtime | ⏳ pending the owner's phone test | APK built and inspected only |

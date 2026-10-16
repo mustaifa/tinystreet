@@ -1,5 +1,33 @@
 # Test Report
 
+## v3 (0.3.0), 2026-10-16
+Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU, no KVM**. Visual and interaction QA ran in a **desktop Linux build** under Xvfb (software GL). **This isn't Android runtime verification.** The emulator wasn't retried (blocker unchanged). The owner's report that "the updated Android version works on a phone" is recorded as a user-reported runtime check; the exact build wasn't stated.
+
+Baseline before v3 work (v2 code at `f67bbde`): 81/81 tests, 144/144 levels.
+
+| Check | Result |
+|---|---|
+| Unit/integration tests (`tests/run_tests.gd`) | **PASS: 102 passed, 0 failed** |
+| Level validation (`tools/validate_levels.gd`) | **PASS: 164/164** (96 campaign + 8 bakery + 60 daily), 0 UNVERIFIED. Every `required`/`tidier` bell claim is re-proven by search on each run. |
+| All 96 campaign levels through real input (QA `play=1-48`, `play=49-96`) | **PASS: 96/96 won** (bell rings sent as ticket taps) |
+| v3 slice p01–p12 (QA `slice`) | **PASS 4/4**: 12/12 won via input; p06 chalkboard reward; p12 bakery unlock; special reward once |
+| v3 flows (QA `v3`) | **PASS 11/11**: visitor present after the counter step; preview saves nothing; revert restores; keep saves the theme; owned choices free; extra preview doesn't buy; challenge pays, then pays once; two bakery steps bought once each; oven closed until the first order; bakery level won via input |
+| v2 flows (QA `v2`) | **PASS 10/10** (fresh refusal, drag, cancel, pause mid-animation, locks, double-tap restore, task once, Rush) |
+| Navigation / Android back (QA `nav`) | **PASS 17/17** |
+| Rewarded flows, simulated ads (QA `rewards`) | **PASS 8/8**, clean exit |
+| Rapid tapping (400 taps) | **PASS**: state equals a clean replay; 0 leftover effects |
+| Lifecycle: moves → pause → hard kill → relaunch | **PASS**: identical state key (now includes the bell) and undo count |
+| Layouts: 720×1280, 720×1600 + 90 px cutout, 720×1000 large text; EN + AR shots | Reviewed: no clipped controls; RTL mirrors tickets and the bell. Fixed during review: bakery sign overlap, 3-part order label vs bell position, bell "First" text removed (collided with products). |
+| APK `build/tinystreet-v3-debug.apk` | Built from `2297fb1`; `apksigner verify` OK (v2+v3 schemes); same debug certificate as v1/v2; versionCode 3 / 0.3.0; only `VIBRATE`; new levels, scripts and sounds present. **Not run on Android: pending the owner's phone test.** |
+
+New or extended suites: `test_bell.gd` (10: routing, counter priority, toggle, clear on delivery, disabled levels, the bell never changes legality, undo/replay with rings, solver proves bell-required, hint says "ring", no double rings, schema), `test_v3_meta.gd` (10: schema-3 → 4 migration of a full v2 player with backup file, v1 → 4, mastery once, special rewards once, challenge cards validity/goals/once, tidy goals reachable by solver, themes, bakery persistence, bakery levels and ovens, restart clears the bell, hint path completes), `test_levels.gd` (slice structure, bell proofs, counts).
+
+**Not verified:** v3 on Android (install-over-v2 update, haptics, audio, performance); whether the bell and the slice are *fun* (no human playtest yet).
+
+---
+
+# v2 report (0.2.0)
+
 ## v2 (0.2.0), 2026-10-16
 Environment unchanged: GitHub Codespace, 2 vCPU / 7.8 GB, **no GPU, no KVM**. Rendering checks ran in a **desktop Linux build** under Xvfb with Mesa llvmpipe (software GL). **None of this is Android runtime verification.** The emulator was not retried, because the environment hasn't changed since the 2026-10-16 failure (`docs/EMULATOR_TEST_2026-10-16.md`).
 

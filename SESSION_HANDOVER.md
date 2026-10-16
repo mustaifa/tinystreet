@@ -1,52 +1,55 @@
 # Session Handover
 
-**Last updated:** 2026-10-16, end of session 4 (v4 / 0.4.0, The Midnight Ledger).
+**Last updated:** 2026-10-16, end of session 5 (v5 / 0.5.0, UI polish).
 
 ## State
-- Branch **`feature/midnight-ledger`** (from `main` at `618cf5a`). Not merged, not pushed. `main` still holds V3.
-- The owner is testing V3 on their phone ("currently works"); full feedback pending. The campaign, café, bakery, economy and difficulty were **not changed** in v4.
-- **v4 adds The Midnight Ledger**, an optional expert mode: 13 proven pages (3 lessons, 9 puzzles, 1 final), bell budget and order sequence constraints, three-stage verified hints, redo, resume guarded by a content hash, and stamps/badges/lantern with no tokens. Design: `docs/EXPERT_MODE_DESIGN.md`; proofs: `docs/EXPERT_PUZZLE_PROOFS.md`; spoilers: `docs/EXPERT_SOLUTIONS_SPOILERS.md`.
-- **Tests and QA:** 123/123 tests; 164/164 levels (0 UNVERIFIED); 13/13 ledger pages proved. Desktop QA all pass (ledger 14/14 plus every earlier scenario). See `TEST_REPORT.md`.
-- **APK: `build/tinystreet-v4-expert-debug.apk`**
-  - Package `com.tinystreet.sortrestore`, **0.4.0 / versionCode 4**, built from commit **`d837a07`**.
-  - SHA-256 `997c7ca252ceecf826fe128c8c305bc68a940eaf419802e0747303970cd40cc2`.
-  - Signing certificate SHA-256 `62fa12828ad217be61c751322a58f2ce10988c3fccc11b1c704b7259a6281b2e`: the same Godot debug key as v1–v3, so it updates in place.
-  - **Not run on Android; pending the owner's phone test** (`docs/EXPERT_PLAYTEST.md`).
-- Earlier APKs kept untouched: v1, v2, v3 (`1a59a0b9…8c29`). Checksums in `build/SHA256SUMS.txt`.
+- Branch **`feature/ui-polish`**, built on `feature/midnight-ledger` (v4, `c8b2653`). `main` still holds V3. Pushed to `origin` (no force push). The local branch `backup/pre-strip-build` holds large files: **never push it**.
+- The owner installed v4 on a phone: "the screens work, but the UI looks dull and does not feel inviting". v5 answers that with a full visual and usability pass. **Rules, levels, economy and save schema (4) are unchanged.**
+- **APK: `build/tinystreet-ui-polish-debug.apk`**
+  - `com.tinystreet.sortrestore`, **0.5.0 / versionCode 5**, built from commit `32a5100`.
+  - SHA-256 `2f3f3da341fe6485bc95523f37d19023348dab31d74caf58bd1f0befb2f6a052` (also in `build/SHA256SUMS.txt`).
+  - Same debug signing certificate as v1–v4 (`62fa1282…1b2e`), so it updates in place.
+  - **Not run on Android.** Phone checks: `docs/ANDROID_ACCEPTANCE_TESTS.md` (all NOT RUN).
+- Tests 127/127; levels 164/164; ledger 13/13; 96/96 campaign levels via the UI; all QA flows pass. See `TEST_REPORT.md`.
+- Earlier APKs (v1–v4, AAB, monetisation test) are untouched.
 
-## Where things are (v4)
+## Where things are (v5)
 | Topic | Files |
 |---|---|
-| Constraints | `src/core/rules.gd` (`rings_left`, `can_ring`, `_route`/`_apply_routed`, `_sequence_allows`, `sequence_next`, `is_lost`), `level_def.gd` (`bell_budget`, `sequence`, `content_hash`, `with_budget`), `puzzle_state.gd` (`rings_used`, `delivered`, key) |
-| Redo | `src/core/puzzle_session.gd` (`redo_log`, `redo`, saved in `to_dict`) |
-| Proof tooling | `src/core/ledger_analysis.gd` (min rings, trace, replay, idea checks, reference search), `tools/ledger_tool.gd` (search / review / build), `tools/ledger_pages.gd` (curated sources) |
-| Content | `data/levels/ledger.json` (pages + proofs) |
-| Mode logic | `src/meta/ledger.gd` (unlocks, rewards once, lantern) |
-| UI | `src/screens/ledger_screen.gd` (page list), `src/screens/ledger_play.gd` (strip, rule card, hints, recovery, win, why), hooks in `game_screen.gd`; entry in `daily_screen.gd` + `home_screen.gd` |
-| Strings | `tools/strings_*.py` (`ledger_*`, `name_n0..n5`) → `python3 tools/build_i18n.py` |
+| Design tokens + theme | `game/src/ui/style.gd` (documented in `docs/DESIGN_SYSTEM.md`) |
+| Components | `game/src/ui/ui.gd` (button, icon_text_button, chip, badge, pill, tag, progress, medallion, section, row, header, segmented, switch, fit_font) |
+| Icons | `game/src/ui/glyph.gd` (`Glyph.paint()`; `"p_<product>"` uses product art) |
+| Backgrounds / shop front / level key | `screen_backdrop.gd`, `storefront.gd`, `level_cell.gd`; board setting `game/src/board/backdrop.gd` (`mode`) |
+| Dialogs | `game/src/ui/dialog.gd` (`icon`, `night`, scroll-capped body, paired secondary buttons) |
+| Transitions, input lock | `game/src/app/main.gd` (`input_locked()`, `screen_mode` hook) |
+| QA screen tour | `qa_driver.gd` `tour` (`--qa-lang=ar`, `--qa-large-text`) |
+| Guides | sources `docs/guide_src/player_guide.md`, `docs/ANDROID_ACCEPTANCE_TESTS.md`; builders below |
 
 ## Commands
 ```bash
 G=~/tools/godot/godot
-$G --headless --path game -s res://tests/run_tests.gd                         # expect 123 passed
-$G --headless --path game -s res://tools/validate_levels.gd                   # expect levels=164 unverified=0
-$G --headless --path game -s res://tools/ledger_tool.gd -- build              # re-prove the 13 pages (fails on any gap)
-$G --headless --path game -s res://tools/ledger_tool.gd -- review '<board json>'
-$G --headless --path game -s res://tools/ledger_tool.gd -- search both 400 15
-xvfb-run -a $G --path game --rendering-driver opengl3 --resolution 720x1280 -- --qa=ledger --save-path=user://qa_$RANDOM.json
-cd game && $G --headless --path . --export-debug "Android Debug APK" ../build/tinystreet-v4-expert-debug.apk
+$G --headless --path game -s res://tests/run_tests.gd                       # expect 127 passed
+$G --headless --path game -s res://tools/validate_levels.gd                 # expect levels=164 unverified=0
+xvfb-run -a $G --path game --rendering-driver opengl3 --resolution 720x1280 -- --qa=tour --qa-out=DIR [--qa-lang=ar]
+# guides (pip install --user reportlab fonttools pillow pymupdf)
+$G --headless --path game -s res://tools/guide_data.gd -- /tmp/guide_data.json
+python3 tools/build_guide_appendix.py /tmp/guide_data.json                  # writes the guide MD + solutions appendix
+python3 tools/export_screenshots.py TOUR_DIR [BEFORE_DIR] [AR_TOUR_DIR]     # docs/screenshots/v5
+python3 tools/build_guide_pdf.py docs/TINY_STREET_PLAYER_GUIDE.md docs/TINY_STREET_PLAYER_GUIDE.pdf
+python3 tools/build_guide_pdf.py docs/ANDROID_ACCEPTANCE_TESTS.md docs/ANDROID_ACCEPTANCE_TESTS.pdf
+cd game && $G --headless --path . --export-debug "Android Debug APK" ../build/<new-name>.apk
 ```
 
-## Gotchas learned (v4)
-- **Search keys:** include budget state only when a budget exists; otherwise ring cycles never repeat and searches blow up (caught by the validator as UNVERIFIED).
-- **Sequence legality** needs a simulated cascade; use `_route` + `_apply_routed` (never call `apply_move` inside `preview`).
-- **JSON numbers load as floats:** convert witnesses with `PackedInt32Array(...)` before comparing.
-- **QA timing:** click at least a frame after closing a dialog (a freed dialog still blocks input that frame).
-- **Ring dead ends:** with a budget of 1, "ring now" is a dead end at many steps. Report non-bell choice points separately; don't sell the raw count as difficulty.
+## Gotchas learned (v5)
+- **RTL alignment:** Godot mirrors `HORIZONTAL_ALIGNMENT_LEFT` for RTL controls. Use `UI.al()` (always LEFT, meaning "start"); never pass RIGHT for Arabic.
+- Overlay children in a Button (HBox with labels): a label with `text_overrun_behavior` has ~0 minimum width. Only set overrun inside an expanding container.
+- `ledger_tool.gd -- build` rewrites `ledger.json` / `EXPERT_PUZZLE_PROOFS.md` with new timings; revert if nothing else changed.
+- reportlab can't shape Arabic: keep Arabic script out of PDF sources.
+- Don't edit `game/` while a QA battery is running.
 
 ## Next tasks (in order)
-1. **Owner:** finish the V3 feedback; then install v4 over it and play the ledger with `docs/EXPERT_PLAYTEST.md` (6 questions).
-2. Tune the ledger from that: the order of pages, which pages are too easy or too obscure, and hint wording. Re-run `ledger_tool.gd -- build` after any change (the content hash changes; old saved attempts are set aside safely).
-3. Decide whether to merge `feature/midnight-ledger` into `main` and push.
-4. Arabic review now also covers ~95 ledger strings.
-5. Carried over: release AAB/monetisation rebuild, publisher items, purchase verification (still not built; real purchases stay off).
+1. **Owner:** install the v5 APK over v4 and run the 15-minute smoke test (`docs/ANDROID_ACCEPTANCE_TESTS.md` part A); report how the new look feels. The ledger playtest questions (`docs/EXPERT_PLAYTEST.md`) are still open.
+2. Fix whatever the phone shows (touch comfort, safe areas, readability, performance on a GPU).
+3. Decide whether to merge `feature/ui-polish` (which contains v4) into `main`.
+4. Qualified Arabic review (now including ~40 new v5 strings).
+5. Carried over: release AAB/monetisation rebuild, publisher items, purchase verification (real purchases stay off).

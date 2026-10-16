@@ -11,6 +11,7 @@ Legend: ✅ done and verified here · ⚠️ done but unverified or partial · �
 | Debug APK v2 (`build/tinystreet-v2-debug.apk`) | ✅ | Debug-signed, 0.2.0 / code 2. Owner reports "the updated Android version works" on a real phone (2026-10-16; exact build not stated). |
 | Debug APK v3 (`build/tinystreet-v3-debug.apk`) | ✅ | 0.3.0 / code 3. Owner: "currently works" on their phone (full feedback pending). |
 | Debug APK v4 (`build/tinystreet-v4-expert-debug.apk`) | ⚠️ | 0.4.0 / code 4, same key. Built and inspected here; **pending the owner's phone test**. |
+| Debug APK v5 (`build/tinystreet-ui-polish-debug.apk`) | ⚠️ | 0.5.0 / code 5, same key; UI polish. Built and inspected here; **pending the owner's phone test** (`docs/ANDROID_ACCEPTANCE_TESTS.md`). |
 | Release AAB (`build/tinystreet-release-unsigned.aab`) | ⚠️ | **Unsigned.** Must be signed with the publisher's upload key. Not store-ready. |
 | Upload key / Play App Signing | 🔒 | Create the upload keystore outside the repo and supply it through Godot export credentials or environment variables (`GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `..._USER`, `..._PASSWORD`). Never commit it. |
 | Package id final | 🔒 | Placeholder `com.tinystreet.sortrestore`. It can't be changed after the first upload. |

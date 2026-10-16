@@ -1,5 +1,38 @@
 # Test Report
 
+## v5 (0.5.0), UI polish, 2026-10-16
+Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU**. `/dev/kvm` exists but is still `root:109 0660` and this user isn't in group 109 (checked: opening it fails with "Permission denied"), so the emulator acceleration blocker hasn't changed and **the emulator wasn't retried**. No Android device is attached (`adb devices` is empty). All visual and interaction checks below ran in a **desktop Linux build** under Xvfb (Mesa software GL). **This isn't Android runtime verification.**
+
+Baseline before v5 (branch `feature/ui-polish` from `c8b2653`): 123/123 tests, and the 39-screen `tour` captured as "before" images.
+
+| Check | Result |
+|---|---|
+| Unit/integration tests | **PASS: 127 passed, 0 failed** (+4 `test_ui.gd`: theme variations exist, 14 text/background contrast pairs meet targets, double-press guard, RTL start alignment) |
+| Level validation | **PASS: 164/164, 0 UNVERIFIED** (rules and level files unchanged) |
+| Ledger proofs (`ledger_tool.gd -- build`) | **PASS: 13/13** (output identical apart from timing fields, which were reverted) |
+| All 96 campaign levels via simulated taps on the redesigned UI | **PASS: 96/96 won** |
+| Scripted UI flows | **PASS**: slice 4/4, v2 10/10, v3 11/11, ledger 14/14, nav/Android Back 17/17, rewards 8/8 |
+| Rapid tapping (400 taps) | **PASS**: state consistent with a clean replay, 0 leftover effects. Frame times under software GL: average 87 ms, p95 117 ms (not representative of a phone GPU) |
+| Lifecycle (moves → background → hard kill → relaunch) | **PASS**: identical state key and undo count |
+| Layouts | QA `layouts` at 720×1280, 720×1600 + simulated 90 px cut-out, 720×1000 + larger text: no script errors; reviewed visually |
+| New `tour` scenario (39 screens and dialogs) | Captured and **personally inspected** in English and Arabic at 720×1280, and English at 720×1600 + cut-out and 720×1000 + larger text: 4 × 39 screenshots, 0 script errors |
+| Guide data | Every stored route (96 campaign + 8 bakery + 60 daily + 13 ledger) **replayed to a win** through the real rules (`tools/guide_data.gd`) |
+| PDFs | Rendered with PyMuPDF and inspected page by page: player guide 37 pages, Android tests 12 pages; text is searchable; 0 missing-glyph characters; bookmarks for every section |
+| APK `build/tinystreet-ui-polish-debug.apk` | Built from `32a5100`; `apksigner verify` OK (v2 + v3); certificate SHA-256 `62fa1282…1b2e`, the same as v1–v4; `com.tinystreet.sortrestore` 0.5.0 / code 5; only `VIBRATE`. Earlier APKs still match `build/SHA256SUMS.txt`. **Not run on Android.** |
+
+Defects found by inspecting the renders, then fixed and re-checked:
+- **RTL alignment (pre-existing).** Godot already mirrors `LEFT` to the right edge in RTL; the old code passed `RIGHT` for Arabic, so start-aligned text sat on the wrong side (speech bubbles, list titles). Fixed in one helper (`UI.al()`), with a test.
+- Arabic "Redo" and "Restart" used the same word (إعادة) side by side in the ledger dock. Now distinct; Arabic still awaits a qualified review.
+- "How to play" said each level gives 1 token; the game pays 1 token per new star (pre-existing text error). Corrected in EN and AR.
+- v4 win card's last button ran off the bottom of the screen. Dialog bodies now scroll when too tall.
+- During the redesign: icon buttons without a subtitle lost their text (zero-width label); the moon icon failed to triangulate; notification dots rendered as tall pills; chips stretched into ovals beside two-line titles; disabled night keys turned grey; on 20:9 screens the awning floated away from the café; long décor names were clipped; the ledger move counter was clipped in RTL; coin icons turned into dark blobs on coloured keys; PDF tables squeezed short columns letter by letter, and headings were stranded at page bottoms.
+
+Before/after images: `docs/screenshots/v5/before_after/` (`overview.jpg` and 12 pairs).
+
+**Not verified (needs the phone):** real touch accuracy and target comfort, real display density and fonts, safe areas reported by hardware, audio/vibration, Android Back gestures, interruptions, installing over v3/v4, frame rate on a GPU. These are in `docs/ANDROID_ACCEPTANCE_TESTS.md`, all marked NOT RUN. Whether the new look actually *feels* inviting is the owner's call.
+
+---
+
 ## v4 (0.4.0), The Midnight Ledger, 2026-10-16
 Environment unchanged: GitHub Codespace, **no GPU, no KVM**. Visual and interaction QA ran in a **desktop Linux build** under Xvfb. **This isn't Android runtime verification**; the emulator wasn't retried. The owner's V3 phone feedback is still pending; V3 "currently works" on their phone (user-reported).
 

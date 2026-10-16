@@ -1,5 +1,32 @@
 # Test Report
 
+## v2 (0.2.0), 2026-10-16
+Environment unchanged: GitHub Codespace, 2 vCPU / 7.8 GB, **no GPU, no KVM**. Rendering checks ran in a **desktop Linux build** under Xvfb with Mesa llvmpipe (software GL). **None of this is Android runtime verification.** The emulator was not retried, because the environment hasn't changed since the 2026-10-16 failure (`docs/EMULATOR_TEST_2026-10-16.md`).
+
+| Check | Command | Result |
+|---|---|---|
+| Unit/integration tests | `godot --headless --path game -s res://tests/run_tests.gd` | **PASS: 81 passed, 0 failed** (v1: 50) |
+| Level validation (rules changed) | `godot --headless --path game -s res://tools/validate_levels.gd` | **PASS: 144/144** (84 campaign + 60 daily), 0 UNVERIFIED; includes the new mechanic-engagement check |
+| Play every campaign level through real input | QA `play=1-42`, `play=43-84` | **PASS: 84/84 won** via synthetic touch events (recorded solutions) |
+| v2 flows through real input | QA `v2` | **PASS 10/10**: fresh item refused + explained; drag to target moves; drag away cancels; pause mid-animation keeps state and clears effects; locked crate refused; k01 solved by taps; double-tap Restore spends once; task claimed once; Café Rush finished and timed |
+| Rapid tapping | QA `rapid` (400 taps, undo/restart mixed) | **PASS**: state equals a clean replay; 0 leftover effects |
+| Lifecycle | QA `lifecycle_a` → hard kill → `lifecycle_b` | **PASS**: identical state key and undo count after relaunch |
+| Android back / navigation | QA `nav` | **PASS 17/17** (now includes skipping a story bubble with Back, and the Journal) |
+| Rewarded flows (simulated ads) | QA `rewards` | **PASS 8/8**. One run aborted at shutdown (exit 134) with a hint solve still on the worker pool. Fixed in `4bef623` (the screen waits for its hint task); 3 later runs clean. |
+| Layouts | QA `layouts` at 720×1280, 720×1600 + 90 px cutout, 720×1000, large text | **PASS**: no clipped controls; reviewed visually |
+| Screens EN + AR | QA `shots`, `cafe` | Reviewed. Fixed during review: Arabic win card overflow, step-0 "bunting" artefact, tile overflow, gramophone overlap, missing `ch_locks` string, game-screen bottom clipping |
+| APK | `--export-debug "Android Debug APK"` → `build/tinystreet-v2-debug.apk` | Built; `apksigner verify` OK (v2+v3 schemes, debug key); manifest `com.tinystreet.sortrestore` versionCode 2 / 0.2.0, target/compile SDK 36, only `VIBRATE`; new scripts, levels and QOA music present. **Not run on Android.** |
+
+New test suites: `test_mechanics.gd` (11: markers, fresh/bag/lock rules, undo, solver, validator schema, engagement, session restore), `test_v2_meta.gd` (17: v2→v3 and v1→v3 migration, ledger idempotency, reload safety, double restore, extras, tasks rotation/completability/single claim, stats, awards claim/announce/cosmetics/reachability, Rush, story strings), `test_scripts.gd` (every script compiles). `test_levels.gd` adds mechanic order and spacing, engagement, spike fix and cast frequency checks.
+
+Frame times under software GL averaged 75–93 ms/frame. That is the CPU rasteriser, **not representative of a phone GPU**; real-device frame timing is still unmeasured.
+
+**Not verified:** anything on Android for v2; haptics; real audio output; install-over-v1 migration on a device; fun, pacing and difficulty (no human playtest).
+
+---
+
+# v1 report (0.1.0)
+
 Date: 2026-10-15. Engine: Godot 4.7.2-stable. Environment: GitHub Codespace, Linux x86_64, **2 vCPU / 7.8 GB RAM, no GPU**. Rendering checks used Xvfb with Mesa llvmpipe (software OpenGL 3.3).
 
 Legend: **PASS** · **FAIL** · **PARTIAL** · **NOT RUN**

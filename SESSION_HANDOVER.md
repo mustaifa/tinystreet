@@ -1,17 +1,19 @@
 # Session Handover
 
-**Last updated:** 2026-10-16, end of session 5 (v5 / 0.5.0, UI polish).
+**Last updated:** 2026-10-16, session 5 follow-up (PR #1 review fixes on top of v5 / 0.5.0).
 
 ## State
-- Branch **`feature/ui-polish`**, built on `feature/midnight-ledger` (v4, `c8b2653`). `main` still holds V3. Pushed to `origin` (no force push). The local branch `backup/pre-strip-build` holds large files: **never push it**.
+- Branch **`feature/ui-polish`**, built on `feature/midnight-ledger` (v4, `c8b2653`). `main` still holds v2. **PR #1** (`feature/ui-polish` → `main`, v3–v5) is open; don't merge until the owner says so. Pushed to `origin` (no force push). The local branch `backup/pre-strip-build` holds large files: **never push it**.
 - The owner installed v4 on a phone: "the screens work, but the UI looks dull and does not feel inviting". v5 answers that with a full visual and usability pass. **Rules, levels, economy and save schema (4) are unchanged.**
-- **APK: `build/tinystreet-ui-polish-debug.apk`**
-  - `com.tinystreet.sortrestore`, **0.5.0 / versionCode 5**, built from commit `32a5100`.
-  - SHA-256 `2f3f3da341fe6485bc95523f37d19023348dab31d74caf58bd1f0befb2f6a052` (also in `build/SHA256SUMS.txt`).
+- **APK: `build/tinystreet-ui-polish-r2-debug.apk`** (current; includes the PR #1 review fixes)
+  - `com.tinystreet.sortrestore`, **0.5.0 / versionCode 5** (unchanged), built from commit `fe0cff2`.
+  - SHA-256 `5db3e210393c191e69f51a05044b57b5b1c3dedcbea3bc74be927798699112a4` (also in `build/SHA256SUMS.txt`).
+  - The first v5 build, `build/tinystreet-ui-polish-debug.apk` (`32a5100`, `2f3f3da3…f6a052`), is kept but superseded.
   - Same debug signing certificate as v1–v4 (`62fa1282…1b2e`), so it updates in place.
   - **Not run on Android.** Phone checks: `docs/ANDROID_ACCEPTANCE_TESTS.md` (all NOT RUN).
-- Tests 127/127; levels 164/164; ledger 13/13; 96/96 campaign levels via the UI; all QA flows pass. See `TEST_REPORT.md`.
+- Tests 129/129; levels 164/164; ledger 13/13; 96/96 campaign levels via the UI; all QA flows pass. See `TEST_REPORT.md`.
 - Earlier APKs (v1–v4, AAB, monetisation test) are untouched.
+- **PR #1 review fixes (`fe0cff2`):** a bell ring that leaves no legal move now shows the lost/recovery dialog; Restart clears the bell hint and keeps ledger hint stages counted (no-hint badge); Redo clears stale hints; an outdated ledger hint search clears "thinking…"; Bakery m08 plays its special-order story beat; the validator checks `sequence` and `bell_budget`; sequence previews carry their simulated result (solver ~30% faster on sequence pages, same solutions); the level hash is computed once per screen. One review finding was wrong: `_undo_n` already persisted.
 
 ## Where things are (v5)
 | Topic | Files |
@@ -28,7 +30,7 @@
 ## Commands
 ```bash
 G=~/tools/godot/godot
-$G --headless --path game -s res://tests/run_tests.gd                       # expect 127 passed
+$G --headless --path game -s res://tests/run_tests.gd                       # expect 129 passed
 $G --headless --path game -s res://tools/validate_levels.gd                 # expect levels=164 unverified=0
 xvfb-run -a $G --path game --rendering-driver opengl3 --resolution 720x1280 -- --qa=tour --qa-out=DIR [--qa-lang=ar]
 # guides (pip install --user reportlab fonttools pillow pymupdf)
@@ -48,8 +50,8 @@ cd game && $G --headless --path . --export-debug "Android Debug APK" ../build/<n
 - Don't edit `game/` while a QA battery is running.
 
 ## Next tasks (in order)
-1. **Owner:** install the v5 APK over v4 and run the 15-minute smoke test (`docs/ANDROID_ACCEPTANCE_TESTS.md` part A); report how the new look feels. The ledger playtest questions (`docs/EXPERT_PLAYTEST.md`) are still open.
+1. **Owner:** install the v5 APK (`tinystreet-ui-polish-r2-debug.apk`) over v4 and run the 15-minute smoke test (`docs/ANDROID_ACCEPTANCE_TESTS.md` part A); report how the new look feels. The ledger playtest questions (`docs/EXPERT_PLAYTEST.md`) are still open.
 2. Fix whatever the phone shows (touch comfort, safe areas, readability, performance on a GPU).
-3. Decide whether to merge `feature/ui-polish` (which contains v4) into `main`.
+3. Decide whether to merge PR #1 (`feature/ui-polish`, which contains v3 and v4) into `main`.
 4. Qualified Arabic review (now including ~40 new v5 strings).
 5. Carried over: release AAB/monetisation rebuild, publisher items, purchase verification (real purchases stay off).

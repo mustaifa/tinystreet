@@ -7,7 +7,7 @@ Baseline before v5 (branch `feature/ui-polish` from `c8b2653`): 123/123 tests, a
 
 | Check | Result |
 |---|---|
-| Unit/integration tests | **PASS: 127 passed, 0 failed** (+4 `test_ui.gd`: theme variations exist, 14 text/background contrast pairs meet targets, double-press guard, RTL start alignment) |
+| Unit/integration tests | **PASS: 129 passed, 0 failed** after the PR #1 review fixes (+2 `test_ledger_rules.gd`: preview reuse, `sequence`/`bell_budget` schema checks; previously 127) (+4 `test_ui.gd`: theme variations exist, 14 text/background contrast pairs meet targets, double-press guard, RTL start alignment) |
 | Level validation | **PASS: 164/164, 0 UNVERIFIED** (rules and level files unchanged) |
 | Ledger proofs (`ledger_tool.gd -- build`) | **PASS: 13/13** (output identical apart from timing fields, which were reverted) |
 | All 96 campaign levels via simulated taps on the redesigned UI | **PASS: 96/96 won** |

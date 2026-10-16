@@ -4,12 +4,34 @@ extends SceneTree
 ## ship with the game. The game never generates levels at runtime.
 ##
 ##   godot --headless --path game -s res://tools/generate_levels.gd -- campaign|daily [from] [to]
+##   godot --headless --path game -s res://tools/generate_levels.gd -- ids f01 b02 c025 ...
+##   godot --headless --path game -s res://tools/generate_levels.gd -- order   # rewrite file order/chapters only
 ##
-## Levels 1-3 are hand-authored tutorials (HAND below) and are copied verbatim.
+## Tutorial levels (HAND below) are hand-authored and copied verbatim.
+## The campaign file lists levels in PLAY ORDER (ORDER below) with chapters.
+## v2 mechanic levels: fNN fresh items, bNN paper bags, kNN delivery locks,
+## xNN mixed. Candidates must PASS validation AND exercise their mechanic on
+## the solution line (LevelValidator.mechanic_engagement).
 
 const OUT := {"campaign": "res://data/levels/campaign.json", "daily": "res://data/levels/daily.json"}
 const CANDIDATES := 14
 const BUDGET := 150000
+
+## Campaign play order. Existing v1 ids keep their content (saves refer to
+## them); v2 levels are interleaved so each mechanic is introduced gently.
+const ORDER := [
+	"c001", "c002", "c003", "c004", "c005", "c006", "f01", "c007",
+	"c008", "f02", "c009", "c010", "f03", "c011", "c012", "f04", "c013", "c014", "f05", "c015",
+	"c016", "b01", "c017", "c018", "b02", "c019", "c020", "b03", "c021", "c022", "b04", "c023", "c024", "c025", "b05", "c026", "c027", "c028", "c029", "c030",
+	"c031", "c032", "c033", "f06", "c034", "c035", "b06", "c036", "c037", "c038", "c039", "c040", "c041", "c042", "c043", "c044", "c045",
+	"k01", "c046", "k02", "c047", "c048", "k03", "c049", "c050", "k04", "c051", "k05", "c052", "k06",
+	"c053", "x01", "c054", "c055", "x02", "c056", "c057", "x03", "c058", "x04", "c059", "x05", "c060", "x06",
+]
+## [chapter title key, first level id]
+const CHAPTERS := [["ch_intro", "c001"], ["ch_sequencing", "c008"], ["ch_pressure", "c016"],
+	["ch_two_stage", "c031"], ["ch_locks", "k01"], ["ch_mastery", "c053"]]
+## Extra tutorial keys attached to generated levels.
+const TUTORIAL_META := {"c031": "tut_two_stage"}
 
 const HAND := [
 	{"id": "c001", "counter": 3, "trays": 1,
@@ -24,6 +46,21 @@ const HAND := [
 	 "crates": [["coffee", "tea", "croissant"], ["tea", "coffee", "croissant"], ["croissant", "coffee", "tea"]],
 	 "orders": [[{"coffee": 2, "tea": 1}], [{"croissant": 2}], [{"tea": 2, "croissant": 1}], [{"coffee": 1}]],
 	 "meta": {"tutorial": "tut_priority", "par_counter": 2}},
+	# Fresh items: hot coffee cannot wait on the counter. Serve the tea first.
+	{"id": "f01", "counter": 3, "trays": 1,
+	 "crates": [["tea", "coffee!"], ["coffee!", "tea"], ["tea", "croissant"]],
+	 "orders": [[{"tea": 2}], [{"coffee": 2}], [{"tea": 1}], [{"croissant": 1}]],
+	 "meta": {"tutorial": "tut_fresh", "par_counter": 1}},
+	# Paper bags: contents stay hidden until they reach the front.
+	{"id": "b01", "counter": 3, "trays": 1,
+	 "crates": [["coffee", "?tea", "?coffee"], ["tea", "?croissant"], ["croissant", "?tea"]],
+	 "orders": [[{"coffee": 1}], [{"tea": 2}], [{"croissant": 2}], [{"tea": 1, "coffee": 1}]],
+	 "meta": {"tutorial": "tut_bag", "par_counter": 2}},
+	# Delivery locks: the croissant crate opens after two deliveries.
+	{"id": "k01", "counter": 3, "trays": 1, "locks": [0, 0, 2],
+	 "crates": [["coffee", "tea"], ["tea", "coffee"], ["croissant", "croissant"]],
+	 "orders": [[{"coffee": 1}], [{"tea": 2}], [{"croissant": 2}], [{"coffee": 1}]],
+	 "meta": {"tutorial": "tut_lock", "par_counter": 1}},
 ]
 
 ## Tier parameters: [crates_min, crates_max, depth_min, depth_max, orders_min,
@@ -45,66 +82,128 @@ func tier_for(kind: String, n: int) -> Dictionary:
 
 func _t(cmin, cmax, dmin, dmax, omin, omax, trays, counter, products, smax, two, target) -> Dictionary:
 	return {"cmin": cmin, "cmax": cmax, "dmin": dmin, "dmax": dmax, "omin": omin, "omax": omax,
-		"trays": trays, "counter": counter, "products": products, "smax": smax, "two": two, "target": target}
+		"trays": trays, "counter": counter, "products": products, "smax": smax, "two": two, "target": target,
+		"fresh": 0.0, "bags": 0.0, "locks": 0}
+
+## Mechanic levels: a base tier plus mechanic densities.
+##   fresh = chance an item is fresh; bags = chance a non-front item is bagged;
+##   locks = number of locked crates.
+func mech_tier(id: String) -> Dictionary:
+	var n := int(id.substr(1))
+	var p: Dictionary
+	match id[0]:
+		"f":
+			p = [_t(3, 3, 3, 3, 4, 5, 2, 3, 4, 3, 0.0, 0.6), _t(3, 4, 3, 3, 4, 5, 2, 3, 4, 3, 0.0, 0.5),
+				_t(4, 4, 3, 4, 5, 6, 2, 3, 4, 4, 0.0, 0.45), _t(4, 4, 3, 4, 5, 6, 2, 3, 5, 4, 0.0, 0.4),
+				_t(4, 5, 4, 4, 5, 6, 2, 3, 5, 3, 0.4, 0.35)][clampi(n - 2, 0, 4)]
+			p.fresh = [0.18, 0.2, 0.22, 0.24, 0.2][clampi(n - 2, 0, 4)]
+		"b":
+			p = [_t(4, 4, 3, 4, 5, 6, 2, 3, 4, 4, 0.0, 0.5), _t(4, 5, 4, 4, 6, 7, 2, 3, 5, 4, 0.0, 0.4),
+				_t(4, 5, 4, 4, 6, 7, 2, 3, 5, 4, 0.0, 0.35), _t(5, 5, 4, 4, 6, 8, 2, 3, 5, 4, 0.0, 0.3),
+				_t(4, 5, 4, 5, 5, 7, 2, 3, 6, 4, 0.4, 0.3)][clampi(n - 2, 0, 4)]
+			p.bags = [0.35, 0.4, 0.45, 0.5, 0.45][clampi(n - 2, 0, 4)]
+		"k":
+			p = [_t(4, 4, 3, 4, 5, 6, 2, 3, 5, 4, 0.2, 0.4), _t(4, 5, 4, 4, 5, 7, 2, 3, 5, 4, 0.3, 0.35),
+				_t(5, 5, 4, 4, 6, 7, 3, 3, 6, 4, 0.3, 0.3), _t(5, 5, 4, 5, 6, 8, 3, 3, 6, 4, 0.35, 0.25),
+				_t(5, 5, 4, 5, 6, 8, 3, 3, 6, 4, 0.35, 0.22)][clampi(n - 2, 0, 4)]
+			p.locks = 1 if n <= 3 else 2
+		"x":
+			p = _t(5, 5, 4, 5, 6, 8, 3, 3, 6, 4, 0.35, [0.3, 0.25, 0.22, 0.2, 0.18, 0.16][clampi(n - 1, 0, 5)])
+			p.fresh = 0.12 if n % 2 == 1 or n >= 5 else 0.0
+			p.bags = 0.3 if n % 2 == 0 or n >= 5 else 0.0
+			p.locks = 1 if n >= 3 else 0
+	return p
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var kind := args[0] if args.size() > 0 else "campaign"
-	var total := 60
-	var from := int(args[1]) if args.size() > 1 else 1
-	var to := int(args[2]) if args.size() > 2 else total
+	var ids: Array = []
+	if kind == "ids" or kind == "order":
+		for i in range(1, args.size()):
+			ids.append(args[i])
+		kind = "campaign" if kind == "ids" else "order"
+	var file_kind := "campaign" if kind == "order" else kind
 	var existing: Array = []
-	if FileAccess.file_exists(OUT[kind]):
-		existing = JSON.parse_string(FileAccess.get_file_as_string(OUT[kind])).levels
+	if FileAccess.file_exists(OUT[file_kind]):
+		existing = JSON.parse_string(FileAccess.get_file_as_string(OUT[file_kind])).levels
 	var by_id := {}
 	for l in existing:
 		by_id[l.id] = l
+	if kind == "order":
+		_write("campaign", by_id)
+		quit(0)
+		return
+	if ids.is_empty():
+		var total := 60
+		var from := int(args[1]) if args.size() > 1 else 1
+		var to := int(args[2]) if args.size() > 2 else total
+		for n in range(from, to + 1):
+			ids.append("%s%03d" % ["c" if kind == "campaign" else "d", n])
 	var sigs := {}
 	for l in existing:
-		var n := int(str(l.id).substr(1))
-		if n < from or n > to:
+		if not (l.id in ids):
 			sigs[LevelValidator.signature(LevelDef.from_dict(l))] = true
-	for n in range(from, to + 1):
+	for id in ids:
 		var t0 := Time.get_ticks_msec()
-		var lvl: Dictionary
-		if kind == "campaign" and n <= HAND.size():
-			lvl = HAND[n - 1].duplicate(true)
+		var lvl: Dictionary = _hand(id)
+		if not lvl.is_empty():
 			var r := LevelValidator.validate(lvl, BUDGET)
-			assert(r.verdict == LevelValidator.PASSED, "hand level %d: %s" % [n, r.errors])
+			assert(r.verdict == LevelValidator.PASSED, "hand level %s: %s" % [id, r.errors])
 			lvl.meta.solution = r.path
 			lvl.meta.metrics = r.metrics
 		else:
-			lvl = _best_candidate(kind, n, sigs)
+			lvl = _best_candidate(kind, id, sigs)
 		lvl.meta.verified = LevelValidator.PASSED
 		lvl.meta.playtest = "AWAITING_HUMAN"
-		lvl.meta.tier = _tier_name(kind, n)
+		lvl.meta.tier = _tier_name(kind, id)
 		sigs[LevelValidator.signature(LevelDef.from_dict(lvl))] = true
 		by_id[lvl.id] = lvl
-		print("%s  win=%.2f  min_ctr=%d  par=%d  items=%d  nodes=%d  (%d ms)" % [lvl.id,
-			lvl.meta.metrics.random_win_rate, lvl.meta.metrics.min_counter, lvl.meta.par_counter,
-			lvl.meta.metrics.items, lvl.meta.metrics.solver_nodes, Time.get_ticks_msec() - t0])
+		var m: Dictionary = lvl.meta.metrics
+		print("%s  win=%.2f  min_ctr=%d  par=%d  items=%d  nodes=%d  fresh=%d/%d bags=%d/%d locks=%d/%d  (%d ms)" % [lvl.id,
+			m.random_win_rate, m.min_counter, lvl.meta.par_counter, m.items, m.solver_nodes,
+			int(m.get("fresh", 0)), int(m.get("fresh_waits", 0)), int(m.get("bags", 0)), int(m.get("reveals", 0)),
+			int(m.get("locked_crates", 0)), int(m.get("lock_moves", 0)), Time.get_ticks_msec() - t0])
 		_write(kind, by_id)
 	quit(0)
 
-func _tier_name(kind: String, n: int) -> String:
+func _hand(id: String) -> Dictionary:
+	for h in HAND:
+		if h.id == id:
+			return h.duplicate(true)
+	return {}
+
+func _tier_name(kind: String, id: String) -> String:
 	if kind == "daily": return "daily"
+	match id[0]:
+		"f": return "fresh"
+		"b": return "bags"
+		"k": return "locks"
+		"x": return "mixed"
+	var n := int(id.substr(1))
 	if n <= 5: return "intro"
 	if n <= 15: return "sequencing"
 	if n <= 30: return "pressure"
 	if n <= 45: return "two_stage"
 	return "mastery"
 
-func _best_candidate(kind: String, n: int, sigs: Dictionary) -> Dictionary:
-	var p := tier_for(kind, n)
+## Levels regenerated in v2 to remove difficulty spikes (seeded differently).
+const RESEEDED := ["c025", "c034", "c048", "c057"]
+
+func _best_candidate(kind: String, id: String, sigs: Dictionary) -> Dictionary:
+	var n := int(id.substr(1))
+	var mech := id[0] in ["f", "b", "k", "x"]
+	var p := mech_tier(id) if mech else tier_for(kind, n)
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash("%s-%d-v1" % [kind, n])
+	rng.seed = hash("%s-%d-v1" % [kind, n]) if not (mech or id in RESEEDED) else hash("%s-v2" % id)
+	var strict := mech or id in RESEEDED
 	var best: Dictionary = {}
 	var best_score := INF
 	var tries := 0
 	var good := 0
-	while good < CANDIDATES and tries < CANDIDATES * 12:
+	while good < CANDIDATES and tries < CANDIDATES * (40 if strict else 12):
 		tries += 1
 		var cand := _make(kind, n, p, rng)
+		cand.id = id
 		var def := LevelDef.from_dict(cand)
 		if LevelValidator.signature(def) in sigs:
 			continue
@@ -116,8 +215,16 @@ func _best_candidate(kind: String, n: int, sigs: Dictionary) -> Dictionary:
 		var m: Dictionary = r.metrics
 		if LevelValidator.is_trivial(m) and n > 3:
 			continue
-		if m.min_counter >= p.counter and n <= 15:
+		if m.min_counter >= p.counter and n <= 15 and not mech:
 			continue # early levels keep at least one spare slot
+		if strict and m.random_win_rate < p.target * 0.55:
+			continue # v2: no spikes far below the tier's intended difficulty
+		if p.fresh > 0.0 and int(m.fresh_waits) < 1:
+			continue # fresh items must actually force a wait on the solution line
+		if p.bags > 0.0 and int(m.reveals) < 2:
+			continue
+		if p.locks > 0 and int(m.lock_moves) < 3:
+			continue
 		good += 1
 		var score: float = absf(m.random_win_rate - p.target)
 		score += 0.002 * absf(m.solver_nodes - 300)  * (1.0 if m.solver_nodes > 20000 else 0.0)
@@ -127,7 +234,7 @@ func _best_candidate(kind: String, n: int, sigs: Dictionary) -> Dictionary:
 			cand.meta.metrics = m
 			cand.meta.par_counter = mini(p.counter, m.min_counter + 1)
 			best = cand
-	assert(not best.is_empty(), "no valid candidate for %s %d" % [kind, n])
+	assert(not best.is_empty(), "no valid candidate for %s" % id)
 	return best
 
 func _make(kind: String, n: int, p: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
@@ -202,9 +309,26 @@ func _make(kind: String, n: int, p: Dictionary, rng: RandomNumberGenerator) -> D
 		for j in d:
 			c.append(bag[idx]); idx += 1
 		crates.append(c)
+	# v2 mechanic markers
+	for c in crates:
+		for k in c.size():
+			if p.fresh > 0.0 and rng.randf() < p.fresh:
+				c[k] = c[k] + "!"
+			if k >= 1 and p.bags > 0.0 and rng.randf() < p.bags:
+				c[k] = "?" + c[k]
 	var prefix := "c" if kind == "campaign" else "d"
-	return {"id": "%s%03d" % [prefix, n], "counter": p.counter, "trays": p.trays,
+	var out := {"id": "%s%03d" % [prefix, n], "counter": p.counter, "trays": p.trays,
 		"crates": crates, "orders": fixed, "meta": {}}
+	if p.locks > 0 and crates.size() > p.locks and fixed.size() > 2:
+		var locks: Array = []
+		locks.resize(crates.size())
+		locks.fill(0)
+		var idx_pool: Array = range(crates.size())
+		for k in p.locks:
+			var ci: int = idx_pool.pop_at(rng.randi_range(0, idx_pool.size() - 1))
+			locks[ci] = rng.randi_range(1, mini(3, fixed.size() - 2))
+		out["locks"] = locks
+	return out
 
 ## A stage of `size` items using one or two distinct products (each >= 1).
 func _stage(size: int, pal: Array, rng: RandomNumberGenerator) -> Dictionary:
@@ -223,10 +347,18 @@ func _stage(size: int, pal: Array, rng: RandomNumberGenerator) -> Dictionary:
 func _write(kind: String, by_id: Dictionary) -> void:
 	var ids := by_id.keys()
 	ids.sort()
+	if kind == "campaign":
+		ids = ORDER.filter(func(i): return by_id.has(i))
+		for k in TUTORIAL_META:
+			if by_id.has(k):
+				by_id[k].meta.tutorial = TUTORIAL_META[k]
 	var levels: Array = []
 	for id in ids:
 		levels.append(by_id[id])
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://data/levels"))
 	var f := FileAccess.open(OUT[kind], FileAccess.WRITE)
-	f.store_string(JSON.stringify({"version": 1, "kind": kind, "levels": levels}, "\t"))
+	var doc := {"version": 2, "kind": kind, "levels": levels}
+	if kind == "campaign":
+		doc["chapters"] = CHAPTERS.map(func(c): return {"title": c[0], "first": c[1]})
+	f.store_string(JSON.stringify(doc, "\t"))
 	f.close()

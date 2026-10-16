@@ -14,8 +14,18 @@ extends RefCounted
 ##   b. Counter slots are scanned left to right; each item moves to the leftmost
 ##      tray that needs it.
 ## Completion is evaluated before defeat. Defeat = not won AND no legal move.
+##
+## MECHANICS (v2, all optional per level):
+##   FRESH item: may only go to a tray (step 1). If no tray needs it, the tap
+##     is illegal; it never goes to the counter.
+##   BAG item: purely informational. Its product is hidden until it becomes
+##     the front item. Routing is unchanged (the rules always know contents).
+##   LOCKED crate: illegal to tap until `completed >= locks[crate]`. The crate
+##     opens during resolution, the moment the required delivery happens.
 
 enum Dest { NONE, TRAY, COUNTER }
+## Why a tap is illegal (for feedback). NONE when the tap is legal.
+enum Block { NONE, EMPTY, LOCKED, FRESH, FULL }
 
 const EV_PICK := "pick"                 # {crate, product}
 const EV_TO_TRAY := "to_tray"           # {crate, product, tray}
@@ -24,27 +34,60 @@ const EV_COUNTER_TO_TRAY := "counter_to_tray" # {slot, product, tray}
 const EV_STAGE := "stage_advance"       # {tray, order, stage}
 const EV_DELIVER := "order_complete"    # {tray, order}
 const EV_ARRIVE := "order_arrive"       # {tray, order}
+const EV_REVEAL := "reveal"             # {crate, product} a bagged item became the front
+const EV_UNLOCK := "crate_unlock"       # {crate}
 
 ## Which tray (or counter) a tap on `crate` would send its product to.
-## Returns {dest: Dest, tray: int, slot: int, product: int}.
+## Returns {dest: Dest, tray: int, slot: int, product: int, block: Block, fresh: bool}.
 static func preview(s: PuzzleState, crate: int) -> Dictionary:
-	var r := {"dest": Dest.NONE, "tray": -1, "slot": -1, "product": -1}
+	var r := {"dest": Dest.NONE, "tray": -1, "slot": -1, "product": -1, "block": Block.EMPTY, "fresh": false}
 	if crate < 0 or crate >= s.crate_pos.size():
 		return r
 	var p := s.front(crate)
 	r.product = p
 	if p < 0:
 		return r
+	r.fresh = is_fresh_front(s, crate)
+	if is_locked(s, crate):
+		r.block = Block.LOCKED
+		return r
 	var t := first_tray_needing(s, p)
 	if t >= 0:
 		r.dest = Dest.TRAY
 		r.tray = t
+		r.block = Block.NONE
+		return r
+	if r.fresh:
+		r.block = Block.FRESH
 		return r
 	var slot := s.counter.find(-1)
 	if slot >= 0:
 		r.dest = Dest.COUNTER
 		r.slot = slot
+		r.block = Block.NONE
+	else:
+		r.block = Block.FULL
 	return r
+
+static func is_locked(s: PuzzleState, crate: int) -> bool:
+	return s.completed < s.level.locks[crate]
+
+## Deliveries still needed before `crate` opens (0 if open).
+static func lock_remaining(s: PuzzleState, crate: int) -> int:
+	return maxi(0, s.level.locks[crate] - s.completed)
+
+static func is_fresh_front(s: PuzzleState, crate: int) -> bool:
+	return s.crate_remaining(crate) > 0 and (s.level.flag(crate, s.crate_pos[crate]) & LevelDef.FRESH) != 0
+
+## Item k (absolute index in the crate) as the player may see it:
+## its product, or -1 while it is still bagged behind the front.
+static func visible_product(s: PuzzleState, crate: int, k: int) -> int:
+	var c: PackedInt32Array = s.level.crates[crate]
+	if k < s.crate_pos[crate] or k >= c.size():
+		return -1
+	if k > s.crate_pos[crate] and (s.level.flag(crate, k) & LevelDef.BAG) != 0:
+		return -1
+	return c[k]
 
 static func first_tray_needing(s: PuzzleState, p: int) -> int:
 	for t in s.tray_order.size():
@@ -75,9 +118,11 @@ static func apply_move(s: PuzzleState, crate: int) -> Array:
 	if pv.dest == Dest.NONE:
 		return []
 	var p: int = pv.product
-	var events: Array = [{"type": EV_PICK, "crate": crate, "product": p}]
+	var events: Array = [{"type": EV_PICK, "crate": crate, "product": p, "fresh": pv.fresh}]
 	s.crate_pos[crate] += 1
 	s.moves += 1
+	if s.crate_remaining(crate) > 0 and (s.level.flag(crate, s.crate_pos[crate]) & LevelDef.BAG) != 0:
+		events.append({"type": EV_REVEAL, "crate": crate, "product": s.front(crate)})
 	if pv.dest == Dest.TRAY:
 		s.tray_fill[pv.tray][p] += 1
 		events.append({"type": EV_TO_TRAY, "crate": crate, "product": p, "tray": pv.tray})
@@ -110,6 +155,9 @@ static func resolve(s: PuzzleState, events: Array) -> void:
 					s.tray_stage[t] = 0
 					s.tray_order[t] = -1
 					events.append({"type": EV_DELIVER, "tray": t, "order": o})
+					for c in s.level.locks.size():
+						if s.level.locks[c] == s.completed:
+							events.append({"type": EV_UNLOCK, "crate": c})
 					if s.next_order < s.level.orders.size():
 						s.tray_order[t] = s.next_order
 						s.next_order += 1

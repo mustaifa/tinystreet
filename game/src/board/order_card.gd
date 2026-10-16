@@ -1,9 +1,8 @@
 class_name OrderCard
 extends Control
-## One customer order tray. Shows the current stage's requirements with fill
-## pips, and the SECOND stage (if any) in advance, marked "then".
-
-const CUSTOMER_COLORS := [Color("c8643f"), Color("1f7a72"), Color("8a6bb0"), Color("d9a441"), Color("4f7fb3"), Color("b45a7a")]
+## One customer order ticket. Shows who ordered (portrait), the current
+## stage's requirements with fill pips, and the SECOND stage (if any) in
+## advance, marked "then".
 
 var tray := 0
 var order := -1
@@ -14,6 +13,8 @@ var in_flight := {}             # product -> count not yet landed (drawn as empt
 var highlight := false          # destination preview
 var hint_glow := false
 var show_number := true
+var customer := ""
+var mood := 2                   # CharacterArt mood: waiting until served
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -56,7 +57,7 @@ func _draw() -> void:
 	var rect := Rect2(Vector2(4, 4), size - Vector2(8, 8))
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Style.PAPER
-	sb.set_corner_radius_all(26)
+	sb.set_corner_radius_all(22)
 	sb.shadow_color = Style.SHADOW
 	sb.shadow_size = 10
 	sb.shadow_offset = Vector2(0, 5)
@@ -69,17 +70,24 @@ func _draw() -> void:
 	draw_style_box(sb, rect)
 	var f := Style.font_bold
 	var rtl := Loc.is_rtl()
+	# ticket header strip with a perforated edge
+	var head := StyleBoxFlat.new()
+	head.bg_color = Color(Style.TEAL_SOFT, 0.75) if order >= 0 else Color(Style.CREAM_DEEP, 0.6)
+	head.corner_radius_top_left = 22
+	head.corner_radius_top_right = 22
+	draw_style_box(head, Rect2(Vector2(4, 4), Vector2(size.x - 8, 60)))
+	for k in int((size.x - 30) / 16):
+		draw_circle(Vector2(18 + k * 16, 64), 3, Style.CREAM_DEEP)
 	if order < 0:
 		draw_string(Style.font_regular, Vector2(0, size.y / 2 + 10), Loc.t("tray_free"), HORIZONTAL_ALIGNMENT_CENTER, size.x, Style.fs(24), Style.INK_SOFT)
 		return
-	# header: tray number badge + customer
-	var badge := Vector2(size.x - 34, 36) if rtl else Vector2(34, 36)
+	# header: tray number badge + customer portrait
+	var badge := Vector2(size.x - 32, 34) if rtl else Vector2(32, 34)
 	draw_circle(badge, 20, Style.TEAL)
 	draw_string(f, badge + Vector2(-20, 9), str(tray + 1), HORIZONTAL_ALIGNMENT_CENTER, 40, 26, Color.WHITE)
-	var cc: Color = CUSTOMER_COLORS[order % CUSTOMER_COLORS.size()]
-	var cpos := Vector2(34, 36) if rtl else Vector2(size.x - 34, 36)
-	draw_circle(cpos + Vector2(0, -6), 10, cc)
-	draw_arc(cpos + Vector2(0, 18), 16, PI, TAU, 16, cc, 8, true)
+	var cpos := Vector2(40, 32) if rtl else Vector2(size.x - 40, 32)
+	draw_circle(cpos, 30, Style.PAPER)
+	CharacterArt.draw(self, customer, cpos + Vector2(0, 2), 58, mood)
 	if stages.size() > 1:
 		var lbl := "%d/%d" % [stage + 1, stages.size()]
 		draw_string(Style.font_regular, Vector2(0, 46), lbl, HORIZONTAL_ALIGNMENT_CENTER, size.x, Style.fs(22), Style.INK_SOFT)

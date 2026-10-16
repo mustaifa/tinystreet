@@ -3,7 +3,7 @@ extends Node
 ## Separate Music and SFX buses with independent volume settings.
 
 const SFX := ["tap", "place", "counter", "invalid", "stage", "deliver", "win", "star",
-	"lose", "restore", "undo", "warn"]
+	"lose", "restore", "undo", "warn", "combo", "coin", "bag", "unlock"]
 
 var _streams := {}
 var _pool: Array[AudioStreamPlayer] = []
@@ -25,13 +25,11 @@ func _ready() -> void:
 	_music = AudioStreamPlayer.new()
 	_music.bus = "Music"
 	add_child(_music)
+	# Looping is set in the import (edit/loop_mode=2, forward over the whole
+	# file), which is correct for the QOA-compressed stream.
 	var m := "res://assets/audio/music_cafe.wav"
 	if ResourceLoader.exists(m):
-		var s: AudioStreamWAV = load(m)
-		s.loop_mode = AudioStreamWAV.LOOP_FORWARD
-		s.loop_begin = 0
-		s.loop_end = s.data.size() / 2  # 16-bit mono frames
-		_music.stream = s
+		_music.stream = load(m)
 
 func _ensure_bus(name: String) -> void:
 	if AudioServer.get_bus_index(name) == -1:

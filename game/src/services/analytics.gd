@@ -22,7 +22,7 @@ func event(name: String, params: Dictionary = {}) -> void:
 	var p := params.duplicate()
 	for k in FORBIDDEN_KEYS:
 		p.erase(k)
-	p["v"] = "0.1.0"
+	p["v"] = App.VERSION
 	var rec := {"t": Time.get_unix_time_from_system(), "e": name, "p": p}
 	buffer.append(rec)
 	if buffer.size() > RING:

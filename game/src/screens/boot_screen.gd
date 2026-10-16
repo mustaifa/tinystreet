@@ -27,7 +27,8 @@ func _on_consent(can_request_ads: bool) -> void:
 	var first_time: bool = not Progression.is_cleared(App.data, App.progression.campaign[0].id) \
 		and App.data.current.is_empty()
 	if first_time:
+		# Two short lines from Mira, then straight into level 1.
 		App.main.goto("home", {}, false)
-		App.main.goto("game", {"kind": "campaign", "id": App.progression.campaign[0].id})
+		Story.play("intro", func(): App.main.goto("game", {"kind": "campaign", "id": App.progression.campaign[0].id}))
 	else:
 		App.main.goto("home", {}, false)

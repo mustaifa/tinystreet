@@ -32,3 +32,20 @@ Routine decisions made autonomously, with reasons. Newest last.
 | D26 | Saves: JSON envelope with SHA-256 of the payload; tmp → bak → main rename sequence | Detects corruption and survives interrupted writes. It doesn't claim tamper-proofing. |
 | D27 | In-progress puzzle saved as a **move list** and replayed on load | Compact and exact. Rebuilds the full undo history through the deterministic rules. |
 | D28 | NDK removed from the local SDK after the first Gradle build | Disk space in the codespace was needed for the emulator. Godot's Gradle build uses prebuilt engine libraries, so the NDK only affects optional symbol stripping. |
+
+## v2 (2026-10-16), after the first real-device smoke test ("works, feels basic")
+| # | Decision | Reason |
+|---|---|---|
+| D29 | Three new mechanics: **fresh items**, **paper bags**, **delivery locks**. All are rules in `rules.gd`, and the solver understands them. | They fit the one-tap auto-routing model without new input modes. Each changes *which crate to tap when*, so the choices are real. Customer orders, counter and two-stage orders already existed. Limited-use storage was rejected: with auto routing it would just be "more counter". |
+| D30 | Every mechanic level must exercise its mechanic on the solution line (`mechanic_engagement`) | Structural validity isn't enough. A bag that is never revealed, or a lock that never constrains, is decoration. The generator rejects such candidates and the validator fails them. |
+| D31 | Campaign 60 → 84 levels by **inserting** new levels; v1 ids keep their content, except four regenerated spikes | Saves refer to level ids. `is_unlocked` = first, cleared, or previous cleared, so v1 players keep everything and Play leads them to the first new level. |
+| D32 | Tokens = **stars** (1 per star, per level, once), paid through an idempotent **grant ledger** | Rewards skill and replays, and makes the first restoration available after level 1. The ledger key makes every reward path (stars, tasks, awards) duplicate-proof across reloads and double taps. |
+| D33 | Café restoration: 8 steps in an **interior cut-away** instead of a 5-stage facade | v1's counter and seating were tiny details behind windows. The interior shows the floor, counter, lights, seating, plants and the cast. Step 1 costs 3 (first reward within about 2 minutes). |
+| D34 | Decor choice opens **right after** buying a step, with the café in view; choices stay editable | Makes every purchase visibly personal. No upgrade is a text label only. |
+| D35 | Extras (clock, cake stand, gramophone, cat) as a token sink after the café | Gives stars a use after the café is complete, without inventing a second currency. |
+| D36 | Cast of three with deterministic order ownership (Theo = coffee-only, Basil = tea-only, Mira = pastries) | Faces recur naturally in play, so "serve Theo" tasks are tied to actual gameplay. No per-level authoring is needed. |
+| D37 | Café tasks and Daily use the **device clock**; documented as relaxed personal goals | Offline game, no backend (out of scope). The worst case is a player granting themselves tokens in a single-player game. |
+| D38 | Optional **Café Rush**: count-up clock, no fail state, personal best only, memory-only run | Satisfies "optional timed challenge" without timers in the campaign or a leaderboard. |
+| D39 | Streaks are cosmetic | Feedback without changing the star rules players already learned. |
+| D40 | Save schema 3 migration: v2 milestones map to the new steps so nothing visible is lost; earned stars are credited and ledgered; the balance never drops below the pre-update balance | Preserve progress and never take anything away. |
+| D41 | Music re-synthesised as an 87 s loop (EP comp, walking bass, brush, two melody passes); looping set in the import, not at runtime | v1 computed loop_end from QOA bytes, which is wrong for compressed data. Longer and less repetitive. Still synthetic. |

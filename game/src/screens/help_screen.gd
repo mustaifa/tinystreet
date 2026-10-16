@@ -8,7 +8,7 @@ func setup(_p: Dictionary) -> void:
 	root.add_child(UI.header(Loc.t("help"), func(): App.main.back()))
 	var v := UI.vbox(16)
 	root.add_child(UI.scroll(v))
-	for k in ["help_goal", "help_tap", "help_priority", "help_counter", "help_auto", "help_two_stage", "help_lose", "help_undo", "help_hint", "help_stars", "help_tokens"]:
+	for k in ["help_goal", "help_tap", "help_badges", "help_priority", "help_counter", "help_auto", "help_fresh", "help_bag", "help_lock", "help_two_stage", "help_lose", "help_undo", "help_hint", "help_stars", "help_tokens", "help_tasks"]:
 		var card := UI.vbox(6)
 		card.add_child(UI.label(Loc.t(k + "_t"), "HeaderLabel", HORIZONTAL_ALIGNMENT_LEFT if not Loc.is_rtl() else HORIZONTAL_ALIGNMENT_RIGHT))
 		card.add_child(UI.label(Loc.t(k + "_b"), "", HORIZONTAL_ALIGNMENT_LEFT if not Loc.is_rtl() else HORIZONTAL_ALIGNMENT_RIGHT))

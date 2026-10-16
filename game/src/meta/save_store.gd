@@ -8,7 +8,7 @@ extends RefCounted
 ## Offline saves cannot provide anti-cheat protection; the checksum detects
 ## corruption, not tampering.
 
-const SCHEMA := 2
+const SCHEMA := 3
 
 var path: String
 var last_load_source := ""     # "main", "tmp", "backup", "fresh"
@@ -90,6 +90,50 @@ static func migrate(d: Dictionary, from_schema: int) -> Dictionary:
 		if not d.has("daily"):
 			d["daily"] = {"completed": {}}
 		s = 2
+	if s < 3:
+		d = migrate_v2_to_v3(d)
+		s = 3
+	return d
+
+## v2 -> v3 (Tiny Street v2 economy and café):
+##  - 5 café milestones become 8 restoration steps without losing anything
+##    already visible: storefront->clean+walls, windows->+floor,
+##    counter->+counter, seating/lights/plants->+lights+seating+plants,
+##    sign->opening. Decor choices carry over (wall->walls).
+##  - Tokens become star-based. Every star already earned is recorded in the
+##    grant ledger (so it can never pay twice) and credited; the cost of the
+##    steps the player now owns is deducted. The balance never goes below
+##    what the player had before the update.
+const V2_STEP_MAP := [0, 2, 3, 4, 7, 8]
+const V2_COSTS := [3, 6, 10, 14, 18, 22, 26, 30]
+
+static func migrate_v2_to_v3(d: Dictionary) -> Dictionary:
+	var rest: Dictionary = d.get("restoration", {}) if d.get("restoration") is Dictionary else {}
+	var old_m := clampi(int(rest.get("milestones", 0)), 0, 5)
+	var steps: int = V2_STEP_MAP[old_m]
+	var old_choices: Dictionary = rest.get("choices", {}) if rest.get("choices") is Dictionary else {}
+	var choices := {}
+	for k in old_choices:
+		choices["walls" if k == "wall" else str(k)] = old_choices[k]
+	d["restoration"] = {"steps": steps, "choices": choices, "extras": {}, "hidden": {}}
+	var grants := {}
+	var earned := 0
+	var camp: Dictionary = d.get("campaign", {}) if d.get("campaign") is Dictionary else {}
+	var stars: Dictionary = camp.get("stars", {}) if camp.get("stars") is Dictionary else {}
+	var cleared: Dictionary = camp.get("cleared", {}) if camp.get("cleared") is Dictionary else {}
+	for id in stars:
+		if not bool(cleared.get(id, false)):
+			continue
+		for k in range(1, clampi(int(stars[id]), 0, 3) + 1):
+			grants["star:%s:%d" % [id, k]] = 1
+			earned += 1
+	var spent := 0
+	for i in steps:
+		spent += V2_COSTS[i]
+	var old_tokens := maxi(0, int(d.get("tokens", 0)))
+	d["grants"] = grants
+	d["tokens"] = maxi(old_tokens, earned - spent)
+	d["tokens_earned"] = maxi(int(d.get("tokens_earned", 0)), earned)
 	return d
 
 func delete_all() -> void:

@@ -8,7 +8,7 @@ signal data_changed
 signal language_changed
 signal settings_changed
 
-const VERSION := "0.1.0"
+const VERSION := "0.2.0"
 
 var data: Dictionary = {}
 var store: SaveStore
@@ -24,6 +24,7 @@ var theme: Theme
 var main: Node               # main.gd host (screens + overlays)
 var session_started_at := 0
 var load_notice := ""         # shown once if the save had to be recovered
+var rush: RushRun             # optional Café Rush in progress (memory only)
 
 var _save_pending := false
 var _save_timer: Timer
@@ -47,6 +48,8 @@ func boot(save_path: String = "user://save.json", services: Dictionary = {}) -> 
 	elif store.last_load_source == "fresh" and store.last_load_issue.contains("corrupt"):
 		load_notice = "save_reset"
 	progression.load_levels()
+	# Today's café tasks exist before any play, so every win counts.
+	Tasks.refresh(data, Progression.today_key(), Meta.seen_mechanics(data, progression))
 	if str(data.settings.lang) == "":
 		data.settings.lang = Loc.detect()
 	Loc.set_lang(data.settings.lang)
@@ -142,3 +145,35 @@ func share_text(text: String) -> String:
 
 func is_dev_build() -> bool:
 	return BuildConfig.is_dev()
+
+# --- Café Rush ------------------------------------------------------------------
+
+func goto_rush_level() -> void:
+	if rush == null or rush.current_id() == "":
+		return
+	if main.current_name() == "game":
+		main.replace("game", {"kind": "rush", "id": rush.current_id()})
+	else:
+		main.goto("game", {"kind": "rush", "id": rush.current_id()})
+
+func on_rush_win() -> void:
+	if rush == null:
+		return
+	if not rush.advance():
+		goto_rush_level()
+		return
+	var best := rush.record(data)
+	var t := RushRun.fmt_time(int(rush.elapsed_ms))
+	var news := Achievements.take_new(data)
+	analytics.event("rush_complete", {"ms": int(rush.elapsed_ms)})
+	save_now()
+	rush = null
+	var body := Loc.t("rush_done_body", [t]) + ("\n" + Loc.t("rush_new_best") if best else "")
+	for a in news:
+		body += "\n" + Loc.t("ach_unlocked", [Loc.t("ach_" + str(a))])
+	main.show_overlay(Dialog.make(Loc.t("rush_done_title"), body, [
+		[Loc.t("rush_again"), func():
+			rush = RushRun.create(progression.daily_pool, int(Time.get_unix_time_from_system()))
+			goto_rush_level(), "WarmButton"],
+		[Loc.t("challenges"), func(): main.goto("home", {}, false); main.goto("daily"), "SecondaryButton"],
+	]))

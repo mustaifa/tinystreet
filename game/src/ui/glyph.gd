@@ -83,3 +83,46 @@ func _draw() -> void:
 			draw_line(c + Vector2(0.15, -0.15) * s, c + Vector2(-0.15, 0.15) * s, color, w * 1.2, true)
 		"play":
 			draw_colored_polygon(PackedVector2Array([P.call(-0.12, -0.2), P.call(0.18, 0.0), P.call(-0.12, 0.2)]), color)
+		"coin":
+			# restoration token: a round coin with a small cup stamped on it
+			draw_circle(c, r * 1.25, color)
+			draw_arc(c, r * 1.0, 0, TAU, 28, color.darkened(0.25), w * 0.6, true)
+			var cup := PackedVector2Array([c + Vector2(-0.11, -0.05) * s, c + Vector2(0.11, -0.05) * s,
+				c + Vector2(0.08, 0.11) * s, c + Vector2(-0.08, 0.11) * s])
+			draw_colored_polygon(cup, color.darkened(0.35))
+			draw_arc(c + Vector2(0.12, 0.02) * s, 0.045 * s, -PI * 0.5, PI * 0.5, 8, color.darkened(0.35), w * 0.5, true)
+		"book":
+			draw_rect(Rect2(c + Vector2(-0.2, -0.18) * s, Vector2(0.18, 0.36) * s), color, false, w * 0.8)
+			draw_rect(Rect2(c + Vector2(0.02, -0.18) * s, Vector2(0.18, 0.36) * s), color, false, w * 0.8)
+			for i in 3:
+				draw_line(c + Vector2(-0.16, -0.08 + i * 0.08) * s, c + Vector2(-0.06, -0.08 + i * 0.08) * s, color, w * 0.5)
+				draw_line(c + Vector2(0.06, -0.08 + i * 0.08) * s, c + Vector2(0.16, -0.08 + i * 0.08) * s, color, w * 0.5)
+		"trophy":
+			draw_colored_polygon(PackedVector2Array([c + Vector2(-0.16, -0.2) * s, c + Vector2(0.16, -0.2) * s,
+				c + Vector2(0.1, 0.04) * s, c + Vector2(-0.1, 0.04) * s]), color)
+			draw_arc(c + Vector2(-0.16, -0.1) * s, 0.07 * s, PI * 0.5, PI * 1.5, 8, color, w * 0.6, true)
+			draw_arc(c + Vector2(0.16, -0.1) * s, 0.07 * s, -PI * 0.5, PI * 0.5, 8, color, w * 0.6, true)
+			draw_line(c + Vector2(0, 0.04) * s, c + Vector2(0, 0.14) * s, color, w)
+			draw_rect(Rect2(c + Vector2(-0.12, 0.14) * s, Vector2(0.24, 0.07) * s), color)
+		"timer":
+			draw_arc(c + Vector2(0, 0.03) * s, r, 0, TAU, 24, color, w, true)
+			draw_line(c + Vector2(0, 0.03) * s, c + Vector2(0, -0.08) * s, color, w, true)
+			draw_line(c + Vector2(0, 0.03) * s, c + Vector2(0.08, 0.06) * s, color, w, true)
+			draw_line(c + Vector2(-0.05, -0.26) * s, c + Vector2(0.05, -0.26) * s, color, w, true)
+		"eye":
+			var pts2 := PackedVector2Array()
+			for i in 13:
+				var t := i / 12.0
+				pts2.append(c + Vector2(lerpf(-0.24, 0.24, t), -sin(t * PI) * 0.13) * s)
+			for i in 13:
+				var t := 1.0 - i / 12.0
+				pts2.append(c + Vector2(lerpf(-0.24, 0.24, t), sin(t * PI) * 0.13) * s)
+			pts2.append(pts2[0])
+			draw_polyline(pts2, color, w * 0.8, true)
+			draw_circle(c, 0.07 * s, color)
+		"paint":
+			draw_rect(Rect2(c + Vector2(-0.18, -0.2) * s, Vector2(0.36, 0.14) * s), color)
+			draw_line(c + Vector2(0.18, -0.13) * s, c + Vector2(0.24, -0.13) * s, color, w)
+			draw_line(c + Vector2(0.24, -0.13) * s, c + Vector2(0.24, 0.0) * s, color, w)
+			draw_line(c + Vector2(0.24, 0.0) * s, c + Vector2(0.0, 0.02) * s, color, w)
+			draw_rect(Rect2(c + Vector2(-0.03, 0.02) * s, Vector2(0.06, 0.2) * s), color)

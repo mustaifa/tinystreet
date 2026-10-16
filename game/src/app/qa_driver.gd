@@ -7,6 +7,8 @@ extends Node
 ##   rapid       rapid random tapping; checks state integrity
 ##   lifecycle_a start a level, make moves, simulate background, hard-exit
 ##   lifecycle_b relaunch and verify the in-progress puzzle was restored
+##   cafe        capture the café at every restoration step and decor variant
+##   v2          v2 flows: mechanics, drag, restore via UI, tasks, rush, pause
 ## Results are printed as lines starting with "QA:".
 
 var scenario := ""
@@ -86,6 +88,10 @@ func _run() -> void:
 		await _lifecycle_a()
 	elif scenario == "lifecycle_b":
 		await _lifecycle_b()
+	elif scenario == "cafe":
+		await _cafe()
+	elif scenario == "v2":
+		await _v2()
 	print("QA: done ", scenario)
 	get_tree().quit()
 
@@ -111,12 +117,36 @@ func _shots() -> void:
 		await _wait(1.0)
 		await shot(lang + "_04_win")
 		App.data.tokens = 20
+		App.data.restoration.steps = 3
 		App.main.goto("restore", {}, false)
 		await _wait(0.4)
 		await shot(lang + "_05_restore")
 		App.main.goto("home", {}, false)
 		await _wait(0.4)
 		await shot(lang + "_06_home")
+		for id in ["f01", "b01", "k01", "x05"]:
+			App.data.tutorial.done.erase("tut_" + {"f": "fresh", "b": "bag", "k": "lock", "x": ""}[id[0]])
+			App.main.goto("game", {"kind": "campaign", "id": id}, false)
+			await _wait(0.3)
+			App.main.close_all_overlays()
+			var gg := game()
+			var sol: Array = gg.def.meta.solution
+			for k in mini(2, sol.size()):
+				await tap_crate(int(sol[k]))
+				await _wait(0.05)
+			await _wait(0.7)
+			await shot(lang + "_09_mech_" + id)
+		App.main.goto("home", {}, false)
+		App.data.story.seen.erase("lvl:c016")
+		Story.level_start("c016")
+		await _wait(0.6)
+		await shot(lang + "_10_story")
+		App.main.close_all_overlays()
+		App.data.stats.wins = 3
+		for t in ["tasks", "achievements", "progress"]:
+			App.main.goto("journal", {"tab": t}, false)
+			await _wait(0.4)
+			await shot(lang + "_11_journal_" + t)
 		for s in ["levels", "daily", "settings", "help", "credits", "privacy", "shop"]:
 			App.main.goto(s, {}, false)
 			await _wait(0.4)
@@ -136,6 +166,7 @@ func _play(from: int, to: int) -> void:
 		var id: String = App.progression.campaign[n - 1].id
 		App.main.goto("game", {"kind": "campaign", "id": id}, false)
 		await _wait(0.3)
+		App.main.close_all_overlays() # story bubbles
 		var g := game()
 		var path: Array = g.def.meta.get("solution", [])
 		for c in path:
@@ -222,9 +253,10 @@ func _layouts() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--qa-tag="):
 			tag = a.substr(9)
-	for id in ["c031", "c052", "c060"]:
+	for id in ["c031", "c052", "c060", "x06"]:
 		App.main.goto("game", {"kind": "campaign", "id": id}, false)
 		await _wait(0.5)
+		App.main.close_all_overlays()
 		var g := game()
 		var path: Array = g.def.meta.solution
 		for k in mini(5, path.size()):
@@ -232,11 +264,140 @@ func _layouts() -> void:
 			await _wait(0.05)
 		await _wait(0.6)
 		await shot("%s_%s" % [tag, id])
-	App.data.restoration.milestones = 5
-	App.data.restoration.choices = {"wall": "sage", "seating": "rattan", "plants": "flowers", "sign": "block"}
+	App.data.restoration.steps = 8
+	App.data.restoration.choices = {"walls": "sage", "floor": "checker", "seating": "rattan", "plants": "flowers", "sign": "block", "lights": "string"}
+	App.data.restoration.extras = {"cat": true, "clock": true, "gramophone": true, "cakestand": true}
 	App.main.goto("home", {}, false)
 	await _wait(0.5)
 	await shot("%s_home_done" % tag)
+
+## The café at every restoration step, then decor variants and extras.
+func _cafe() -> void:
+	for st in 9:
+		App.data.restoration.steps = st
+		App.data.restoration.choices = {}
+		App.data.restoration.extras = {}
+		App.main.goto("home", {}, false)
+		await _wait(0.4)
+		await shot("cafe_step_%d" % st)
+	var variants := [
+		{"walls": "sage", "floor": "checker", "counter": "marble", "lights": "string", "seating": "rattan", "plants": "olive", "sign": "block"},
+		{"walls": "blush", "floor": "terracotta", "counter": "teal", "lights": "globe", "seating": "booth", "plants": "flowers", "sign": "painted"},
+	]
+	for i in variants.size():
+		App.data.restoration.steps = 8
+		App.data.restoration.choices = variants[i]
+		App.data.restoration.extras = {"cat": true, "clock": true, "gramophone": true, "cakestand": true} if i == 1 else {}
+		App.data.stats.cast = {"theo": 20, "basil": 20, "mira": 20} if i == 1 else {}
+		App.main.goto("home", {}, false)
+		await _wait(0.4)
+		await shot("cafe_variant_%d" % i)
+
+## v2 flows through real input where it matters.
+func _v2() -> void:
+	App.data.tutorial.done = {"tut_tap": true, "tut_counter": true, "tut_priority": true}
+	# 1. Fresh item refusal through a real tap: f01 crate 1 front is fresh coffee.
+	App.main.goto("game", {"kind": "campaign", "id": "f01"}, false)
+	await _wait(0.4)
+	App.main.close_all_overlays()
+	var g := game()
+	await tap_crate(1)
+	await _wait(0.2)
+	_expect(g.ps.state.moves == 0 and g.ps.state.counter_used() == 0, "fresh item refused (no counter parking)")
+	_expect(g.status_label.text == Loc.t("invalid_fresh"), "fresh refusal explained")
+	# 2. Drag: press on crate 0, drag to its order ticket, release -> move.
+	var cv: CrateView = g.crate_views[0]
+	var from: Vector2 = cv.get_global_rect().get_center()
+	var to: Vector2 = g.order_cards[0].get_global_rect().get_center()
+	await _drag(from, to)
+	await _wait(0.3)
+	_expect(g.ps.state.moves == 1, "drag to destination makes the move")
+	# 3. Drag away and release elsewhere cancels.
+	var cv2: CrateView = g.crate_views[2]
+	await _drag(cv2.get_global_rect().get_center(), Vector2(40, 200))
+	await _wait(0.2)
+	_expect(g.ps.state.moves == 1, "drag away cancels")
+	# 4. Pause during an animation, resume, state intact.
+	await tap_crate(2)
+	g._open_pause()
+	await _wait(0.2)
+	App.main.close_all_overlays()
+	var replay := PuzzleSession.start(g.def)
+	for m in g.ps.moves_log:
+		replay.tap(m)
+	_expect(replay.state.key() == g.ps.state.key() and g._fx_nodes.is_empty(), "pause mid-animation keeps state and clears effects")
+	# 5. Locks: k01 crate 2 refuses until two deliveries.
+	App.main.goto("game", {"kind": "campaign", "id": "k01"}, false)
+	await _wait(0.4)
+	App.main.close_all_overlays()
+	g = game()
+	await tap_crate(2)
+	_expect(g.ps.state.moves == 0, "locked crate refused")
+	for c in g.def.meta.solution:
+		await tap_crate(int(c))
+		await _wait(0.05)
+	await _wait(1.2)
+	_expect(g.ps.is_won(), "k01 solved through taps")
+	# 6. Restore through the UI: buy step 1 with a double tap, spend once.
+	App.main.close_all_overlays()
+	App.data.restoration.steps = 0
+	App.data.tokens = 3 + 5
+	App.main.goto("restore", {}, false)
+	await _wait(0.4)
+	var scr = App.main.current
+	scr._unlock()
+	scr._unlock()
+	await _wait(0.6)
+	App.main.close_all_overlays()
+	_expect(Restoration.steps(App.data) == 1 and int(App.data.tokens) == 5, "double-tap restore spends once")
+	await shot("v2_restore_after")
+	# 7. Tasks: claim twice -> once.
+	App.data.tasks = {"date": Progression.today_key(), "list": ["wins", "orders", "three_star"], "base": {"wins": 0, "orders": 0, "three_star": 0}}
+	App.data.stats.wins = 5
+	var before := int(App.data.tokens)
+	App.main.goto("journal", {"tab": "tasks"}, false)
+	await _wait(0.3)
+	App.main.current._claim_task("wins")
+	App.main.current._claim_task("wins")
+	_expect(int(App.data.tokens) == before + 2, "task claimed once")
+	# 8. Rush: three puzzles through taps, best time recorded.
+	App.main.goto("daily", {}, false)
+	await _wait(0.3)
+	App.main.current._start_rush()
+	for k in RushRun.LENGTH:
+		await _wait(0.5)
+		var rg := game()
+		for c in rg.def.meta.solution:
+			await tap_crate(int(c))
+			await _wait(0.03)
+		await _wait(1.5)
+	_expect(int(App.data.stats.rush_done) >= 1 and int(App.data.stats.rush_best_ms) > 0, "rush finished and timed")
+	await shot("v2_rush_done")
+	App.main.close_all_overlays()
+
+func _drag(from: Vector2, to: Vector2) -> void:
+	var tf := get_tree().root.get_final_transform()
+	var down := InputEventMouseButton.new()
+	down.button_index = MOUSE_BUTTON_LEFT
+	down.pressed = true
+	down.position = tf * from
+	down.global_position = down.position
+	Input.parse_input_event(down)
+	await _frames(2)
+	for i in range(1, 9):
+		var mv := InputEventMouseMotion.new()
+		mv.position = tf * from.lerp(to, i / 8.0)
+		mv.global_position = mv.position
+		mv.button_mask = MOUSE_BUTTON_MASK_LEFT
+		Input.parse_input_event(mv)
+		await _frames(1)
+	var up := InputEventMouseButton.new()
+	up.button_index = MOUSE_BUTTON_LEFT
+	up.pressed = false
+	up.position = tf * to
+	up.global_position = up.position
+	Input.parse_input_event(up)
+	await _frames(2)
 
 func _expect(cond: bool, what: String) -> void:
 	print("QA: %s %s" % ["PASS" if cond else "FAIL", what])
@@ -318,7 +479,7 @@ func _nav() -> void:
 	await _wait(0.3)
 	_expect(App.main.overlays.size() == 1, "back on home asks before exit")
 	App.main.close_all_overlays()
-	for s in ["settings", "help", "credits", "privacy", "daily", "restore", "shop"]:
+	for s in ["settings", "help", "credits", "privacy", "daily", "restore", "shop", "journal"]:
 		App.main.goto(s)
 		await _wait(0.2)
 		App.main.handle_back()

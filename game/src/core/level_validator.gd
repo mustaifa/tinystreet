@@ -38,10 +38,23 @@ static func schema_errors(d: Dictionary) -> Array:
 			e.append("bad crate %s" % [c])
 			continue
 		for p in c:
-			if Products.id_to_index(str(p)) < 0:
+			if LevelDef.parse_item(str(p))[0] < 0:
 				e.append("unknown product '%s'" % p)
 	if d.orders.is_empty():
 		e.append("no orders")
+	if d.has("locks"):
+		var lk = d.get("locks")
+		if typeof(lk) != TYPE_ARRAY or lk.size() != nc:
+			e.append("locks must list one value per crate")
+		else:
+			var open := 0
+			for v in lk:
+				if not (typeof(v) in [TYPE_INT, TYPE_FLOAT]) or int(v) < 0 or int(v) >= d.orders.size():
+					e.append("lock value %s out of range" % [v])
+				elif int(v) == 0:
+					open += 1
+			if open == 0:
+				e.append("every crate is locked at the start")
 	for o in d.orders:
 		if typeof(o) != TYPE_ARRAY or o.is_empty() or o.size() > LIMITS.stages_max:
 			e.append("bad order %s" % [o])
@@ -135,7 +148,37 @@ static func metrics(def: LevelDef, budget: int = 300000, playouts: int = 200) ->
 	var r := Solver.new(budget).solve(PuzzleState.create(def))
 	m.solver_nodes = r.nodes
 	m.random_win_rate = random_win_rate(def, playouts, 12345)
+	m.fresh = def.count_flag(LevelDef.FRESH)
+	m.bags = def.count_flag(LevelDef.BAG)
+	m.locked_crates = 0
+	for v in def.locks:
+		if v > 0:
+			m.locked_crates += 1
+	var mech := mechanic_engagement(def, PackedInt32Array(r.path))
+	m.merge(mech)
 	return m
+
+## How much a winning line actually exercises each mechanic. Counted along the
+## solver's solution: positions where a fresh front item was blocked (the
+## player had to wait for an order), moves made while a crate was still
+## locked, and bagged items revealed. A mechanic level whose solution never
+## touches its mechanic is decorative; the generator rejects those.
+static func mechanic_engagement(def: LevelDef, path: PackedInt32Array) -> Dictionary:
+	var out := {"fresh_waits": 0, "lock_moves": 0, "reveals": 0}
+	var s := PuzzleState.create(def)
+	for c in path:
+		for k in s.crate_pos.size():
+			if Rules.preview(s, k).block == Rules.Block.FRESH:
+				out.fresh_waits += 1
+				break
+		for k in s.crate_pos.size():
+			if Rules.is_locked(s, k):
+				out.lock_moves += 1
+				break
+		for e in Rules.apply_move(s, c):
+			if e.type == Rules.EV_REVEAL:
+				out.reveals += 1
+	return out
 
 ## Fraction of uniformly random legal playouts that win (seeded, deterministic).
 static func random_win_rate(def: LevelDef, n: int, seed_value: int) -> float:
@@ -156,8 +199,8 @@ static func random_win_rate(def: LevelDef, n: int, seed_value: int) -> float:
 ## Canonical signature for duplicate detection (crate order is irrelevant).
 static func signature(def: LevelDef) -> String:
 	var cs: Array = []
-	for c in def.crates:
-		cs.append(str(c))
+	for i in def.crates.size():
+		cs.append("%s%s@%d" % [def.crates[i], def.flags[i], def.locks[i]])
 	cs.sort()
 	return "%s#%s#%d#%d" % [",".join(cs), str(def.orders), def.counter_slots, def.trays]
 

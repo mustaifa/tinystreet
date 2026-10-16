@@ -5,9 +5,20 @@ extends RefCounted
 ## crates[i] is an ordered stack; index 0 is the FRONT (the only selectable item).
 ## orders[k] is an Array of stages; each stage is a PackedInt32Array of length
 ## Products.COUNT holding the required quantity of each product.
+##
+## Item strings in JSON may carry mechanic markers (see GAME_DESIGN.md):
+##   "coffee!"  FRESH: must go straight into an order, never onto the counter.
+##   "?coffee"  BAG:   wrapped; its product is hidden until it reaches the front.
+## Optional "locks": [n0, n1, ...] per crate: the crate stays strapped shut
+## until n orders have been delivered (0 = open from the start).
+
+const FRESH := 1
+const BAG := 2
 
 var id: String = ""
 var crates: Array = []          # Array[PackedInt32Array]
+var flags: Array = []           # Array[PackedInt32Array], parallel to crates (FRESH | BAG)
+var locks: PackedInt32Array = PackedInt32Array()  # per crate: deliveries needed to open
 var counter_slots: int = 4
 var trays: int = 2
 var orders: Array = []          # Array[Array[PackedInt32Array]]
@@ -20,9 +31,18 @@ static func from_dict(d: Dictionary) -> LevelDef:
 	L.trays = int(d.get("trays", 2))
 	for c in d.get("crates", []):
 		var stack := PackedInt32Array()
+		var fl := PackedInt32Array()
 		for p in c:
-			stack.append(Products.id_to_index(str(p)))
+			var it := parse_item(str(p))
+			stack.append(it[0])
+			fl.append(it[1])
 		L.crates.append(stack)
+		L.flags.append(fl)
+	L.locks.resize(L.crates.size())
+	var lk = d.get("locks", [])
+	if lk is Array:
+		for i in mini(lk.size(), L.crates.size()):
+			L.locks[i] = maxi(0, int(lk[i]))
 	for o in d.get("orders", []):
 		var stages: Array = []
 		for s in o:
@@ -39,12 +59,32 @@ static func from_dict(d: Dictionary) -> LevelDef:
 	L.meta = d.get("meta", {})
 	return L
 
+## "?tea!" -> [TEA, BAG | FRESH]. Unknown product -> [-1, flags].
+static func parse_item(raw: String) -> Array:
+	var f := 0
+	var t := raw
+	if t.begins_with("?"):
+		f |= BAG
+		t = t.substr(1)
+	if t.ends_with("!"):
+		f |= FRESH
+		t = t.substr(0, t.length() - 1)
+	return [Products.id_to_index(t), f]
+
+static func item_string(p: int, f: int) -> String:
+	return ("?" if f & BAG else "") + Products.index_to_id(p) + ("!" if f & FRESH else "")
+
+func flag(crate: int, k: int) -> int:
+	var fl: PackedInt32Array = flags[crate]
+	return fl[k] if k < fl.size() else 0
+
 func to_dict() -> Dictionary:
 	var cr: Array = []
-	for c in crates:
+	for ci in crates.size():
 		var a: Array = []
-		for p in c:
-			a.append(Products.index_to_id(p))
+		var c: PackedInt32Array = crates[ci]
+		for k in c.size():
+			a.append(item_string(c[k], flag(ci, k)))
 		cr.append(a)
 	var od: Array = []
 	for o in orders:
@@ -56,7 +96,10 @@ func to_dict() -> Dictionary:
 					dd[Products.index_to_id(i)] = s[i]
 			st.append(dd)
 		od.append(st)
-	return {"id": id, "counter": counter_slots, "trays": trays, "crates": cr, "orders": od, "meta": meta}
+	var out := {"id": id, "counter": counter_slots, "trays": trays, "crates": cr, "orders": od, "meta": meta}
+	if has_locks():
+		out["locks"] = Array(locks)
+	return out
 
 func total_items() -> int:
 	var n := 0
@@ -69,3 +112,30 @@ func has_two_stage() -> bool:
 		if o.size() > 1:
 			return true
 	return false
+
+func has_locks() -> bool:
+	for v in locks:
+		if v > 0:
+			return true
+	return false
+
+func count_flag(f: int) -> int:
+	var n := 0
+	for fl in flags:
+		for v in fl:
+			if v & f:
+				n += 1
+	return n
+
+## Mechanics this level uses: any of "fresh", "bag", "lock", "two_stage".
+func mechanics() -> Array:
+	var m: Array = []
+	if count_flag(FRESH) > 0:
+		m.append("fresh")
+	if count_flag(BAG) > 0:
+		m.append("bag")
+	if has_locks():
+		m.append("lock")
+	if has_two_stage():
+		m.append("two_stage")
+	return m

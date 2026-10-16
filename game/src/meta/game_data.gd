@@ -11,21 +11,30 @@ static func fresh() -> Dictionary:
 		"campaign": {"stars": {}, "cleared": {}},
 		"tokens": 0,
 		"tokens_earned": 0,
-		"restoration": {"milestones": 0, "choices": {}},
+		"grants": {},
+		"restoration": {"steps": 0, "choices": {}, "extras": {}, "hidden": {}},
 		"daily": {"completed": {}},
 		"current": {},
 		"purchases": {"owned": {}, "pending": {}, "handled": {}},
 		"rewards": {"handled": {}},
 		"consent": {"analytics": false, "asked": false},
 		"analytics": {"first_launch": false, "sent_once": {}},
-		"stats": {"sessions": 0, "levels_played": 0},
+		"stats": {"sessions": 0, "levels_played": 0, "wins": 0, "orders": 0, "fresh": 0, "bags": 0,
+			"unlocks": 0, "three_star": 0, "no_hint_wins": 0, "tidy_wins": 0, "best_streak": 0,
+			"streak5_wins": 0, "stars_earned": 0, "dailies": 0, "rush_done": 0, "rush_best_ms": 0,
+			"cast": {}},
+		"tasks": {"date": "", "list": [], "base": {}},
+		"achievements": {"announced": {}},
+		"story": {"seen": {}},
 	}
 
 static func sanitize(d: Dictionary) -> Dictionary:
 	var out := _merge(fresh(), d)
 	# Clamp values that must stay in range.
 	out.tokens = maxi(0, out.tokens)
-	out.restoration.milestones = clampi(int(out.restoration.milestones), 0, Restoration.MILESTONES.size())
+	out.restoration.steps = clampi(int(out.restoration.steps), 0, Restoration.STEPS.size())
+	if typeof(out.tasks.list) != TYPE_ARRAY:
+		out.tasks.list = []
 	for v in ["music", "sfx"]:
 		out.settings[v] = clampf(out.settings[v], 0.0, 1.0)
 	return out

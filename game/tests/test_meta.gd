@@ -104,50 +104,58 @@ func test_migration_v1_to_v2() -> void:
 	var back := s.load_data()
 	eq(int(back.campaign.stars["c002"]), 3)
 	check(bool(back.campaign.cleared["c001"]))
-	eq(back.tokens, 2)
+	eq(back.tokens, 5, "v1 -> v3: 2+3 earned stars credited (never below the old 2)")
+	check(Wallet.has_grant(back, "star:c002:3"), "earned stars recorded in the ledger")
 	check(absf(back.settings.music - 0.2) < 0.001)
 	check(back.daily.has("completed"), "new block added")
 
 func test_sanitize_bad_types() -> void:
-	var d := GameData.sanitize({"tokens": "lots", "settings": "loud", "restoration": {"milestones": 99}})
+	var d := GameData.sanitize({"tokens": "lots", "settings": "loud", "restoration": {"steps": 99}, "tasks": {"list": "x"}})
 	eq(d.tokens, 0)
 	eq(typeof(d.settings), TYPE_DICTIONARY)
-	eq(d.restoration.milestones, 5, "clamped")
+	eq(d.restoration.steps, Restoration.STEPS.size(), "clamped")
+	eq(typeof(d.tasks.list), TYPE_ARRAY)
 
 # ------------------------------------------------------------------ progression
 
-func test_first_clear_awards_once() -> void:
+func test_star_tokens_award_once_per_star() -> void:
 	var d := GameData.fresh()
 	var r1 := Progression.record_win(d, "c001", 1)
 	var r2 := Progression.record_win(d, "c001", 3)
 	var r3 := Progression.record_win(d, "c001", 2)
+	var r4 := Progression.record_win(d, "c001", 3)
 	check(r1.first_clear and r1.tokens == 1)
-	check(not r2.first_clear and r2.tokens == 0 and r2.improved)
+	check(not r2.first_clear and r2.tokens == 2 and r2.improved, "1★ -> 3★ pays the 2 new stars")
 	eq(r3.best_stars, 3, "stars never decrease")
-	eq(d.tokens, 1)
-	eq(d.tokens_earned, 1)
+	eq(r3.tokens, 0)
+	eq(r4.tokens, 0, "repeating a 3★ pays nothing")
+	eq(d.tokens, 3)
+	eq(d.tokens_earned, 3)
 
 func test_campaign_tokens_cover_restoration() -> void:
 	var p := Progression.new()
 	p.load_levels()
-	eq(p.campaign.size(), 60)
-	eq(Restoration.total_cost(), p.campaign.size() * Restoration.TOKENS_PER_FIRST_CLEAR,
-		"all essential restoration achievable from first clears alone")
+	check(p.campaign.size() * 2 >= Restoration.total_cost(),
+		"the whole café is reachable at an average of 2 stars, without tasks or achievements")
+	check(Restoration.STEPS[0].cost <= 3, "first step affordable after one 3-star tutorial")
 
 func test_restoration_unlock_flow() -> void:
 	var d := GameData.fresh()
 	check(not Restoration.can_unlock(d))
-	d.tokens = 8
-	eq(Restoration.unlock_next(d), "storefront")
+	d.tokens = 3
+	eq(Restoration.unlock_next(d), "clean")
 	eq(d.tokens, 0)
 	eq(Restoration.unlock_next(d), "", "cannot unlock without tokens")
-	check(Restoration.set_choice(d, "wall", "sage"))
-	check(not Restoration.set_choice(d, "seating", "rattan"), "seating locked until milestone 4")
-	check(not Restoration.set_choice(d, "wall", "evening"), "premium option needs entitlement")
+	check(not Restoration.set_choice(d, "walls", "sage"), "walls open with the walls step")
+	d.tokens = 6
+	eq(Restoration.unlock_next(d), "walls")
+	check(Restoration.set_choice(d, "walls", "sage"))
+	check(not Restoration.set_choice(d, "seating", "rattan"), "seating locked until its step")
+	check(not Restoration.set_choice(d, "walls", "evening"), "premium option needs entitlement")
 	d.purchases.owned["theme_evening"] = true
-	check(Restoration.set_choice(d, "wall", "evening"))
+	check(Restoration.set_choice(d, "walls", "evening"))
 	d.purchases.owned.erase("theme_evening")
-	eq(Restoration.effective_choice(d, "wall"), "cream", "revoked option falls back to default")
+	eq(Restoration.effective_choice(d, "walls"), "cream", "revoked option falls back to default")
 
 func test_level_unlocking() -> void:
 	var p := Progression.new()
@@ -158,6 +166,15 @@ func test_level_unlocking() -> void:
 	Progression.record_win(d, p.campaign[0].id, 1)
 	check(p.is_unlocked(d, 1))
 	eq(p.next_level_index(d), 1)
+	# v2 inserted levels: a v1 player who cleared c007 and c008 but not the new
+	# f01 between them keeps c008 playable, and f01 opens (c006 cleared).
+	var v1 := GameData.fresh()
+	for id in ["c001", "c002", "c003", "c004", "c005", "c006", "c007", "c008"]:
+		Progression.record_win(v1, id, 2)
+	var f01 := p.campaign_index("f01")
+	check(p.is_unlocked(v1, f01), "new level after a cleared one is open")
+	check(p.is_unlocked(v1, p.campaign_index("c008")), "cleared v1 levels stay open")
+	eq(p.next_level_index(v1), f01, "Play goes to the first new level")
 
 func test_daily_deterministic_and_once() -> void:
 	var p := Progression.new()

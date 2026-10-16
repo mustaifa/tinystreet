@@ -1,69 +1,108 @@
 class_name Restoration
 extends RefCounted
-## Café restoration catalogue and rules. One token is awarded on the FIRST clear
-## of each campaign level (60 total). Milestone costs sum to 60, so the final
-## milestone (sign + opening celebration) arrives with the final level.
+## Café restoration (v2): eight visible steps bought with tokens, decor
+## choices that can be changed any time, and collectible extras.
+## Tokens come from stars (1 per star per level, idempotent), café tasks and
+## achievements. The first step costs 3, so it is affordable after level 1.
 
-const TOKENS_PER_FIRST_CLEAR := 1
-
-## Milestones in order. `cost` is in restoration tokens.
-const MILESTONES := [
-	{"id": "storefront", "cost": 8},
-	{"id": "windows", "cost": 10},
-	{"id": "counter", "cost": 12},
-	{"id": "seating", "cost": 14},
-	{"id": "sign", "cost": 16},
+## Steps in order. `choice` names the decor category the step unlocks; the
+## player picks an option right after buying (and can change it later).
+const STEPS := [
+	{"id": "clean", "cost": 3, "choice": ""},
+	{"id": "walls", "cost": 6, "choice": "walls"},
+	{"id": "floor", "cost": 10, "choice": "floor"},
+	{"id": "counter", "cost": 14, "choice": "counter"},
+	{"id": "lights", "cost": 18, "choice": "lights"},
+	{"id": "seating", "cost": 22, "choice": "seating"},
+	{"id": "plants", "cost": 26, "choice": "plants"},
+	{"id": "opening", "cost": 30, "choice": "sign"},
 ]
 
-## Cosmetic categories. `requires` = number of milestones unlocked; `sku` marks
-## an option that needs the cosmetic purchase entitlement.
+## Decor categories. `step` = steps owned before the category is available.
+## Options: `sku` needs the cosmetic purchase; `ach` needs an achievement.
 const CHOICES := {
-	"wall": {"requires": 1, "options": [
-		{"id": "cream"}, {"id": "sage"}, {"id": "blush"}, {"id": "evening", "sku": "theme_evening"}]},
-	"seating": {"requires": 4, "options": [
-		{"id": "bistro"}, {"id": "rattan"}, {"id": "booth"}, {"id": "evening", "sku": "theme_evening"}]},
-	"plants": {"requires": 4, "options": [
-		{"id": "ferns"}, {"id": "olive"}, {"id": "flowers"}]},
-	"sign": {"requires": 5, "options": [
-		{"id": "script"}, {"id": "block"}, {"id": "painted"}, {"id": "evening", "sku": "theme_evening"}]},
+	"walls": {"step": 2, "options": [{"id": "cream"}, {"id": "sage"}, {"id": "blush"}, {"id": "evening", "sku": "theme_evening"}]},
+	"floor": {"step": 3, "options": [{"id": "oak"}, {"id": "checker"}, {"id": "terracotta"}]},
+	"counter": {"step": 4, "options": [{"id": "oakwood"}, {"id": "marble"}, {"id": "teal"}]},
+	"lights": {"step": 5, "options": [{"id": "pendant"}, {"id": "string"}, {"id": "globe"}]},
+	"seating": {"step": 6, "options": [{"id": "bistro"}, {"id": "rattan"}, {"id": "booth"}, {"id": "evening", "sku": "theme_evening"}]},
+	"plants": {"step": 7, "options": [{"id": "ferns"}, {"id": "olive"}, {"id": "flowers"}]},
+	"sign": {"step": 8, "options": [{"id": "script"}, {"id": "block"}, {"id": "painted"},
+		{"id": "gilded", "ach": "perfectionist"}, {"id": "evening", "sku": "theme_evening"}]},
 }
 
-const DEFAULTS := {"wall": "cream", "seating": "bistro", "plants": "ferns", "sign": "script"}
+const DEFAULTS := {"walls": "cream", "floor": "oak", "counter": "oakwood", "lights": "pendant",
+	"seating": "bistro", "plants": "ferns", "sign": "script"}
+
+## Collectible extras: bought with tokens once available, visible in the café,
+## and can be shown or hidden.
+const EXTRAS := [
+	{"id": "clock", "cost": 10, "step": 2},
+	{"id": "cakestand", "cost": 12, "step": 4},
+	{"id": "gramophone", "cost": 15, "step": 5},
+	{"id": "cat", "cost": 18, "step": 6},
+	{"id": "photos", "cost": 0, "step": 3, "ach": "regulars"},
+]
 
 static func total_cost() -> int:
 	var n := 0
-	for m in MILESTONES:
+	for m in STEPS:
 		n += int(m.cost)
 	return n
 
-## Next milestone index, or -1 when the café is complete.
+static func steps(data: Dictionary) -> int:
+	return clampi(int(data.restoration.steps), 0, STEPS.size())
+
+static func is_complete(data: Dictionary) -> bool:
+	return steps(data) >= STEPS.size()
+
+## Next step index, or -1 when the café is complete.
 static func next_index(data: Dictionary) -> int:
-	var i := int(data.restoration.milestones)
-	return i if i < MILESTONES.size() else -1
+	var i := steps(data)
+	return i if i < STEPS.size() else -1
+
+static func next_cost(data: Dictionary) -> int:
+	var i := next_index(data)
+	return int(STEPS[i].cost) if i >= 0 else 0
 
 static func can_unlock(data: Dictionary) -> bool:
 	var i := next_index(data)
-	return i >= 0 and int(data.tokens) >= int(MILESTONES[i].cost)
+	return i >= 0 and int(data.tokens) >= int(STEPS[i].cost)
 
-## Spends tokens and unlocks the next milestone. Returns the milestone id or "".
+## Spends tokens and completes the next step. Returns the step id or "".
+## Safe against double taps: the second call sees the new step count.
 static func unlock_next(data: Dictionary) -> String:
 	if not can_unlock(data):
 		return ""
 	var i := next_index(data)
-	data.tokens = int(data.tokens) - int(MILESTONES[i].cost)
-	data.restoration.milestones = i + 1
-	return MILESTONES[i].id
+	if not Wallet.spend(data, int(STEPS[i].cost)):
+		return ""
+	data.restoration.steps = i + 1
+	return STEPS[i].id
+
+static func step_def(id: String) -> Dictionary:
+	for s in STEPS:
+		if s.id == id:
+			return s
+	return {}
 
 static func choice(data: Dictionary, category: String) -> String:
 	return str(data.restoration.choices.get(category, DEFAULTS[category]))
 
-static func is_option_available(data: Dictionary, category: String, option: String) -> bool:
+static func is_category_open(data: Dictionary, category: String) -> bool:
 	var cat: Dictionary = CHOICES.get(category, {})
-	if cat.is_empty() or int(data.restoration.milestones) < int(cat.requires):
+	return not cat.is_empty() and steps(data) >= int(cat.step)
+
+static func is_option_available(data: Dictionary, category: String, option: String) -> bool:
+	if not is_category_open(data, category):
 		return false
-	for o in cat.options:
+	for o in CHOICES[category].options:
 		if o.id == option:
-			return not o.has("sku") or bool(data.purchases.owned.get(o.sku, false))
+			if o.has("sku") and not bool(data.purchases.owned.get(o.sku, false)):
+				return false
+			if o.has("ach") and not Achievements.is_unlocked(data, o.ach):
+				return false
+			return true
 	return false
 
 static func set_choice(data: Dictionary, category: String, option: String) -> bool:
@@ -79,3 +118,52 @@ static func effective_choice(data: Dictionary, category: String) -> String:
 	if c != DEFAULTS[category] and not is_option_available(data, category, c):
 		return DEFAULTS[category]
 	return c
+
+static func effective_choices(data: Dictionary) -> Dictionary:
+	var out := {}
+	for k in DEFAULTS:
+		out[k] = effective_choice(data, k)
+	return out
+
+# --- extras ------------------------------------------------------------------
+
+static func extra_def(id: String) -> Dictionary:
+	for e in EXTRAS:
+		if e.id == id:
+			return e
+	return {}
+
+static func owns_extra(data: Dictionary, id: String) -> bool:
+	var e := extra_def(id)
+	if e.has("ach"):
+		return Achievements.is_unlocked(data, e.ach)
+	return bool(data.restoration.extras.get(id, false))
+
+static func can_buy_extra(data: Dictionary, id: String) -> bool:
+	var e := extra_def(id)
+	return not e.is_empty() and not e.has("ach") and not owns_extra(data, id) \
+		and steps(data) >= int(e.step) and int(data.tokens) >= int(e.cost)
+
+static func buy_extra(data: Dictionary, id: String) -> bool:
+	if not can_buy_extra(data, id):
+		return false
+	if not Wallet.spend(data, int(extra_def(id).cost)):
+		return false
+	data.restoration.extras[id] = true
+	return true
+
+## Extras the café should draw: owned and not hidden by the player.
+static func shown_extras(data: Dictionary) -> Dictionary:
+	var out := {}
+	for e in EXTRAS:
+		if owns_extra(data, e.id) and not bool(data.restoration.hidden.get(e.id, false)):
+			out[e.id] = true
+	return out
+
+static func toggle_extra(data: Dictionary, id: String) -> void:
+	if owns_extra(data, id):
+		data.restoration.hidden[id] = not bool(data.restoration.hidden.get(id, false))
+
+## Everything the café drawing needs.
+static func view_state(data: Dictionary) -> Dictionary:
+	return {"steps": steps(data), "choices": effective_choices(data), "extras": shown_extras(data)}

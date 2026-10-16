@@ -5,3 +5,6 @@
 *.keystore
 *.jks
 export_credentials.cfg
+
+# Python bytecode
+__pycache__/

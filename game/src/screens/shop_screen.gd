@@ -23,7 +23,7 @@ func setup(_p: Dictionary) -> void:
 	item.add_child(UI.label(Loc.t("sku_theme_evening_desc")))
 	var preview := CafeView.new()
 	preview.custom_minimum_size = Vector2(0, 300)
-	preview.configure(5, {"wall": "evening", "seating": "evening", "plants": "flowers", "sign": "evening"})
+	preview.configure_state({"steps": 8, "choices": {"walls": "evening", "seating": "evening", "plants": "flowers", "sign": "evening", "lights": "string"}, "extras": {}})
 	item.add_child(preview)
 	buy = UI.button("", func(): App.billing.purchase("theme_evening"), "WarmButton")
 	item.add_child(buy)

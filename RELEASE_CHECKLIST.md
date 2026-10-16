@@ -7,7 +7,8 @@ Legend: ✅ done and verified here · ⚠️ done but unverified or partial · �
 |---|---|---|
 | Engine and templates pinned (Godot 4.7.2-stable, SHA-512 verified) | ✅ | |
 | targetSdk 36 / minSdk 24 / compileSdk 36 | ✅ | From the APK manifest. Play requires API 36 for new apps and updates since 2026-08-31 (verified 2026-10-15). |
-| Debug APK (`build/tinystreet-debug.apk`) | ✅ | **Debug-signed** with the local Godot debug key. For sideloading and testing only. |
+| Debug APK v1 (`build/tinystreet-debug.apk`) | ✅ | **Debug-signed**. Real-device smoke test by the owner: installs and renders (2026-10-16). Kept for comparison. |
+| Debug APK v2 (`build/tinystreet-v2-debug.apk`) | ⚠️ | **Debug-signed**, versionCode 2 / 0.2.0. Built and inspected here; **not yet run on Android**. |
 | Release AAB (`build/tinystreet-release-unsigned.aab`) | ⚠️ | **Unsigned.** Must be signed with the publisher's upload key. Not store-ready. |
 | Upload key / Play App Signing | 🔒 | Create the upload keystore outside the repo and supply it through Godot export credentials or environment variables (`GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `..._USER`, `..._PASSWORD`). Never commit it. |
 | Package id final | 🔒 | Placeholder `com.tinystreet.sortrestore`. It can't be changed after the first upload. |
@@ -43,11 +44,14 @@ Legend: ✅ done and verified here · ⚠️ done but unverified or partial · �
 | Item | Status |
 |---|---|
 | Automated tests pass | ✅ (see TEST_REPORT.md) |
-| All shipped levels validated (120/120 PASSED, 0 UNVERIFIED) | ✅ |
-| Human playtest (`docs/PLAYTEST.md`) | ❌ |
-| Real-device test (low-end and modern phones) | ❌ |
+| All shipped levels validated (144/144 PASSED, 0 UNVERIFIED, mechanics engaged) | ✅ |
+| Human playtest (`docs/PLAYTEST.md`) | ❌ (v1 smoke test only) |
+| Real-device test (low-end and modern phones) | ⚠️ v1 on one phone (renders); v2 none |
+| Save migration v1/v2 → v3 tested on a real install-over-update | ❌ (unit-tested only) |
+| Purchase verification server (required before `REAL_PURCHASES_ENABLED`) | ❌ still not built; real purchases stay disabled |
 | Arabic text reviewed by a qualified translator | ❌ |
-| Audio and music final pass | ❌ (temporary-quality synth) |
+| Audio and music final pass | ⚠️ (v2: longer original synthesised loop + 16 SFX; still synthetic) |
+| Café tasks / Daily use the device clock (documented, not secure) | ✅ documented |
 | Godot licence text bundled in the app | ❌ (Credits names Godot; add the full licence page) |
 
 ## Rollback / versioning

@@ -1,5 +1,33 @@
 # Test Report
 
+## v4 (0.4.0), The Midnight Ledger, 2026-10-16
+Environment unchanged: GitHub Codespace, **no GPU, no KVM**. Visual and interaction QA ran in a **desktop Linux build** under Xvfb. **This isn't Android runtime verification**; the emulator wasn't retried. The owner's V3 phone feedback is still pending; V3 "currently works" on their phone (user-reported).
+
+Baseline re-run before any v4 change (branch `feature/midnight-ledger` from `618cf5a`): **102/102 tests, 164/164 levels**, V3 APK hash `1a59a0b9…8c29` confirmed.
+
+| Check | Result |
+|---|---|
+| Unit/integration tests | **PASS: 123 passed, 0 failed** (+21: `test_ledger_rules.gd` 9, `test_ledger_pages.gd` 12) |
+| Level validation (campaign, bakery, daily) | **PASS: 164/164, 0 UNVERIFIED** (after the fix below) |
+| Ledger proofs (`tools/ledger_tool.gd -- build`) | **13/13 pages PASS**: witness replay with budget and sequence; min rings proved; every alternative at every witness step classified (0 unknown); idea verified. See `docs/EXPERT_PUZZLE_PROOFS.md`. |
+| Solver vs brute-force reference (100+ tiny boards with budgets and sequences) | **PASS**: identical solvable/unsolvable verdicts; every witness replays |
+| QA `ledger` (real UI) | **PASS 14/14**: home invitation retired after visiting; budget enforced with a message; stamp + no-hint; reference route recognised; "why" shown; stage-3 hint = verified next move; wrong turn proven unsolvable; recovery to the proven route; redo; resume; stale (changed) page not resumed; lantern for the collection; restart grants nothing |
+| Campaign regression: all 96 levels via input; slice 4/4; v2 10/10; v3 11/11; nav 17/17; rewards 8/8; rapid; lifecycle; layouts (20:9 + cutout, short + large text); EN/AR shots | **PASS** |
+| APK `build/tinystreet-v4-expert-debug.apk` | Built from `d837a07`; `apksigner verify` OK (v2+v3); same certificate as v1–v3; 0.4.0 / code 4; only `VIBRATE`. **Not run on Android: pending the owner's phone test.** |
+
+Found and fixed during v4 QA:
+- **Regression caught by the validator.** Putting `rings_used` in the search key unconditionally made unlimited-bell searches infinite (every ring looked new): 5 campaign/daily levels became UNVERIFIED. Now rings are part of the key only when a budget exists; back to 0 UNVERIFIED, with a test for both cases.
+- With the bell budget spent, tickets stopped accepting taps and gave no explanation. They now show a crossed-out bell and a message.
+- "Why this works" compared the route with JSON floats and said "different" for the reference route.
+- The Home invitation text overflowed the screen width.
+- QA script timing (a click in the same frame as a dialog closing) was a test artefact, not a game bug.
+
+**Not verified:** v4 on Android; whether the puzzles are interesting, fair and learnable (no human playtest); the designer difficulty estimates.
+
+---
+
+# v3 report (0.3.0)
+
 ## v3 (0.3.0), 2026-10-16
 Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU, no KVM**. Visual and interaction QA ran in a **desktop Linux build** under Xvfb (software GL). **This isn't Android runtime verification.** The emulator wasn't retried (blocker unchanged). The owner's report that "the updated Android version works on a phone" is recorded as a user-reported runtime check; the exact build wasn't stated.
 

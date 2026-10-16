@@ -13,7 +13,7 @@
 | Godot 4.7.2 | `~/tools/godot/godot`; templates in `~/.local/share/godot/export_templates/4.7.2.stable` (Android only; others deleted for space) |
 | Android SDK | `~/tools/android-sdk` (build-tools 36.1.0/35.0.1, platform 36, emulator, system image android-36 google_apis x86_64). **NDK removed** (disk). |
 | JDK | `/usr/local/sdkman/candidates/java/21.0.12+1-ms` (set in `~/.config/godot/editor_settings-4.7.tres`) |
-| AVD | `ts36` (Pixel 5). Unreliable here: see TEST_REPORT §5. |
+| AVD | `ts36` (Pixel 5). Unusable here: no KVM access for this user, so it runs under TCG and system_server crashes during install (2026-10-16, see `build/test-results-emulator/RESULTS.md`). Use `adb install --no-incremental` (a `.idsig` next to the APK triggers a stalling incremental install). |
 | Plugin archives | `~/tools/dl/plugins/` (SHA-256 values in THIRD_PARTY_NOTICES) |
 | Disk | ~8 GB free after cleanup. Emulator data needs ~7.4 GB. |
 

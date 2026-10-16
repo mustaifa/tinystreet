@@ -1,0 +1,7 @@
+# Build outputs (APK/AAB, checksums, emulator logs)
+/build/
+
+# Signing material and credentials
+*.keystore
+*.jks
+export_credentials.cfg

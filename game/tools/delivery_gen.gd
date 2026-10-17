@@ -21,11 +21,18 @@ func _initialize() -> void:
 		for t in trials:
 			var k: int = counts[rng.randi_range(0, counts.size() - 1)]
 			var nsym := mini(int(room.get("symbols", k)), k)
-			var rows := _place(room.map, k, nsym, rng, float(room.get("on_goal", 0.15)))
-			if rows.is_empty():
-				continue
-			var l := DeliveryLevel.from_rows(str(room.id), rows)
-			if not l.is_valid():
+			# retry until the start position is not already provably dead
+			var rows: Array = []
+			var l: DeliveryLevel = null
+			for attempt in 40:
+				rows = _place(room.map, k, nsym, rng, float(room.get("on_goal", 0.15)))
+				if rows.is_empty():
+					continue
+				l = DeliveryLevel.from_rows(str(room.id), rows)
+				if l.is_valid() and DeliveryRules.deadlock(l, DeliveryRules.start_state(l)).code == DeliveryRules.Dead.NONE:
+					break
+				l = null
+			if l == null:
 				continue
 			var g := DeliveryAnalysis.graph(l, 60000)
 			if not g.complete or g.min_pushes < 5 or g.min_pushes > 45:

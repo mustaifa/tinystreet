@@ -73,8 +73,9 @@ invalid (no change). A walk is one undo unit.
   restores courier, crates, steps and pushes exactly. Unlimited and free.
 * **Redo** re-applies undone actions in order; any new action clears the redo
   list.
-* **Restart** returns to the level's start state with steps = pushes = 0 and
-  an empty history. Hints used in the attempt stay recorded (see §6).
+* **Restart** returns to the level's start state with steps = pushes = 0.
+  The restart is itself recorded in the history, so Undo can take an
+  accidental restart back. Hints used in the attempt stay recorded (see §6).
 
 Undo, redo and restart never pay currency or score.
 

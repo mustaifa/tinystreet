@@ -178,32 +178,34 @@ func _arrow_button(d: int) -> Button:
 	return b
 
 func _make_blocked_card() -> PanelContainer:
+	# Compact: it replaces the arrow row, so every pixel it adds shrinks the board.
 	var p := PanelContainer.new()
-	var sb := Style.box(Style.TERRA_SOFT, 24, Style.DANGER, 3)
-	sb.content_margin_left = 16
-	sb.content_margin_right = 16
-	sb.content_margin_top = 12
-	sb.content_margin_bottom = 12
+	var sb := Style.box(Style.TERRA_SOFT, 22, Style.DANGER, 3)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 8
+	sb.content_margin_bottom = 10
 	p.add_theme_stylebox_override("panel", sb)
 	p.name = "BlockedCard"
-	var v := UI.vbox(8)
-	var head := UI.hbox(12)
-	head.add_child(UI.medallion("lock", Style.PAPER, Style.DANGER, 52))
-	var t := UI.label(Loc.t("dl_blocked_title"), "HeaderLabel", UI.al(), false)
+	var v := UI.vbox(6)
+	var head := UI.hbox(10)
+	head.add_child(UI.medallion("lock", Style.PAPER, Style.DANGER, 40))
+	var t := UI.label(Loc.t("dl_blocked_title"), "StrongLabel", UI.al(), false)
 	t.add_theme_color_override("font_color", Style.DANGER)
+	t.add_theme_font_size_override("font_size", Style.fs(28))
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(t)
 	v.add_child(head)
 	blocked_label = UI.label("", "", UI.al())
-	blocked_label.add_theme_font_size_override("font_size", Style.fs(24))
+	blocked_label.add_theme_font_size_override("font_size", Style.fs(22))
 	blocked_label.custom_minimum_size = Vector2(560, 0)
 	v.add_child(blocked_label)
 	var row := UI.hbox(12)
-	var ub := UI.icon_text_button("undo", Loc.t("undo"), _on_undo, "", 84)
+	var ub := UI.icon_text_button("undo", Loc.t("undo"), _on_undo, "", 76)
 	ub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ub.name = "BlockedUndo"
 	row.add_child(ub)
-	var rb := UI.icon_text_button("restart", Loc.t("restart"), _on_restart, "SecondaryButton", 84)
+	var rb := UI.icon_text_button("restart", Loc.t("restart"), _on_restart, "SecondaryButton", 76)
 	rb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rb.name = "BlockedRestart"
 	row.add_child(rb)
@@ -388,6 +390,9 @@ func _set_blocked(code: int, crates: Array) -> void:
 		_:
 			blocked_label.text = Loc.t("dl_blocked_search") + " " + Loc.t("dl_blocked_tip")
 	if was == DeliveryRules.Dead.NONE:
+		# The card takes the arrows' place: a quick tap meant for an arrow
+		# must not land on its Restart or Undo.
+		App.main.lock_input(600)
 		App.audio.play("warn")
 		App.haptic(40)
 		if code != DeliveryRules.Dead.EXHAUSTIVE:

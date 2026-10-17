@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.8.0 (v8), 2026-10-17: Delivery Logic, a rebuilt core puzzle
+The owner found the sorting game "feels like clicking highlighted items rather than solving puzzles" and authorised a core rebuild. v8 replaces the puzzle with **Delivery Logic** (working title): a courier pushes picture-marked crates onto matching pads in small storerooms. Save schema 5 → 6. Branch `feature/delivery-logic`.
+
+### New game
+- **Rules** (`docs/DELIVERY_RULES.md`) in one module, `src/core/delivery_rules.gd`, used by play, solver, hints, deadlock checks, tests and tools. Walk orthogonally; push one crate if the square beyond is free; no pulling, no double pushes; a wrong pad doesn't count; crates stay movable; undo/redo/restart free. Tap-to-walk only through free floor, never pushing.
+- **Solver** (`delivery_solver.gd`): breadth-first over push positions (crate cells, crates of one symbol interchangeable, courier region), exact visited set, provably-dead positions pruned soundly, incremental (`step(budget)`, no threads, so the web build works). SOLVED / UNSOLVABLE / TIMEOUT are distinct; a timeout never claims "no solution"; every solution is replayed through the rules.
+- **Deadlocks**: dead cells per symbol (a corner with no matching pad), freeze deadlocks (crates that can never move again), and exhaustive search. Soundness is property-tested: every instant claim is confirmed by exhaustive search on hundreds of random positions.
+- **Route blocked** card with the specific proven reason; Undo (primary) and Restart; board stays visible and playable; no reward. Positions the game can't prove stay silent.
+- **Hints** (opt-in, recomputed from the position, stale requests cancelled): idea → strategy (which crate, "move it away from its pad first", proven fewest pushes left) → one push (arrow). In a dead position: how many undos lead back to a solvable one.
+- **Puzzle Solved!** card: level title, pushes and steps separately, completion reward actually paid (or "already collected"), personal best, **Fewest pushes** medal only against a proved minimum, **Solved without hints** badge; Next Puzzle primary, Replay and Home secondary. Last puzzle → Finish → finale.
+- **30 puzzles** in 7 chapters (3 lessons, then 27 that pass every quality gate; `docs/DELIVERY_LEVEL_REPORT.md`, `docs/DELIVERY_DESIGN.md`). Minimum pushes proved and stored in `data/delivery/proofs.json`.
+- **Board** (`src/board/delivery_board.gd`): round pads vs square crates, symbols by shape and colour, pad visible under crates (check badge when matched, pad tab when wrong), courier faces its direction; swipe (one move per gesture), arrow buttons, tap-to-walk, keyboard; animations snap on new input; reduced motion honoured; never mirrored in Arabic. Skin keys `delivery.*` with vector fallback.
+- **Screens**: `puzzle` (play), `puzzles` (list by chapter with best and medals), Help rewritten for the new rules (four symbols), Home Play/Continue and tiles (Puzzles · Restore · How to play), first launch → two lines from Mira → Puzzle 1.
+
+### Rewards and saves
+- First clear pays 3 / 4 / 5 tokens (135 total ≥ the café's 129), once per level via the grant ledger (`dl:clear:<id>`); medals pay nothing; undo, replay, reopening and restarts can't pay twice.
+- Schema 6 adds `logic` {cleared, best, medals, current}, separate from the sorting records; older files are backed up as `.schema5.bak` before the first migrated write; nothing new is marked solved; tokens, restoration and old records are untouched.
+- The attempt in progress (position **and** undo/redo history) is saved on every move and on background; it resumes only against the same layout (content hash) and is discarded with a notice if the level changed.
+
+### Retired from the primary flow (not deleted)
+Sorting campaign, bakery, Midnight Ledger, daily and challenge entries are hidden from Home; source, levels, tests and player records remain. The Journal chip appears only while something is claimable.
+
+### Builds
+- Android 0.8.0 / versionCode 8, same package and debug key as v1–v7.
+- **Web** (`build/web/`, single-threaded, no special headers) and **Web QA** (`build/web-qa/`, export feature `qa` opens every puzzle; not present in player builds).
+
+### Tools and QA
+- `tools/delivery_report.gd` (gates + report + proofs), `tools/delivery_lab.gd` (metrics, `--explain` traces), `tools/delivery_gen.gd` (placement search inside hand-drawn rooms; authoring aid only).
+- Tests: `test_delivery_rules.gd`, `test_delivery_meta.gd`, `test_delivery_levels.gd`.
+- Real-input QA journeys `dl_journey`, `dl_life_a/b`, `dl_look`, `dl_clip_*` (`src/app/qa_delivery.gd`); recordings in `docs/recordings/`.
+
 ## 0.7.0 (v7), 2026-10-17: gameplay clarity (score, results, failure)
 After the owner's feedback ("feels basic; doesn't clearly communicate scoring, winning, losing or progression") and an external Appetize playtest of 0.5.0. Puzzle rules, level data and the economy are unchanged. The save schema goes 4 → 5 (adds best scores only).
 

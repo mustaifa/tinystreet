@@ -8,7 +8,27 @@ A portrait, single-player, offline puzzle game for Android, built with **Godot 4
 
 **Status:** first-release candidate for **internal testing**. It isn't store-ready. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) and [TEST_REPORT.md](TEST_REPORT.md).
 
-## What's in the box (v3, 0.3.0)
+## What's in the box (v8, 0.8.0): Delivery Logic
+The core puzzle was rebuilt in v8. A courier pushes picture-marked crates
+(coffee, croissant, strawberry, tea) onto matching pads in small storerooms:
+no pulling, no double pushes, wrong pads don't count, and wrong pushes can trap
+crates for good. *"Delivery Logic" is an internal working title.*
+- **30 puzzles** in 7 chapters, each with a proved minimum push count, a
+  verified mistake that leads to a proven dead end, and design notes
+  ([docs/DELIVERY_LEVEL_REPORT.md](docs/DELIVERY_LEVEL_REPORT.md)).
+- Rules: [docs/DELIVERY_RULES.md](docs/DELIVERY_RULES.md) (one module:
+  `game/src/core/delivery_rules.gd`). Design and audit:
+  [docs/DELIVERY_DESIGN.md](docs/DELIVERY_DESIGN.md). Player guide:
+  [docs/DELIVERY_PLAYER_GUIDE.md](docs/DELIVERY_PLAYER_GUIDE.md). Three-minute
+  smoke test and QA access: [docs/DELIVERY_SMOKE_TEST.md](docs/DELIVERY_SMOKE_TEST.md).
+- Proven "Route blocked" explanations with Undo/Restart, three-tier hints,
+  "Puzzle Solved!" card with pushes and steps, completion reward paid once,
+  personal bests and medals; café restoration unchanged.
+- Android APK, plus a **Web** build and a separate **Web QA** build.
+- The v1–v7 sorting game is retired from the main flow but kept in the source
+  (description below), with players' records preserved.
+
+## What was in the box before v8 (v3, 0.3.0, sorting mode)
 - A deterministic sorting puzzle with crates, a counter and up to 3 order tickets. Mechanics: the **bell** (choose which customer is served first), fresh items, paper bags, delivery locks, two-part and special orders.
 - **96 campaign levels** in 7 chapters, **8 bakery levels**, a **60-level daily pool** and 12 challenge cards. All are proven solvable by the real solver and shipped with recorded solutions; bell claims are proven by search.
 - Unlimited free undo, free restart, and a hint that is the first action of a real solution from the current position.

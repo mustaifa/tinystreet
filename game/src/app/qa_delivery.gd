@@ -16,6 +16,9 @@ extends RefCounted
 ##   dl_life_b    relaunch: the same position and undo history are back
 ##   dl_look      screenshots of every puzzle (any --qa-lang / --qa-large-text)
 ##   dl_clip_*    short scripted flows for the recordings (win, loss, undo)
+##   dl_rapid     an input storm on a hard puzzle, then integrity checks
+##   dl_migrated  launched on a genuine v7 (schema 5) save
+##   dl_evidence  puzzle 7: the tempting push, its proof, the strategy hint
 
 var q: Node   # qa_driver.gd
 
@@ -38,6 +41,9 @@ func run(name: String) -> void:
 		"dl_clip_win": await clip_win()
 		"dl_clip_blocked": await clip_blocked()
 		"dl_clip_silent": await clip_silent()
+		"dl_rapid": await rapid()
+		"dl_migrated": await migrated()
+		"dl_evidence": await evidence()
 		_: print("QA: FAIL unknown scenario ", name)
 
 # --------------------------------------------------------------- input helpers
@@ -244,7 +250,8 @@ func journey() -> void:
 	await q.click(rs_b.get_global_rect().get_center())
 	await q._wait(0.5)
 	var fresh := DeliveryRules.start_state(scr().level)
-	expect(scr().ps.state.equals(fresh) and not scr().ps.can_undo() and not scr().blocked_card.visible, "Restart gives a fresh playable board")
+	expect(scr().ps.state.equals(fresh) and not scr().blocked_card.visible, "Restart gives a fresh playable board (counters 0)")
+	expect(scr().ps.can_undo(), "the restart itself can be undone")
 	await q.shot("dl_10_after_restart")
 	# hints: three tiers, recomputed from the position
 	await q._tap_named(scr(), Loc.t("hint"))
@@ -344,18 +351,23 @@ func journey() -> void:
 	expect(int(App.data.tokens) == tok_r, "replay pays nothing (%d -> %d)" % [tok_r, App.data.tokens])
 	expect(card_text().contains(Loc.t("dl_res_reward_done")), "card says the reward was already collected")
 	await q.shot("dl_16_replay_no_reward")
-	# progress through 8..11 by touch, then 12 -> Finish
+	# every remaining puzzle by touch, then the last one -> Finish
 	await q._tap_button(Loc.t("dl_next_puzzle"))
 	await q._wait(0.8)
-	for id in ["d08", "d09", "d10", "d11"]:
+	var last_id := App.delivery.id_at(App.delivery.count() - 1)
+	for i in range(7, App.delivery.count() - 1):
+		var id := App.delivery.id_at(i)
 		expect(scr().level_id == id, id + " open")
 		await play(solution_moves(), id)
 		expect(await wait_solved(), id + " solved")
 		await q._wait(1.0)
+		if id == "d13":
+			await q.shot("dl_16b_chapter5_solved")
 		await q._tap_button(Loc.t("dl_next_puzzle"))
 		await q._wait(0.8)
-	expect(scr().level_id == "d12", "last puzzle open")
-	await play(solution_moves(), "d12")
+	expect(scr().level_id == last_id, "last puzzle open")
+	await q.shot("dl_16c_last_puzzle")
+	await play(solution_moves(), last_id)
 	expect(await wait_solved(), "last puzzle solved")
 	await q._wait(1.2)
 	expect(card_text().contains(Loc.t("dl_finish")) and not card_text().contains(Loc.t("dl_next_puzzle")), "last card offers Finish, not a missing next puzzle")
@@ -485,3 +497,135 @@ func clip_silent() -> void:
 	await play(solution_moves(), "clip")
 	await wait_solved()
 	await q._wait(2.0)
+
+# --------------------------------------------------------------- input storm, migration, evidence
+
+## Rapid mixed input on a hard puzzle, then integrity: the position is
+## legal, and undoing everything returns exactly to the start (counters 0).
+func rapid() -> void:
+	await q._dismiss_stories("")
+	_unlock_all()
+	App.data.logic.cleared.erase("d12")
+	App.main.goto("puzzle", {"id": "d12"}, false)
+	await q._wait(0.8)
+	var s: Node = scr()
+	var l: DeliveryLevel = s.level
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	var undo_b: Button = null
+	for b in s.find_children("*", "Button", true, false):
+		if (b as Button).tooltip_text == Loc.t("undo"):
+			undo_b = b
+	var kinds := [0, 0, 0, 0, 0, 0]
+	var changed := 0
+	var pushes_seen := 0
+	for k in 260:
+		if s.ps.is_won() or not App.main.overlays.is_empty():
+			break
+		var snap0: PackedInt32Array = s.ps.state.snapshot()
+		var p0: int = s.ps.state.pushes
+		var kind := rng.randi_range(0, 5)
+		kinds[kind] += 1
+		match kind:
+			0:
+				await press_dir(rng.randi_range(0, 3), "arrow")
+			1:
+				# arrow presses faster than the 90 ms guard: extra presses are dropped whole
+				var b: Button = s.arrows[rng.randi_range(0, 3)]
+				for r in 3:
+					await q.click(b.get_global_rect().get_center())
+			2:
+				await press_dir(rng.randi_range(0, 3), "swipe")
+			3:
+				await tap_cell(rng.randi_range(0, l.n - 1))
+			4:
+				for r in 4:
+					var ev := InputEventKey.new()
+					ev.keycode = [KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT][rng.randi_range(0, 3)]
+					ev.pressed = true
+					Input.parse_input_event(ev)
+					var up := ev.duplicate()
+					up.pressed = false
+					Input.parse_input_event(up)
+				await q._frames(1)
+			5:
+				if undo_b and not undo_b.disabled:
+					await q.click(undo_b.get_global_rect().get_center())
+		if s.ps.state.snapshot() != snap0:
+			changed += 1
+		pushes_seen += maxi(0, s.ps.state.pushes - p0)
+	await q._wait(0.5)
+	print("QA: storm inputs by kind ", kinds, " position changes=", changed, " pushes made=", pushes_seen, " history=", s.ps.history.size())
+	expect(changed > 60 and pushes_seen >= 5, "the storm really moved and pushed (%d changes, %d pushes)" % [changed, pushes_seen])
+	var st: DeliveryState = s.ps.state
+	var ok := l.floor_at(st.player) and st.at[st.player] < 0
+	var seen := {}
+	for c in st.crates:
+		ok = ok and l.floor_at(c) and not seen.has(c)
+		seen[c] = true
+	expect(ok, "position legal after the storm (no overlaps, nothing in walls)")
+	expect(s.board.is_animating() == false, "animations settled")
+	while s.ps.can_undo():
+		s.ps.undo()
+	expect(s.ps.state.equals(DeliveryRules.start_state(l)), "undoing every recorded action returns exactly to the start, counters 0")
+
+## Launched on a genuine v7 (schema 5) save produced by the v7 build.
+func migrated() -> void:
+	var bak := App.store.path + ".schema5.bak"
+	expect(FileAccess.file_exists(bak), "pre-migration copy of the v7 save kept (" + bak.get_file() + ")")
+	var env = JSON.parse_string(FileAccess.get_file_as_string(bak))
+	var old = JSON.parse_string(str(env.payload)) if env is Dictionary else {}
+	expect(int(env.schema) == 5, "the backup is the untouched schema-5 file")
+	expect(int(App.data.tokens) == int(old.tokens), "tokens kept (%d)" % int(old.tokens))
+	var kept := true
+	for id in old.campaign.cleared:
+		kept = kept and Progression.is_cleared(App.data, str(id))
+	for id in old.campaign.best:
+		kept = kept and Progression.best_score(App.data, str(id)) == int(old.campaign.best[id])
+	expect(kept and old.campaign.cleared.size() > 0, "sorting records kept (%d cleared, best scores)" % old.campaign.cleared.size())
+	expect(int(App.data.restoration.steps) == int(old.restoration.steps), "restoration kept")
+	expect(App.delivery.cleared_count(App.data) == 0, "no Delivery Logic puzzle marked solved")
+	var told: int = await q._dismiss_stories("dl_30_migrated_intro")
+	expect(told >= 1, "an upgrading player sees the new intro once")
+	await q._wait(0.8)
+	expect(App.main.current_name() == "puzzle" and scr().level_id == "d01", "then lands on puzzle 1")
+	var t0 := int(App.data.tokens)
+	await play(solution_moves(), "d01")
+	expect(await wait_solved(), "puzzle 1 solved on the migrated save")
+	await q._wait(1.0)
+	expect(int(App.data.tokens) == t0 + 3, "first clear pays on top of the old balance (%d -> %d)" % [t0, App.data.tokens])
+	await q.shot("dl_31_migrated_solved")
+	App.save_now()
+	var now = JSON.parse_string(FileAccess.get_file_as_string(App.store.path))
+	expect(int(now.schema) == 6, "save rewritten as schema 6")
+
+## Evidence: puzzle 7's strategic choice and its tempting wrong approach.
+func evidence() -> void:
+	await q._dismiss_stories("")
+	_unlock_all()
+	App.data.logic.cleared.erase("d07")
+	App.main.goto("puzzle", {"id": "d07"}, false)
+	await q._wait(0.8)
+	await q.shot("ev_01_d07_start")
+	var mv := mistake_moves(scr().level, scr().ps.state)
+	await play(mv, "d07-tempting")
+	await q._wait(0.2)
+	expect(DeliveryRules.on_match(scr().level, scr().ps.state, 0), "the coffee is home after one push (the tempting move)")
+	expect(await wait_blocked(4.0), "...and search proves the puzzle can no longer be finished")
+	await q.shot("ev_02_d07_tempting_push_proved_blocked")
+	var undo_b: Button = scr().find_child("BlockedUndo", true, false)
+	await q.click(undo_b.get_global_rect().get_center())
+	await q._wait(0.6)
+	await q._tap_named(scr(), Loc.t("hint"))
+	await q._wait(0.6)
+	await q._tap_button(Loc.t("dl_hint_more"))
+	await q._wait(0.8)
+	var t: String = card_text()
+	expect(t.contains(Loc.t("dl_hint_wait", [Loc.t("dl_sym_coffee")])), "strategy hint: leave the coffee for later")
+	await q.shot("ev_03_d07_strategy_hint")
+	await q._tap_button(Loc.t("close"))
+	await q._wait(0.3)
+	await play(solution_moves(), "d07")
+	expect(await wait_solved(), "solved with the coffee delivered last")
+	await q._wait(1.2)
+	await q.shot("ev_04_d07_solved")

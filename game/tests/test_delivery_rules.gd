@@ -119,9 +119,17 @@ func test_session_undo_redo_exact() -> void:
 	ps.undo()
 	ps.act(D)
 	check(not ps.can_redo(), "a new action clears redo")
+	var before_restart := ps.state.snapshot()
 	ps.restart()
+	eq(ps.state.snapshot(), s0, "restart: start position, counters zero")
+	check(ps.can_undo(), "a restart can be undone")
+	ps.undo()
+	eq(ps.state.snapshot(), before_restart, "undo brings back the position before the restart")
+	ps.redo()
 	eq(ps.state.snapshot(), s0)
-	check(not ps.can_undo())
+	var n := ps.history.size()
+	ps.restart()
+	eq(ps.history.size(), n, "restarting an untouched board records nothing")
 
 func test_session_walk_is_one_undo() -> void:
 	var l := _lv(["#######", "#@....#", "#..A..#", "#..a..#", "#######"])

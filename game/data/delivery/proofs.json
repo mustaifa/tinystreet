@@ -60,6 +60,96 @@
 			"method": "exhaustive BFS over push positions",
 			"min_pushes": 15,
 			"positions": 772
+		},
+		"d13": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 9,
+			"positions": 38
+		},
+		"d14": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 8,
+			"positions": 75
+		},
+		"d15": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 8,
+			"positions": 25
+		},
+		"d16": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 9,
+			"positions": 31
+		},
+		"d17": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 8,
+			"positions": 20
+		},
+		"d18": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 11,
+			"positions": 50
+		},
+		"d19": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 9,
+			"positions": 757
+		},
+		"d20": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 7,
+			"positions": 72
+		},
+		"d21": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 12,
+			"positions": 228
+		},
+		"d22": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 11,
+			"positions": 156
+		},
+		"d23": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 14,
+			"positions": 173
+		},
+		"d24": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 14,
+			"positions": 27
+		},
+		"d25": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 13,
+			"positions": 225
+		},
+		"d26": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 15,
+			"positions": 57
+		},
+		"d27": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 17,
+			"positions": 156
+		},
+		"d28": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 19,
+			"positions": 109
+		},
+		"d29": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 23,
+			"positions": 1290
+		},
+		"d30": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 23,
+			"positions": 512
 		}
 	}
 }

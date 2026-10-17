@@ -29,8 +29,8 @@ crate closest to a pad completely, then the next. *Orders*: of all fixed
 crate orders (one crate delivered completely at a time, others standing
 still), how many succeed.
 
-**Result:** 12 levels, 0 failed a gate. Non-tutorial levels with a verified
-dependency (a verified claim, or some fixed delivery orders failing): 9.
+**Result:** 30 levels, 0 failed a gate. Non-tutorial levels with a verified
+dependency (a verified claim, or some fixed delivery orders failing): 27.
 
 
 | Level | Title | Size | Crates | Min pushes (proved) | Positions | Trap positions / path | Silent | Tempting traps | Displacement pushes | Random | Greedy | Nearest-first solves | Orders that work | Gate |
@@ -47,6 +47,24 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 | d10 | One Shaft at a Time | 8x7 | 3 | 13 | 122 | 12/13 | 5 | 5 | 1 | 0% | 0% | no | 0/6 | PASS |
 | d11 | Pantry Shuffle | 8x7 | 3 | 16 | 468 | 15/16 | 10 | 7 | 5 | 0% | 0% | no | 0/6 | PASS |
 | d12 | Crossroads | 9x7 | 3 | 15 | 772 | 15/15 | 4 | 5 | 3 | 0% | 0% | no | 0/6 | PASS |
+| d13 | Single File | 10x5 | 3 | 9 | 38 | 9/9 | 3 | 4 | 0 | 0% | 20% | no | 1/6 | PASS |
+| d14 | Shelf Corner | 8x7 | 3 | 8 | 75 | 8/8 | 6 | 4 | 0 | 0% | 5% | no | 1/6 | PASS |
+| d15 | Two Coffees | 9x6 | 2 | 8 | 25 | 3/8 | 2 | 4 | 2 | 4% | 0% | no | 0/2 | PASS |
+| d16 | Untangle | 8x7 | 3 | 9 | 31 | 8/9 | 3 | 4 | 0 | 0% | 0% | no | 1/6 | PASS |
+| d17 | The Nest | 9x7 | 2 | 8 | 20 | 8/8 | 7 | 5 | 1 | 0% | 0% | no | 0/2 | PASS |
+| d18 | Hold the Spot | 9x7 | 2 | 11 | 50 | 6/11 | 4 | 2 | 3 | 0% | 0% | no | 0/2 | PASS |
+| d19 | Staircase | 8x7 | 3 | 9 | 757 | 9/9 | 5 | 6 | 1 | 0% | 0% | no | 0/6 | PASS |
+| d20 | Round the Block | 8x7 | 3 | 7 | 72 | 7/7 | 6 | 2 | 0 | 0% | 25% | no | 0/6 | PASS |
+| d21 | Courtyard | 8x7 | 3 | 12 | 228 | 11/12 | 2 | 3 | 0 | 0% | 20% | no | 1/6 | PASS |
+| d22 | Square Dance | 8x7 | 3 | 11 | 156 | 11/11 | 9 | 6 | 3 | 0% | 0% | no | 0/6 | PASS |
+| d23 | Corner Stack | 8x7 | 2 | 14 | 173 | 11/14 | 8 | 10 | 2 | 0% | 0% | no | 0/2 | PASS |
+| d24 | Two Pads, Two Paths | 7x7 | 3 | 14 | 27 | 10/14 | 4 | 5 | 1 | 0% | 0% | no | 1/6 | PASS |
+| d25 | One Lane Back | 8x8 | 3 | 13 | 225 | 13/13 | 8 | 6 | 2 | 0% | 10% | no | 0/6 | PASS |
+| d26 | Bays | 9x6 | 3 | 15 | 57 | 10/15 | 9 | 7 | 4 | 0% | 0% | no | 0/6 | PASS |
+| d27 | Kitchen Rush | 8x7 | 3 | 17 | 156 | 13/17 | 7 | 5 | 3 | 0% | 0% | no | 0/6 | PASS |
+| d28 | The Alcove | 8x7 | 2 | 19 | 109 | 13/19 | 6 | 8 | 4 | 0% | 0% | no | 0/2 | PASS |
+| d29 | Two Rooms | 9x6 | 3 | 23 | 1290 | 18/23 | 4 | 3 | 6 | 0% | 0% | no | 0/6 | PASS |
+| d30 | Head Office | 8x7 | 3 | 23 | 512 | 23/23 | 19 | 22 | 6 | 0% | 0% | no | 0/6 | PASS |
 
 ## d01 — First Push
 
@@ -66,7 +84,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Builds on:** —
 * **Dependency:** none (tutorial)
 * **Verified solution (3 pushes, 7 actions, replayed through the rules):** `(3,2)→ (4,2)→ (5,2)↓`
-* **Search:** 8 positions, 0% of expanded positions unsolvable, 40 ms
+* **Search:** 8 positions, 0% of expanded positions unsolvable, 46 ms
 * **Path:** 3 choice positions, 3 trap positions (0 silent), 3 trap pushes (0 tempting), 0 displacement pushes
 * **Agents:** random 51/200, greedy 20/20, nearest-first solves, fixed orders 1/1
 * **Gate:** PASS
@@ -91,7 +109,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Builds on:** d01
 * **Dependency:** none (tutorial)
 * **Verified solution (8 pushes, 19 actions, replayed through the rules):** `(2,4)↑ (2,3)↑ (2,2)→ (3,2)→ (4,4)↑ (4,3)← (3,3)← (2,3)↑`
-* **Search:** 72 positions, 0% of expanded positions unsolvable, 176 ms
+* **Search:** 72 positions, 0% of expanded positions unsolvable, 221 ms
 * **Path:** 8 choice positions, 8 trap positions (0 silent), 25 trap pushes (0 tempting), 0 displacement pushes
 * **Agents:** random 1/200, greedy 20/20, nearest-first solves, fixed orders 2/2
 * **Gate:** PASS
@@ -116,7 +134,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Builds on:** d01, d02
 * **Dependency:** none (tutorial)
 * **Verified solution (5 pushes, 12 actions, replayed through the rules):** `(2,2)↓ (2,3)↓ (2,4)→ (3,4)→ (4,4)→`
-* **Search:** 8 positions, 0% of expanded positions unsolvable, 72 ms
+* **Search:** 8 positions, 0% of expanded positions unsolvable, 56 ms
 * **Path:** 3 choice positions, 3 trap positions (0 silent), 4 trap pushes (0 tempting), 0 displacement pushes
 * **Agents:** random 12/200, greedy 20/20, nearest-first solves, fixed orders 1/1
 * **Gate:** PASS
@@ -144,7 +162,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Claims:**
   - no solvable position has the croissant crate(s) home while a coffee crate is not: **verified**
 * **Verified solution (11 pushes, 30 actions, replayed through the rules):** `(4,2)↓ (4,3)← (3,3)← (2,2)→ (2,3)↓ (2,4)↓ (2,5)↓ (3,2)↓ (3,3)← (2,3)↓ (2,4)↓`
-* **Search:** 57 positions, 25% of expanded positions unsolvable, 93 ms
+* **Search:** 57 positions, 25% of expanded positions unsolvable, 108 ms
 * **Path:** 10 choice positions, 9 trap positions (2 silent), 19 trap pushes (2 tempting), 1 displacement pushes
 * **Agents:** random 0/200, greedy 4/20, nearest-first fails, fixed orders 0/2
 * **Gate:** PASS
@@ -171,7 +189,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Claims:**
   - every solution pushes a croissant crate off its own pad at least once: **verified**
 * **Verified solution (9 pushes, 36 actions, replayed through the rules):** `(3,3)→ (4,3)→ (5,3)→ (3,2)↓ (3,3)← (2,3)← (6,3)← (5,3)← (4,3)←`
-* **Search:** 29 positions, 52% of expanded positions unsolvable, 49 ms
+* **Search:** 29 positions, 52% of expanded positions unsolvable, 67 ms
 * **Path:** 8 choice positions, 7 trap positions (3 silent), 12 trap pushes (3 tempting), 3 displacement pushes
 * **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/2
 * **Gate:** PASS
@@ -198,7 +216,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Claims:**
   - every solution pushes a croissant crate farther from its pad at least once: **verified**
 * **Verified solution (12 pushes, 56 actions, replayed through the rules):** `(3,4)↑ (3,3)→ (4,3)→ (5,3)→ (3,2)↓ (3,3)← (6,3)← (5,3)↓ (5,4)↓ (2,3)→ (3,3)↑ (3,2)↑`
-* **Search:** 92 positions, 13% of expanded positions unsolvable, 76 ms
+* **Search:** 92 positions, 13% of expanded positions unsolvable, 86 ms
 * **Path:** 11 choice positions, 9 trap positions (4 silent), 13 trap pushes (4 tempting), 3 displacement pushes
 * **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/2
 * **Gate:** PASS
@@ -225,7 +243,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Claims:**
   - no solvable position has the coffee crate(s) home while another crate is not: **verified**
 * **Verified solution (9 pushes, 51 actions, replayed through the rules):** `(3,3)→ (2,4)↑ (4,3)↑ (2,3)→ (4,2)↑ (3,3)→ (4,1)→ (4,3)↓ (2,2)↑`
-* **Search:** 353 positions, 66% of expanded positions unsolvable, 202 ms
+* **Search:** 353 positions, 66% of expanded positions unsolvable, 221 ms
 * **Path:** 9 choice positions, 9 trap positions (7 silent), 20 trap pushes (8 tempting), 0 displacement pushes
 * **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 1/6
 * **Gate:** PASS
@@ -253,7 +271,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
   - no solvable position has the croissant crate(s) home while a coffee crate is not: **verified**
   - every solution pushes a croissant crate farther from its pad at least once: **verified**
 * **Verified solution (12 pushes, 57 actions, replayed through the rules):** `(3,3)↓ (3,4)→ (4,4)→ (5,2)← (4,2)← (5,4)→ (3,2)↓ (6,4)↓ (3,3)↓ (3,4)→ (4,4)→ (5,4)→`
-* **Search:** 111 positions, 32% of expanded positions unsolvable, 135 ms
+* **Search:** 111 positions, 32% of expanded positions unsolvable, 175 ms
 * **Path:** 10 choice positions, 7 trap positions (6 silent), 9 trap pushes (7 tempting), 2 displacement pushes
 * **Agents:** random 1/200, greedy 0/20, nearest-first fails, fixed orders 0/2
 * **Gate:** PASS
@@ -280,7 +298,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Claims:**
   - every solution pushes a coffee crate off its own pad at least once: **verified**
 * **Verified solution (8 pushes, 44 actions, replayed through the rules):** `(1,2)↓ (1,3)↓ (3,2)↑ (3,1)→ (1,4)↑ (1,3)↑ (3,4)↓ (3,5)←`
-* **Search:** 170 positions, 40% of expanded positions unsolvable, 168 ms
+* **Search:** 170 positions, 40% of expanded positions unsolvable, 188 ms
 * **Path:** 8 choice positions, 8 trap positions (8 silent), 22 trap pushes (8 tempting), 2 displacement pushes
 * **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
 * **Gate:** PASS
@@ -288,8 +306,8 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 ## d10 — One Shaft at a Time
 
 ```
-########
-#...#..#
+#######
+#...###
 #a...B@#
 #.#.##.#
 #bAc.C.#
@@ -307,10 +325,9 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Claims:**
   - no solvable position has the strawberry crate(s) home while another crate is not: **verified**
 * **Verified solution (13 pushes, 78 actions, replayed through the rules):** `(2,4)← (1,4)↑ (5,2)← (4,2)← (3,2)← (2,2)→ (3,2)↓ (1,3)↑ (3,3)↓ (3,4)← (2,4)← (5,4)← (4,4)←`
-* **Search:** 122 positions, 52% of expanded positions unsolvable, 142 ms
+* **Search:** 122 positions, 52% of expanded positions unsolvable, 192 ms
 * **Path:** 13 choice positions, 12 trap positions (5 silent), 29 trap pushes (5 tempting), 1 displacement pushes
 * **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
-* Note: same room walls as d08 (different puzzle)
 * **Gate:** PASS
 
 ## d11 — Pantry Shuffle
@@ -333,7 +350,7 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Builds on:** d05, d09, d10
 * **Dependency:** multi-step preparation; temporary displacement; order
 * **Verified solution (16 pushes, 55 actions, replayed through the rules):** `(4,2)↓ (4,3)↓ (5,3)← (4,3)← (3,3)← (4,4)↑ (4,3)→ (2,3)→ (3,3)→ (3,2)↑ (3,1)← (4,3)↑ (5,3)← (4,3)← (3,3)← (4,2)↓`
-* **Search:** 468 positions, 41% of expanded positions unsolvable, 198 ms
+* **Search:** 468 positions, 41% of expanded positions unsolvable, 238 ms
 * **Path:** 16 choice positions, 15 trap positions (10 silent), 34 trap pushes (7 tempting), 5 displacement pushes
 * **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
 * **Gate:** PASS
@@ -360,7 +377,478 @@ dependency (a verified claim, or some fixed delivery orders failing): 9.
 * **Claims:**
   - every solution pushes a croissant crate off its own pad at least once: **verified**
 * **Verified solution (15 pushes, 75 actions, replayed through the rules):** `(4,4)↑ (3,4)← (2,4)↑ (2,3)↑ (4,3)↓ (2,2)↑ (4,4)← (3,4)← (3,2)→ (4,2)↓ (4,3)↓ (4,4)→ (2,4)→ (5,4)→ (3,4)→`
-* **Search:** 772 positions, 5% of expanded positions unsolvable, 405 ms
+* **Search:** 772 positions, 5% of expanded positions unsolvable, 524 ms
 * **Path:** 15 choice positions, 15 trap positions (4 silent), 32 trap pushes (5 tempting), 3 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d13 — Single File
+
+```
+##########
+#.b.aB@A.#
+#.##.C##.#
+#..c.....#
+##########
+```
+
+* **Concept:** Order in a single lane, and keeping a route open.
+* **Intended insight:** In the top lane the croissant is in front, but its pad lies beyond the coffee pad: the croissant goes first and the coffee follows. Only then drop the strawberry down the gap; earlier, it cuts the lower lane, which is the only way round behind the coffee.
+* **Plausible mistake:** Step the croissant left, then drop the strawberry into the lower lane straight away.
+* **Why it fails:** The strawberry now blocks the lower lane, so the courier can never get behind the coffee again. Proven by search.
+* **Mistake check:** pushes `[["B",5.0,1.0,"left"],["C",5.0,2.0,"down"]]` → exhaustive search (12 positions)
+* **Builds on:** d04, d07
+* **Dependency:** delivery order; preserving a route
+* **Claims:**
+  - no solvable position has the coffee crate(s) home while a croissant crate is not: **verified**
+* **Verified solution (9 pushes, 46 actions, replayed through the rules):** `(5,1)← (4,1)← (7,1)← (6,1)← (3,1)← (5,1)← (5,2)↓ (5,3)← (4,3)←`
+* **Search:** 38 positions, 63% of expanded positions unsolvable, 121 ms
+* **Path:** 9 choice positions, 9 trap positions (3 silent), 18 trap pushes (4 tempting), 0 displacement pushes
+* **Agents:** random 0/200, greedy 4/20, nearest-first fails, fixed orders 1/6
+* **Gate:** PASS
+
+## d14 — Shelf Corner
+
+```
+########
+#......#
+#.####A#
+#.b...@#
+#.#B.#a#
+#c...C.#
+########
+```
+
+* **Concept:** A pad that is also a doorway (variation).
+* **Intended insight:** The coffee's pad is the only way into the bottom-right corner, where you stand to push the strawberry left along the bottom row. Push the strawberry along first, then deliver the coffee, then sort out the croissant and the strawberry's last pushes.
+* **Plausible mistake:** Deliver the coffee straight down first.
+* **Why it fails:** The bottom-right corner is sealed, so the strawberry can only be pushed toward the right wall. Proven by search.
+* **Mistake check:** pushes `[["A",6.0,2.0,"down"],["A",6.0,3.0,"down"]]` → exhaustive search (5 positions)
+* **Builds on:** d07
+* **Dependency:** delivery order; preserving a route
+* **Verified solution (8 pushes, 30 actions, replayed through the rules):** `(5,5)← (4,5)← (6,2)↓ (6,3)↓ (3,5)← (3,4)↑ (3,3)← (2,5)←`
+* **Search:** 75 positions, 53% of expanded positions unsolvable, 135 ms
+* **Path:** 8 choice positions, 8 trap positions (6 silent), 20 trap pushes (4 tempting), 0 displacement pushes
+* **Agents:** random 0/200, greedy 1/20, nearest-first fails, fixed orders 1/6
+* **Gate:** PASS
+
+## d15 — Two Coffees
+
+```
+#########
+#a....Aa#
+#.#@#A#.#
+###.#.#.#
+#.......#
+#########
+```
+
+* **Concept:** Identical crates: choosing which crate goes to which pad.
+* **Intended insight:** The coffee crate right next to the right-hand pad has to travel all the way to the left-hand pad; the other coffee crate then comes up and takes the near pad.
+* **Plausible mistake:** Push the nearest coffee crate onto the nearest pad.
+* **Why it fails:** The second coffee can then never be pushed along the top lane into the right corner: there is nowhere to stand behind it. Proven by search.
+* **Mistake check:** pushes `[["A",6.0,1.0,"right"]]` → exhaustive search (3 positions)
+* **Builds on:** d02, d04
+* **Dependency:** assignment of identical crates; temporary displacement
+* **Claims:**
+  - every solution pushes a coffee crate farther from its pad at least once: **verified**
+* **Verified solution (8 pushes, 32 actions, replayed through the rules):** `(6,1)← (5,1)← (4,1)← (3,1)← (2,1)← (5,2)↑ (5,1)→ (6,1)→`
+* **Search:** 25 positions, 20% of expanded positions unsolvable, 65 ms
+* **Path:** 6 choice positions, 3 trap positions (2 silent), 4 trap pushes (4 tempting), 2 displacement pushes
+* **Agents:** random 7/200, greedy 0/20, nearest-first fails, fixed orders 0/2
+* **Gate:** PASS
+
+## d16 — Untangle
+
+```
+ ###### 
+##@...# 
+#..#Ca# 
+#.#cAB##
+#...#..#
+##b....#
+ #######
+```
+
+* **Concept:** Untangling a knot from the outside in.
+* **Intended insight:** The croissant leaves first, down and round to its pad; that frees the coffee to step right and up onto its pad, and that frees the strawberry to drop onto its own.
+* **Plausible mistake:** Once the croissant has moved, slide the coffee left into the open gap.
+* **Why it fails:** The coffee is then stuck where it can never reach the coffee pad (an instant, provable dead cell).
+* **Mistake check:** pushes `[["B",5.0,3.0,"down"],["B",5.0,4.0,"down"],["A",4.0,3.0,"left"]]` → instant DEAD_CELL (coffee)
+* **Builds on:** d10, d12
+* **Dependency:** delivery order (one of six crate orders works)
+* **Verified solution (9 pushes, 48 actions, replayed through the rules):** `(5,3)↓ (5,4)↓ (5,5)← (4,5)← (3,5)← (4,3)→ (5,3)↑ (4,2)↓ (4,3)←`
+* **Search:** 31 positions, 48% of expanded positions unsolvable, 87 ms
+* **Path:** 9 choice positions, 8 trap positions (3 silent), 15 trap pushes (4 tempting), 0 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 1/6
+* **Gate:** PASS
+
+## d17 — The Nest
+
+```
+  #####  
+###...###
+#...#a..#
+###.C.#.#
+#...#.A@#
+###c..###
+  #####  
+```
+
+* **Concept:** Temporary displacement in a tight centre.
+* **Intended insight:** The strawberry blocks the centre. It goes left and then up, away from its own pad, so the coffee can climb; then it comes back down past the coffee's column and the coffee steps up onto its pad.
+* **Plausible mistake:** Start by nudging the coffee left toward the centre.
+* **Why it fails:** The coffee now blocks the square the courier needs to move the strawberry out of the centre. Proven by search; nothing looks stuck.
+* **Mistake check:** pushes `[["A",6.0,4.0,"left"]]` → exhaustive search (8 positions)
+* **Builds on:** d09, d15
+* **Dependency:** temporary displacement; order
+* **Claims:**
+  - every solution pushes a strawberry crate farther from its pad at least once: **verified**
+* **Verified solution (8 pushes, 60 actions, replayed through the rules):** `(4,3)← (3,3)↑ (6,4)← (5,4)↑ (3,2)↓ (3,3)↓ (5,3)↑ (3,4)↓`
+* **Search:** 20 positions, 45% of expanded positions unsolvable, 69 ms
+* **Path:** 8 choice positions, 8 trap positions (7 silent), 17 trap pushes (5 tempting), 1 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/2
+* **Gate:** PASS
+
+## d18 — Hold the Spot
+
+```
+#########
+#.1..@..#
+#....B..#
+##.###.##
+ #b# #.# 
+ #.# #.# 
+ ### ### 
+```
+
+* **Concept:** Displacing a delivered crate by exactly the right amount.
+* **Intended insight:** To push the croissant down the left shaft you must stand on the coffee's pad. Slide the coffee two squares right (not three), bring the croissant round, send it down, slide the coffee back and finish.
+* **Plausible mistake:** Slide the coffee three squares right to make plenty of room.
+* **Why it fails:** From there it can't be brought back: the courier can no longer get to its right-hand side. Proven by search.
+* **Mistake check:** pushes `[["A",2.0,1.0,"right"],["A",3.0,1.0,"right"],["A",4.0,1.0,"right"]]` → exhaustive search (4 positions)
+* **Builds on:** d05, d12
+* **Dependency:** temporary displacement of a delivered crate
+* **Claims:**
+  - every solution pushes a coffee crate off its own pad at least once: **verified**
+* **Verified solution (11 pushes, 31 actions, replayed through the rules):** `(2,1)→ (3,1)→ (5,2)→ (6,2)← (5,2)← (4,2)← (3,2)← (2,2)↓ (4,1)← (3,1)← (2,3)↓`
+* **Search:** 50 positions, 36% of expanded positions unsolvable, 81 ms
+* **Path:** 11 choice positions, 6 trap positions (4 silent), 9 trap pushes (2 tempting), 3 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/2
+* **Gate:** PASS
+
+## d19 — Staircase
+
+```
+#####   
+#...### 
+#.A@.b##
+##a..d.#
+ ##DB..#
+  #....#
+  ######
+```
+
+* **Concept:** The short way home blocks the stairs.
+* **Intended insight:** The coffee is one push above its pad, but delivering it then walls the staircase the tea and croissant need. It takes the long way: right, down and back left, after the croissant and tea have used the stairs.
+* **Plausible mistake:** Push the coffee straight down onto its pad.
+* **Why it fails:** The staircase is cut, and the remaining crates can't all reach their pads. Proven by search.
+* **Mistake check:** pushes `[["A",2.0,2.0,"down"]]` → exhaustive search (53 positions)
+* **Builds on:** d07, d14
+* **Dependency:** temporary displacement; preserving a route
+* **Claims:**
+  - every solution pushes a coffee crate farther from its pad at least once: **verified**
+* **Verified solution (9 pushes, 37 actions, replayed through the rules):** `(4,4)↑ (4,3)↑ (4,2)→ (3,4)↑ (2,2)→ (3,3)→ (4,3)→ (3,2)↓ (3,3)←`
+* **Search:** 757 positions, 15% of expanded positions unsolvable, 404 ms
+* **Path:** 9 choice positions, 9 trap positions (5 silent), 31 trap pushes (6 tempting), 1 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d20 — Round the Block
+
+```
+########
+#..a.A.#
+#.####.#
+#.#..#.#
+#.#.ABb#
+#a..@..#
+########
+```
+
+* **Concept:** A one-way door: do the outside work first.
+* **Intended insight:** The top coffee goes left to the top pad first. Pushing the inner coffee out of the little courtyard leaves the courier inside it, so that push comes after the outside work; then the croissant and the second coffee finish along the bottom row.
+* **Plausible mistake:** Push the inner coffee out of the courtyard first.
+* **Why it fails:** The courier ends up shut in the courtyard and can never reach the top coffee again. Proven by search.
+* **Mistake check:** pushes `[["A",4.0,4.0,"down"]]` → exhaustive search (17 positions)
+* **Builds on:** d09, d15
+* **Dependency:** delivery order; preserving a route (no single-crate order works)
+* **Verified solution (7 pushes, 26 actions, replayed through the rules):** `(5,1)← (4,1)← (4,4)↓ (5,4)→ (4,5)← (3,5)← (2,5)←`
+* **Search:** 72 positions, 85% of expanded positions unsolvable, 161 ms
+* **Path:** 7 choice positions, 7 trap positions (6 silent), 13 trap pushes (2 tempting), 0 displacement pushes
+* **Agents:** random 0/200, greedy 5/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d21 — Courtyard
+
+```
+########
+#......#
+#.#A.#b#
+#.B....#
+#aC##..#
+#...c@.#
+########
+```
+
+* **Concept:** Clearing a shared road in the right order.
+* **Intended insight:** The croissant clears the middle row first and parks below its pad; the coffee drops into the row and slides over above its pad; the strawberry drops out of the coffee's way; then all three finish.
+* **Plausible mistake:** Drop the coffee into the middle row first.
+* **Why it fails:** It jams against the croissant and the strawberry: all three are frozen and can never move again (an instant, provable freeze).
+* **Mistake check:** pushes `[["A",3.0,2.0,"down"]]` → instant FROZEN (coffee, croissant, strawberry)
+* **Builds on:** d10, d16
+* **Dependency:** delivery order; shared corridor
+* **Verified solution (12 pushes, 44 actions, replayed through the rules):** `(2,3)→ (3,3)→ (4,3)→ (3,2)↓ (3,3)← (2,3)← (5,3)→ (6,3)↑ (2,4)↓ (2,5)→ (1,3)↓ (3,5)→`
+* **Search:** 228 positions, 10% of expanded positions unsolvable, 215 ms
+* **Path:** 12 choice positions, 11 trap positions (2 silent), 23 trap pushes (3 tempting), 0 displacement pushes
+* **Agents:** random 0/200, greedy 4/20, nearest-first fails, fixed orders 1/6
+* **Gate:** PASS
+
+## d22 — Square Dance
+
+```
+########
+#d..bB.#
+#.#D##.#
+#..@...#
+#.##.#.#
+#.Aa...#
+########
+```
+
+* **Concept:** Overshooting your own pad to clear a route.
+* **Intended insight:** The tea must go down, along the middle row and up the left column. The coffee sits at the foot of that column, so it is pushed right, past its own pad, and only comes back once the tea has gone up.
+* **Plausible mistake:** Push the tea straight up into the top row toward its pad.
+* **Why it fails:** From the top row it could only be pushed left from the croissant's pad square, which the courier can't reach. Proven by search.
+* **Mistake check:** pushes `[["D",3.0,2.0,"up"]]` → exhaustive search (4 positions)
+* **Builds on:** d05, d19
+* **Dependency:** temporary displacement; preserving a route
+* **Claims:**
+  - every solution pushes a coffee crate farther from its pad at least once: **verified**
+* **Verified solution (11 pushes, 65 actions, replayed through the rules):** `(2,5)→ (3,5)→ (4,5)→ (5,1)← (3,2)↓ (3,3)← (2,3)← (1,3)↑ (5,5)← (4,5)← (1,2)↑`
+* **Search:** 156 positions, 42% of expanded positions unsolvable, 180 ms
+* **Path:** 11 choice positions, 11 trap positions (9 silent), 24 trap pushes (6 tempting), 3 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d23 — Corner Stack
+
+```
+########
+#..#...#
+#.B..A.#
+#.#..#@#
+#b.....#
+#a..#..#
+########
+```
+
+* **Concept:** Deep pad first, in an open room (variation).
+* **Intended insight:** The coffee pad is in the corner below the croissant pad, so the coffee goes first: down and along the bottom-left row, briefly over the croissant pad, into the corner. The croissant must keep out of the left column until then.
+* **Plausible mistake:** Push the croissant into the left column on the way to its pad.
+* **Why it fails:** Once the croissant is in the column it can only go down onto its pad, which seals the coffee's corner. Proven by search.
+* **Mistake check:** pushes `[["B",2.0,2.0,"left"]]` → exhaustive search (34 positions)
+* **Builds on:** d04, d08
+* **Dependency:** delivery order; preserving a route
+* **Claims:**
+  - no solvable position has the croissant crate(s) home while a coffee crate is not: **verified**
+* **Verified solution (14 pushes, 53 actions, replayed through the rules):** `(5,2)← (4,2)↓ (4,3)↓ (4,4)← (3,4)← (2,2)→ (3,2)→ (2,4)← (1,4)↓ (4,2)↓ (4,3)↓ (4,4)← (3,4)← (2,4)←`
+* **Search:** 173 positions, 23% of expanded positions unsolvable, 224 ms
+* **Path:** 12 choice positions, 11 trap positions (8 silent), 17 trap pushes (10 tempting), 2 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/2
+* **Gate:** PASS
+
+## d24 — Two Pads, Two Paths
+
+```
+#######
+#..#.a#
+#.@.B.#
+#.#.#.#
+#.A.A.#
+#b.#.a#
+#######
+```
+
+* **Concept:** Identical crates with crossing routes.
+* **Intended insight:** The right-hand coffee climbs the right column to the top pad; the croissant goes round by the left column; only then does the left-hand coffee cross the middle row to the bottom pad.
+* **Plausible mistake:** Start by pushing the left-hand coffee toward the right.
+* **Why it fails:** It jams against the other coffee: both are frozen and neither can move again (an instant, provable freeze).
+* **Mistake check:** pushes `[["A",2.0,4.0,"right"]]` → instant FROZEN (coffee, coffee)
+* **Builds on:** d15, d20
+* **Dependency:** assignment of identical crates; order
+* **Verified solution (14 pushes, 27 actions, replayed through the rules):** `(4,4)→ (5,4)↑ (5,3)↑ (5,2)↑ (4,2)← (3,2)← (2,2)← (1,2)↓ (1,3)↓ (1,4)↓ (2,4)→ (3,4)→ (4,4)→ (5,4)↓`
+* **Search:** 27 positions, 41% of expanded positions unsolvable, 67 ms
+* **Path:** 11 choice positions, 10 trap positions (4 silent), 19 trap pushes (5 tempting), 1 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 1/6
+* **Gate:** PASS
+
+## d25 — One Lane Back
+
+```
+######  
+#a@b.###
+#.#..A.#
+#..B##.#
+###....#
+  #.A#.#
+  #..a.#
+  ######
+```
+
+* **Concept:** Displacement with a timed return.
+* **Intended insight:** The croissant steps down out of the lane; the top coffee goes left through the croissant's pad into the far corner; the croissant then starts back up BEFORE the bottom coffee is delivered, because its return needs the square that coffee will fill.
+* **Plausible mistake:** As soon as the croissant is out of the way, deliver the bottom coffee.
+* **Why it fails:** The croissant can never come back up: the courier can no longer stand below it. Proven by search.
+* **Mistake check:** pushes `[["B",3.0,3.0,"down"],["B",3.0,4.0,"down"],["A",4.0,5.0,"down"]]` → exhaustive search (7 positions)
+* **Builds on:** d12, d18, d20
+* **Dependency:** temporary displacement; order
+* **Claims:**
+  - every solution pushes a croissant crate farther from its pad at least once: **verified**
+* **Verified solution (13 pushes, 54 actions, replayed through the rules):** `(3,3)↓ (3,4)↓ (5,2)← (4,2)← (3,2)↑ (3,1)← (2,1)← (3,5)↑ (4,5)↓ (4,6)→ (3,4)↑ (3,3)↑ (3,2)↑`
+* **Search:** 225 positions, 68% of expanded positions unsolvable, 177 ms
+* **Path:** 13 choice positions, 13 trap positions (8 silent), 28 trap pushes (6 tempting), 2 displacement pushes
+* **Agents:** random 0/200, greedy 2/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d26 — Bays
+
+```
+#########
+#.#.#d#c#
+#...C...#
+#.#.#D#.#
+#.@.Bb..#
+#########
+```
+
+* **Concept:** A shuttle crate: past its pad, away, and back.
+* **Intended insight:** The croissant goes past its pad so the tea can be pushed up from below, then all the way back left so the courier can get round; in the shortest solution it is delivered last, after the strawberry has passed along the middle row.
+* **Plausible mistake:** Push the strawberry along the middle row toward its corner first.
+* **Why it fails:** The courier can no longer get below the tea to push it up. Proven by search.
+* **Mistake check:** pushes `[["C",4.0,2.0,"right"]]` → exhaustive search (14 positions)
+* **Builds on:** d22, d25
+* **Dependency:** temporary displacement; delivery order
+* **Claims:**
+  - every solution pushes a croissant crate farther from its pad at least once: **verified**
+* **Verified solution (15 pushes, 40 actions, replayed through the rules):** `(4,4)→ (5,4)→ (5,3)↑ (5,2)↑ (6,4)← (5,4)← (4,4)← (3,4)← (2,4)→ (3,4)→ (4,2)→ (5,2)→ (6,2)→ (7,2)↑ (4,4)→`
+* **Search:** 57 positions, 39% of expanded positions unsolvable, 93 ms
+* **Path:** 15 choice positions, 10 trap positions (9 silent), 13 trap pushes (7 tempting), 4 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d27 — Kitchen Rush
+
+```
+########
+#..#.@.#
+#.B#.#.#
+#c.....#
+#1##C#.#
+#.....b#
+########
+```
+
+* **Concept:** A delivered crate as a gate you open and close.
+* **Intended insight:** Open the gate: once the croissant is in the middle row, push the coffee up two squares, use the bottom row to get under the croissant and lift it into the right column, then close the gate again before the strawberry comes through.
+* **Plausible mistake:** Lift the coffee up one square at the start.
+* **Why it fails:** It now stands on the strawberry's pad and the croissant can't get past. Proven by search.
+* **Mistake check:** pushes `[["A",1.0,4.0,"up"]]` → exhaustive search (11 positions)
+* **Builds on:** d18, d22
+* **Dependency:** temporary displacement; order; preserving a route
+* **Claims:**
+  - every solution pushes a coffee crate off its own pad at least once: **verified**
+* **Verified solution (17 pushes, 85 actions, replayed through the rules):** `(2,2)↓ (2,3)→ (3,3)→ (4,3)→ (1,4)↑ (1,3)↑ (5,3)→ (6,3)↑ (1,2)↓ (1,3)↓ (4,4)↑ (4,3)← (6,2)↓ (6,3)↓ (6,4)↓ (3,3)← (2,3)←`
+* **Search:** 156 positions, 19% of expanded positions unsolvable, 156 ms
+* **Path:** 17 choice positions, 13 trap positions (7 silent), 30 trap pushes (5 tempting), 3 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d28 — The Alcove
+
+```
+########
+#b.....#
+#.@..B.#
+#.##A###
+#a#..#  
+#....#  
+######  
+```
+
+* **Concept:** Two crates swapping sides through a single crossroads.
+* **Intended insight:** The croissant steps left so the coffee can come up and right; the croissant then ducks into the alcove's mouth to let the coffee pass back left; in the shortest solution the coffee goes down the left column to its pad first, and the croissant climbs to the top row and finishes.
+* **Plausible mistake:** Run the croissant all the way left into the left column.
+* **Why it fails:** It would be delivered by going up, but it blocks the coffee's only way down the left column. Proven by search.
+* **Mistake check:** pushes `[["B",5.0,2.0,"left"],["B",4.0,2.0,"left"],["B",3.0,2.0,"left"],["B",2.0,2.0,"left"]]` → exhaustive search (6 positions)
+* **Builds on:** d23, d26
+* **Dependency:** delivery order; temporary displacement
+* **Claims:**
+  - every solution pushes a coffee crate farther from its pad at least once: **verified**
+  - every solution pushes a croissant crate farther from its pad at least once: **verified**
+* **Verified solution (19 pushes, 79 actions, replayed through the rules):** `(5,2)← (4,2)← (3,2)← (4,3)↑ (4,2)→ (2,2)→ (3,2)→ (4,2)↓ (5,2)← (4,2)← (3,2)← (4,3)↑ (4,2)↑ (2,2)← (1,2)↓ (1,3)↓ (4,1)← (3,1)← (2,1)←`
+* **Search:** 109 positions, 43% of expanded positions unsolvable, 120 ms
+* **Path:** 17 choice positions, 13 trap positions (6 silent), 17 trap pushes (8 tempting), 4 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/2
+* **Gate:** PASS
+
+## d29 — Two Rooms
+
+```
+#########
+#.@.#...#
+#.3..D..#
+#.a.#A..#
+#d..#...#
+#########
+```
+
+* **Concept:** A long multi-step preparation through one door.
+* **Intended insight:** The strawberry steps off its pad and out of the way; the tea comes through the door and round to its corner; the coffee follows through the door to its pad; the strawberry goes the long way round the right room and back home last.
+* **Plausible mistake:** Push the strawberry right, toward the door.
+* **Why it fails:** It jams against the coffee and the tea beside the door: all three are frozen and can never move again (an instant, provable freeze).
+* **Mistake check:** pushes `[["C",2.0,2.0,"right"],["C",3.0,2.0,"right"]]` → instant FROZEN (coffee, strawberry, tea)
+* **Builds on:** d12, d27
+* **Dependency:** multi-step preparation; temporary displacement
+* **Claims:**
+  - every solution pushes a strawberry crate off its own pad at least once: **verified**
+* **Verified solution (23 pushes, 56 actions, replayed through the rules):** `(2,2)→ (3,2)↓ (5,2)→ (6,2)← (5,2)← (4,2)← (3,2)← (2,2)← (5,3)↑ (5,2)← (4,2)← (3,2)← (1,2)↓ (1,3)↓ (3,3)↑ (2,2)↓ (3,2)→ (4,2)→ (5,2)→ (6,2)← (5,2)← (4,2)← (3,2)←`
+* **Search:** 1290 positions, 25% of expanded positions unsolvable, 523 ms
+* **Path:** 18 choice positions, 18 trap positions (4 silent), 40 trap pushes (3 tempting), 6 displacement pushes
+* **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
+* **Gate:** PASS
+
+## d30 — Head Office
+
+```
+########
+#@....b#
+#.#.c#.#
+#.#.A#.#
+#.BaC..#
+###..###
+  ####  
+```
+
+* **Concept:** Final challenge: interlocking routes.
+* **Intended insight:** The strawberry shuffles out of the bottom row, the coffee steps up and back down to let the croissant into the middle column, the croissant climbs to the top row and is delivered along it, and the coffee drops onto its pad last.
+* **Plausible mistake:** Push the croissant right onto the coffee pad, toward the middle.
+* **Why it fails:** It jams the bottom row that the other two crates need. Proven by search.
+* **Mistake check:** pushes `[["B",2.0,4.0,"right"]]` → exhaustive search (1 positions)
+* **Builds on:** d11, d27, d29
+* **Dependency:** multi-step preparation; order; temporary displacement
+* **Verified solution (23 pushes, 142 actions, replayed through the rules):** `(4,4)→ (4,3)↑ (2,4)→ (3,4)↑ (4,2)↓ (3,3)↑ (5,4)← (4,4)← (3,4)← (4,3)↓ (4,4)→ (2,4)→ (3,4)→ (3,2)↑ (4,4)↑ (5,4)← (4,4)← (3,4)↑ (3,1)→ (4,1)→ (5,1)→ (4,3)↑ (3,3)↓`
+* **Search:** 512 positions, 49% of expanded positions unsolvable, 572 ms
+* **Path:** 23 choice positions, 23 trap positions (19 silent), 54 trap pushes (22 tempting), 6 displacement pushes
 * **Agents:** random 0/200, greedy 0/20, nearest-first fails, fixed orders 0/6
 * **Gate:** PASS

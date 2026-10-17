@@ -58,6 +58,11 @@ Each product must keep a **distinct silhouette** (cup, tin, crescent, cupcake, b
 |---|---|---|---|
 | `board.crate` | nine-patch, `tile` | 160×152, margins 28 | the crate behind the stack (`CrateView`) |
 | `board.crate_front` | nine-patch | 200×168, margins 36 | the box holding the selectable front item |
+| `delivery.floor` | image or nine-patch | 108×108 (one cell) | Delivery Logic floor cell (`DeliveryBoard`; drawn per cell, no checker when skinned) |
+| `delivery.wall` | image or nine-patch | 108×108 (one cell) | Delivery Logic wall cell |
+| `delivery.pad` | image, tinted by the symbol colour | 92×92 | destination mat; the product art is drawn on top (keep the centre light) |
+| `delivery.crate` | image or nine-patch | 86×86 | the crate body; the symbol badge and check/pad tabs are drawn on top |
+| `delivery.courier` | image | 92×92 | the courier (not rotated; facing is drawn only by the vector fallback) |
 | `board.counter` | nine-patch | 400×128, margins 44/40 | the holding counter bar (`CounterView`) |
 | `board.slot` | square | 128 | one counter slot |
 

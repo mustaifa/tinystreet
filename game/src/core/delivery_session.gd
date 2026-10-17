@@ -70,10 +70,14 @@ func redo() -> bool:
 	state = DeliveryState.from_snapshot(level, redo_stack.pop_back())
 	return true
 
+## Back to the start position with zero counters. The restart itself is
+## recorded, so an accidental restart can be undone (nothing is lost).
 func restart() -> void:
-	state = DeliveryRules.start_state(level)
-	history.clear()
-	redo_stack.clear()
+	var start := DeliveryRules.start_state(level)
+	if state.equals(start):
+		return
+	_record(state.snapshot())
+	state = start
 
 # --------------------------------------------------------------- persistence
 

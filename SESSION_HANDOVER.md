@@ -1,5 +1,64 @@
 # Session Handover
 
+**Last updated:** 2026-10-17, session 8 (v8 / 0.8.0: Delivery Logic core rebuild).
+
+## State
+- Branch **`feature/delivery-logic`**, created from `feature/gameplay-clarity` @ `72993d7` (the latest baseline: v7 0.7.0 / code 7; `origin/main` is an older ancestor). Nothing pushed or merged. PR #1 is still open. `backup/pre-strip-build`: **never push it**.
+- The owner said the game "feels like clicking highlighted items rather than solving puzzles" and authorised a core rebuild. v8 replaces the puzzle with **Delivery Logic** (working title): push picture-marked crates onto matching pads (Sokoban-family rules with symbols). See `docs/DELIVERY_RULES.md`, `docs/DELIVERY_DESIGN.md`.
+- **30 puzzles**, all passing the quality gates (`docs/DELIVERY_LEVEL_REPORT.md`); minimum pushes proved (`data/delivery/proofs.json`).
+- The sorting game is **retired from the primary flow, not deleted** (source, levels, tests and players' records kept).
+- Save **schema 6** (`logic` namespace). Real migration verified on a save produced by the v7 build.
+- **APK** `build/tinystreet-v8-delivery-debug.apk`: `com.tinystreet.sortrestore` **0.8.0 / versionCode 8**, same debug key as v1–v7. **Web** `build/web/` and **Web QA** `build/web-qa/` (feature `qa` opens all puzzles). See `TEST_REPORT.md` v8 for hashes and results. **Not run on Android** (no KVM, no device).
+
+## Where things are (v8)
+| Topic | Files |
+|---|---|
+| Rules (the only rule module) | `game/src/core/delivery_rules.gd` (moves, walk paths, win, reach, canonical keys, dead cells, freeze) |
+| Data model | `delivery_level.gd` (ASCII map parser/validator), `delivery_state.gd`, `delivery_session.gd` (undo/redo, save/restore with guards) |
+| Solver | `delivery_solver.gd` (incremental BFS over push positions; SOLVED/UNSOLVABLE/TIMEOUT; `expand_pushes`, `validate`) |
+| Hints | `delivery_hints.gd` (pure; tiers 2–3); tier 1 text is per level (`nudge`) |
+| Analysis (tools/tests only) | `delivery_analysis.gd` (complete graph, path metrics, random/greedy/fixed-order agents, claims, mistakes, duplicates) |
+| Progress & rewards | `game/src/meta/delivery_progress.gd` (`record_win`, medals, best, attempt save/load) |
+| UI | `src/board/delivery_board.gd`, `src/screens/puzzle_screen.gd` (async check, blocked card, hints, rewind search), `puzzles_screen.gd`, `solved_panel.gd`; Home/Boot/Help rewired |
+| Levels | `game/data/delivery/levels.json` (+ generated `proofs.json`) |
+| Tools | `tools/delivery_report.gd -- --write` (gates + report), `tools/delivery_lab.gd FILE [ids] [--explain] [--solution]`, `tools/delivery_gen.gd ROOMS OUT [trials] [seed]` (authoring aid) |
+| QA (real input) | `src/app/qa_delivery.gd`: `dl_journey`, `dl_life_a`/`dl_life_b`, `dl_look`, `dl_rapid`, `dl_migrated`, `dl_evidence`, `dl_clip_*` |
+| Docs | `docs/DELIVERY_RULES.md`, `DELIVERY_DESIGN.md`, `DELIVERY_LEVEL_REPORT.md` (generated), `DELIVERY_PLAYER_GUIDE.md`, `DELIVERY_SMOKE_TEST.md`; evidence `docs/screenshots/v8/`, `docs/recordings/` |
+
+## Commands (v8)
+```bash
+G=~/tools/godot/godot
+$G --headless --path game --import
+$G --headless --path game -s res://tests/run_tests.gd                         # all suites
+$G --headless --path game -s res://tools/delivery_report.gd -- --write        # 30 levels must PASS
+cd game && xvfb-run -a $G --path . --rendering-driver opengl3 --resolution 720x1280 -- \
+   --save-path=/tmp/s.json --qa=dl_journey --qa-out=/tmp/out              # fresh save per scenario
+$G --headless --path game --export-debug "Android Debug APK" ../build/<name>.apk
+$G --headless --path game --export-release "Web" ../build/web/index.html
+$G --headless --path game --export-release "Web QA" ../build/web-qa/index.html
+python3 -I <scratch>/web_smoke.py build/web OUTDIR 8765                      # headless Chromium check (see TEST_REPORT)
+xvfb-run -a $G --path game ... --write-movie out.avi --fixed-fps 30 -- --qa=dl_clip_win ...   # recordings
+```
+
+## Gotchas learned (v8)
+- `delivery_report.gd` needs `-- --write` (with the `--`) to write proofs and the report; without it nothing is written and medals have no proved minimum (the QA journey caught this).
+- Claims: "every solution must push X" is checked by a search that forbids the push; "no solution passes a position with P" must be checked against the complete graph's exact distances (forbidding P positions and searching is the wrong test).
+- A 2×2 block of crates, or two crates side by side against a wall, is a genuine freeze deadlock; tests were wrong about this first, not the code.
+- The arrow keys act on `button_down` with a 90 ms guard (the UI's 350 ms debounce would make them sluggish).
+- The Route blocked card replaces the arrow row while shown, so the board keeps its size; swipes still work.
+- A QA script that fails to parse leaves Godot hanging under xvfb: the driver now guards the load. Kill stray `godot` processes after a timeout.
+- `rm -rf $VAR/...` is refused by the session's safety check: use `"${VAR:?}"/...`.
+
+## Next tasks (in order)
+1. **Owner:** play the Web build (or the APK) with `docs/DELIVERY_SMOKE_TEST.md`; then puzzles 4–12. Questions: is each "aha" readable? Are lessons 1–3 enough? Is the ramp right? Which puzzles feel arbitrary?
+2. Human playtests (5+ people): record time, restarts, hint tiers used per puzzle; re-order or replace puzzles that feel arbitrary.
+3. Qualified Arabic review (≈ 120 new v8 strings).
+4. Art pass on the board via `delivery.*` skin keys (crate, pad, wall, floor, courier).
+5. Decide the sorting mode's future (keep hidden, offer as "Classic", or remove) and PR #1.
+
+---
+*Session 7 notes below remain valid for the retired sorting mode.*
+
 **Last updated:** 2026-10-17, session 7 (v7 / 0.7.0: gameplay clarity: score, results, failure).
 
 ## State

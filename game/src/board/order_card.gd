@@ -84,7 +84,7 @@ func _draw() -> void:
 	# header: tray number badge + customer portrait
 	var badge := Vector2(size.x - 32, 34) if rtl else Vector2(32, 34)
 	draw_circle(badge, 20, Style.TEAL)
-	draw_string(f, badge + Vector2(-20, 9), str(tray + 1), HORIZONTAL_ALIGNMENT_CENTER, 40, 26, Color.WHITE)
+	draw_string(f, badge + Vector2(-20, Style.fs(9)), str(tray + 1), HORIZONTAL_ALIGNMENT_CENTER, 40, Style.fs(26), Color.WHITE)
 	var cpos := Vector2(40, 32) if rtl else Vector2(size.x - 40, 32)
 	draw_circle(cpos, 30, Style.PAPER)
 	CharacterArt.draw(self, customer, cpos + Vector2(0, 2), 58, mood)

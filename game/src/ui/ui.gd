@@ -18,7 +18,7 @@ static func button(text: String, cb: Callable, variation: String = "", min_h: in
 	if variation != "":
 		b.theme_type_variation = variation
 	b.custom_minimum_size = Vector2(0, min_h)
-	b.focus_mode = Control.FOCUS_NONE
+	b.focus_mode = Control.FOCUS_ALL
 	b.pressed.connect(func():
 		App.audio.play("tap")
 		App.haptic(10)
@@ -32,7 +32,7 @@ static func icon_button(glyph: String, caption: String, cb: Callable, variation:
 	var b := Button.new()
 	b.theme_type_variation = variation
 	b.custom_minimum_size = Vector2(size, size)
-	b.focus_mode = Control.FOCUS_NONE
+	b.focus_mode = Control.FOCUS_ALL
 	b.tooltip_text = caption
 	var g := Glyph.new()
 	g.kind = glyph

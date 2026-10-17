@@ -10,7 +10,7 @@ A portrait, single-player, offline puzzle game for Android, built with **Godot 4
 
 ## What's in the box
 - A deterministic sorting puzzle with crates, a counter and up to 3 order trays, plus two-stage orders from level 31.
-- **60 campaign levels** and a **60-level daily pool**, all verified solvable by the real solver and shipped with recorded solutions.
+- **84 campaign levels** and a **60-level daily pool**, all verified solvable by the real solver and shipped with recorded solutions.
 - Unlimited free undo, free restart, and a hint computed from the current position.
 - Café restoration: 5 visible milestones and 4 cosmetic categories, all earnable without purchases.
 - English and Arabic (RTL) UI. The Arabic text is awaiting qualified review.
@@ -68,8 +68,8 @@ Regenerate content (authoring only): `$GODOT --headless --path game -s res://too
 
 ## Install and play
 1. `adb install -r build/tinystreet-debug.apk`. The APK is debug-signed and supports arm64-v8a, armeabi-v7a and x86_64.
-2. A first launch goes straight into Level 1 with in-flow tutorial tips.
-3. Tap a crate to send its front item to the lowest-numbered order that needs it, or to the counter. Hold a crate to preview where it'll go.
+2. A first launch opens Home, then a brief, skippable Mira intro leads into Level 1 with in-flow tutorial tips.
+3. Press a crate to preview where its front item will go; tap or drag to confirm the move. Keyboard/D-pad users can focus a crate and press Enter or Space.
 
 ## Docs
 [GAME_DESIGN](GAME_DESIGN.md) · [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) · [DECISIONS](DECISIONS.md) · [TEST_REPORT](TEST_REPORT.md) · [RELEASE_CHECKLIST](RELEASE_CHECKLIST.md) · [SESSION_HANDOVER](SESSION_HANDOVER.md) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md) · [docs/PRIVACY](docs/PRIVACY.md) · [docs/PLAYTEST](docs/PLAYTEST.md) · [docs/STORE_LISTING](docs/STORE_LISTING.md) · [docs/LEVEL_REPORT](docs/LEVEL_REPORT.md)

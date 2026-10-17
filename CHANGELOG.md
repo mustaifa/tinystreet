@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1, 2026-10-17
+- Added keyboard and D-pad activation for gameplay crates and shared UI buttons, including Enter/Space activation for a focused crate.
+- Gameplay destination badges, lock counts and order-ticket numbers now respect the existing larger-text setting.
+- Corrected the README to describe the 84-level campaign and the actual skippable first-run intro flow.
+
 ## 0.2.0 (v2), 2026-10-16
 Built after the first real-device smoke test. The owner's report: v1 installs and renders correctly, but feels very basic.
 

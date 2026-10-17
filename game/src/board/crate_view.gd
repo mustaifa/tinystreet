@@ -32,6 +32,7 @@ var _unlock_flash := 0.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	focus_mode = Control.FOCUS_ALL
 	resized.connect(queue_redraw)
 
 func set_state(it: PackedInt32Array, fr: Array, lock: int, b: Dictionary) -> void:
@@ -69,7 +70,12 @@ func _process(delta: float) -> void:
 		queue_redraw()
 
 func _gui_input(e: InputEvent) -> void:
-	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+	if e is InputEventKey and e.pressed and not e.echo and (e.keycode == KEY_ENTER or e.keycode == KEY_SPACE):
+		pressed_down.emit(index)
+		released.emit(index, front_global_center())
+		accept_event()
+		queue_redraw()
+	elif e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
 		if e.pressed:
 			_down = true
 			_press_pos = e.position
@@ -247,7 +253,7 @@ func _draw_badge(at: Vector2) -> void:
 	draw_circle(at, r, bg)
 	match kind:
 		"tray":
-			draw_string(Style.font_bold, at + Vector2(-r, 9), str(int(badge.get("tray", 0)) + 1), HORIZONTAL_ALIGNMENT_CENTER, r * 2, 26, Color.WHITE)
+			draw_string(Style.font_bold, at + Vector2(-r, Style.fs(9)), str(int(badge.get("tray", 0)) + 1), HORIZONTAL_ALIGNMENT_CENTER, r * 2, Style.fs(26), Color.WHITE)
 		"counter":
 			for k in 3:
 				draw_rect(Rect2(at + Vector2(-12 + k * 9, -4), Vector2(6, 8)), Color.WHITE)
@@ -281,5 +287,5 @@ func _draw_lock(off: Vector2, w: float) -> void:
 	var lc := c + Vector2(-tw * 0.2, -4)
 	draw_arc(lc + Vector2(0, -8), 10, PI, TAU, 12, Style.INK, 5, true)
 	draw_rect(Rect2(lc + Vector2(-14, -8), Vector2(28, 24)), Style.INK)
-	draw_string(Style.font_bold, c + Vector2(0, 14), str(lock_left), HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Style.INK)
-	draw_string(Style.font_regular, c + Vector2(-tw / 2, 38), Loc.t("lock_orders_short"), HORIZONTAL_ALIGNMENT_CENTER, tw, 17, Style.INK_SOFT)
+	draw_string(Style.font_bold, c + Vector2(0, Style.fs(14)), str(lock_left), HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(38), Style.INK)
+	draw_string(Style.font_regular, c + Vector2(-tw / 2, Style.fs(38)), Loc.t("lock_orders_short"), HORIZONTAL_ALIGNMENT_CENTER, tw, Style.fs(17), Style.INK_SOFT)

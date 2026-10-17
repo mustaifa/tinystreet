@@ -7,6 +7,7 @@ extends Control
 const TOPICS := [
 	["dl_help_goal", "target"], ["dl_help_move", "tap"], ["dl_help_push", "crate"], ["dl_help_pads", "check"],
 	["dl_help_stuck", "lock"], ["dl_help_undo", "undo"], ["dl_help_hint", "hint"], ["dl_help_reward", "coin"],
+	["dl_help_keys", "arrow_right"],
 ]
 
 func setup(_p: Dictionary) -> void:
@@ -41,5 +42,10 @@ func setup(_p: Dictionary) -> void:
 		v.add_child(UI.card(card))
 	v.add_child(UI.icon_text_button("restart", Loc.t("replay_tips"), func():
 		App.data.tutorial.done = {}
+		# v8 lessons: their coach lines show again until each is solved again
+		for i in App.delivery.count():
+			var id := App.delivery.id_at(i)
+			if App.delivery.level(id).meta.get("coach") is Dictionary:
+				App.data.tutorial.done["dl_tips:" + id] = true
 		App.save_soon()
 		App.main.toast(Loc.t("tips_reset")), "SecondaryButton"))

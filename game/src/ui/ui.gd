@@ -6,7 +6,9 @@ extends RefCounted
 ##
 ## Buttons give immediate press feedback (the key sinks and scales slightly),
 ## and ignore a second press within DEBOUNCE_MS or while a screen transition
-## is running, so double taps never trigger an action twice.
+## is running, so double taps never trigger an action twice. Every key takes
+## keyboard / D-pad focus (Enter, Space or the pad's A press it); the focus
+## ring shows only after keyboard or pad input.
 
 const DEBOUNCE_MS := 350
 
@@ -48,7 +50,7 @@ static func press_feedback(b: Control) -> void:
 		tw.tween_property(b, "scale", Vector2.ONE, Style.M_BASE).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
 
 static func _wire(b: Button, cb: Callable, sound: String = "tap") -> void:
-	b.focus_mode = Control.FOCUS_NONE
+	b.focus_mode = Control.FOCUS_ALL
 	press_feedback(b)
 	b.pressed.connect(func():
 		if _blocked(b):
@@ -335,6 +337,7 @@ static func scroll(child: Control) -> ScrollContainer:
 	var s := ScrollContainer.new()
 	s.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	s.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	s.follow_focus = true
 	var m := margin(child, 4, 4, 14, 24)
 	m.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	child.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -456,7 +459,7 @@ class Bubble extends Control:
 		var sb := Style.box(Style.TERRACOTTA, int(h / 2), Style.PAPER, 3, false)
 		draw_style_box(sb, r)
 		if n >= 0:
-			draw_string(Style.font_bold, Vector2(0, h / 2 + 8), str(n), HORIZONTAL_ALIGNMENT_CENTER, size.x, 22, Color.WHITE)
+			draw_string(Style.font_bold, Vector2(0, h / 2 + 8), str(n), HORIZONTAL_ALIGNMENT_CENTER, size.x, Style.fs(22), Color.WHITE)
 
 ## An On/Off switch. The word "On"/"Off" sits inside the track, so the state
 ## never depends on colour alone. `on_change(bool)`.
@@ -464,7 +467,7 @@ static func switch(value: bool, on_change: Callable) -> Button:
 	var s := Switch.new()
 	s.toggle_mode = true
 	s.button_pressed = value
-	s.focus_mode = Control.FOCUS_NONE
+	s.focus_mode = Control.FOCUS_ALL
 	s.custom_minimum_size = Vector2(132, Style.MIN_TOUCH)
 	s.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	s.toggled.connect(func(on: bool):
@@ -480,8 +483,9 @@ class Switch extends Button:
 	func _ready() -> void:
 		flat = true
 		_k = 1.0 if button_pressed else 0.0
-		for st in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		for st in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
 			add_theme_stylebox_override(st, StyleBoxEmpty.new())
+		add_theme_stylebox_override("focus", Style.focus_ring(32))
 
 	func animate() -> void:
 		var target := 1.0 if button_pressed else 0.0
@@ -505,5 +509,9 @@ class Switch extends Button:
 		draw_circle(Vector2(kx, r.get_center().y), h / 2 - 5, Style.PAPER)
 		var word := Loc.t("on") if on else Loc.t("off")
 		var tx := r.position.x + 8 if (on != rtl) else r.position.x + h - 4
-		draw_string(Style.font_bold, Vector2(tx, r.get_center().y + 8), word, HORIZONTAL_ALIGNMENT_CENTER, w - h - 4, Style.fs(21),
+		# the word shrinks to fit the track (Arabic and Larger text are wider)
+		var px := Style.fs(21)
+		while px > 14 and Style.font_bold.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > w - h - 8:
+			px -= 1
+		draw_string(Style.font_bold, Vector2(tx, r.get_center().y + px * 0.38), word, HORIZONTAL_ALIGNMENT_CENTER, w - h - 4, px,
 			Color.WHITE if on else Style.INK_SOFT)

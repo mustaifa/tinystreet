@@ -1,7 +1,13 @@
 extends Control
 ## Root host: full-bleed background, safe-area container, screen stack,
-## modal overlays and toasts. Android back is routed through handle_back():
-## overlay -> screen-specific handling -> pop screen -> exit confirmation.
+## modal overlays and toasts. Android back (and Escape / a pad's B) is routed
+## through handle_back(): overlay -> screen-specific handling -> pop screen ->
+## exit confirmation.
+##
+## Keyboard and D-pad: every UI key takes focus. A screen or dialog may name
+## its `default_focus` (its main action); after key or pad input it gets
+## focus when it opens, and the first arrow/Tab press focuses it when nothing
+## has focus. Touch never moves focus visibly.
 
 const SCREENS := {
 	"boot": "res://src/screens/boot_screen.gd",
@@ -32,6 +38,7 @@ var overlays: Array = []
 var sim_cutout := 0          # debug: simulate a top cutout (px) via --sim-cutout=N
 var _toast: Control
 var _lock_until := 0         # ms: UI buttons ignore presses during a screen transition
+var keyboard_nav := false    # the last input came from keys or a pad (not touch)
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -64,6 +71,9 @@ func _apply_safe_area() -> void:
 	var vp := get_viewport_rect().size
 	var m := [24, 16, 24, 16] # l, t, r, b minimum comfortable margins
 	if OS.has_feature("mobile"):
+		# Immersive mode can report no bottom inset: keep the dock clear of
+		# the gesture-navigation strip anyway (~14 dp on a 360 dp phone).
+		m[3] = 28
 		var win := Vector2(DisplayServer.window_get_size())
 		var sa := DisplayServer.get_display_safe_area()
 		if win.x > 0 and win.y > 0 and sa.size.x > 0:
@@ -123,6 +133,8 @@ func _show(name: String, params: Dictionary) -> void:
 	current = scr
 	if scr.has_method("setup"):
 		scr.setup(params)
+	if keyboard_nav:
+		focus_default.call_deferred()
 	var mode = scr.get("screen_mode")
 	bg.set_mode(str(mode) if mode != null else "cafe")
 	_lock_until = Time.get_ticks_msec() + int(Style.M_BASE * 1000)
@@ -143,6 +155,47 @@ func input_locked() -> bool:
 
 func current_name() -> String:
 	return stack.back().name if not stack.is_empty() else ""
+
+func _input(e: InputEvent) -> void:
+	if e is InputEventKey or e is InputEventJoypadButton:
+		keyboard_nav = true
+	elif (e is InputEventMouseButton or e is InputEventScreenTouch) and e.is_pressed():
+		keyboard_nav = false
+
+func _unhandled_input(e: InputEvent) -> void:
+	# KEY_BACK arrives as NOTIFICATION_WM_GO_BACK_REQUEST (App) as well.
+	if e is InputEventKey and e.keycode == KEY_BACK:
+		return
+	if e.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		handle_back()
+		return
+	if get_viewport().gui_get_focus_owner() != null:
+		return
+	for a in ["ui_focus_next", "ui_focus_prev", "ui_up", "ui_down", "ui_left", "ui_right"]:
+		if e.is_action_pressed(a):
+			if focus_default(true):
+				get_viewport().set_input_as_handled()
+			return
+
+## Focuses the top overlay's or screen's `default_focus`, or with `any` the
+## first focusable control in it. Returns true when something took focus.
+func focus_default(any: bool = false) -> bool:
+	var root: Control = overlays.back() if not overlays.is_empty() else current
+	if root == null or not is_instance_valid(root):
+		return false
+	var c: Control = null
+	var f = root.get("default_focus")
+	if f is Control and is_instance_valid(f) and f.is_visible_in_tree():
+		c = f
+	elif any:
+		c = root.find_next_valid_focus()
+		if c != null and not root.is_ancestor_of(c):
+			c = null
+	if c == null:
+		return false
+	c.grab_focus()
+	return true
 
 func handle_back() -> void:
 	if not overlays.is_empty():
@@ -182,6 +235,8 @@ func close_overlay(o: Control) -> void:
 		o.queue_free()
 	if overlays.is_empty():
 		overlay_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if keyboard_nav:
+		focus_default.call_deferred()
 
 func close_all_overlays() -> void:
 	for o in overlays.duplicate():

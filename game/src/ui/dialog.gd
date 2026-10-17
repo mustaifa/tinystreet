@@ -14,6 +14,7 @@ var back_closes := true
 var on_dismiss: Callable
 var night := false
 var icon := ""
+var default_focus: Control   # the first (main) action; focused for keyboard / pad players
 var _ready_to_show := false
 
 static func make(title: String, text: String, buttons: Array, extra: Control = null, icon_kind: String = "", night_style: bool = false) -> Dialog:
@@ -78,6 +79,7 @@ func _build(title: String, text: String, buttons: Array, extra: Control) -> void
 	if content.get_child_count() > 0:
 		scroll = ScrollContainer.new()
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.follow_focus = true
 		scroll.add_child(content)
 		body.add_child(scroll)
 	# Layout: two buttons share a row; with more, the main actions stack and
@@ -94,6 +96,8 @@ func _build(title: String, text: String, buttons: Array, extra: Control) -> void
 		var cb: Callable = b[1]
 		var btn := UI.button(b[0], func(): close(); cb.call(), _map_variant(b[2] if b.size() > 2 else ""))
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if k == 0:
+			default_focus = btn
 		if k >= pair_from:
 			pair.add_child(btn)
 		else:
@@ -128,6 +132,8 @@ func appear() -> void:
 	await _fit()
 	if not is_inside_tree():
 		return
+	if App.main and App.main.get("keyboard_nav") and default_focus:
+		default_focus.grab_focus()
 	if App.reduced_motion():
 		modulate.a = 1.0
 		return

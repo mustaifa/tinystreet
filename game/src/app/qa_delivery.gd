@@ -19,6 +19,11 @@ extends RefCounted
 ##   dl_rapid     an input storm on a hard puzzle, then integrity checks
 ##   dl_migrated  launched on a genuine v7 (schema 5) save
 ##   dl_evidence  puzzle 7: the tempting push, its proof, the strategy hint
+##   dl_keys      keyboard and pad only: intro by Enter, the first-move guide,
+##                puzzle 1 by keys (no double moves from echoes), Enter on the
+##                focused Next Puzzle, Escape = Back (pause, exit prompt),
+##                arrows still move with a dock key focused, the D-pad, the
+##                focus ring on Home
 
 var q: Node   # qa_driver.gd
 
@@ -44,6 +49,7 @@ func run(name: String) -> void:
 		"dl_rapid": await rapid()
 		"dl_migrated": await migrated()
 		"dl_evidence": await evidence()
+		"dl_keys": await keys()
 		_: print("QA: FAIL unknown scenario ", name)
 
 # --------------------------------------------------------------- input helpers
@@ -234,6 +240,7 @@ func journey() -> void:
 	expect(scr().blocked_label.text.begins_with(Loc.t("dl_blocked_search")), "card says every sequence was checked")
 	await q.shot("dl_08_blocked_by_search")
 	# hint in a blocked position says how far to go back
+	await q._wait(0.8)   # a reader takes longer than the card's 600 ms tap guard
 	await q._tap_named(scr(), Loc.t("hint"))
 	await q._wait(0.6)
 	await q._wait(1.0)
@@ -458,6 +465,20 @@ func look() -> void:
 	App.main.goto("help")
 	await q._wait(0.6)
 	await q.shot(tag + "look_help")
+	var sc: ScrollContainer = q._find_scroll(App.main.current)
+	if sc:
+		sc.scroll_vertical = 100000
+		await q._frames(3)
+		await q.shot(tag + "look_help_end")
+	for name in ["settings", "credits"]:
+		App.main.goto(name)
+		await q._wait(0.6)
+		await q.shot(tag + "look_" + name)
+	var sc2: ScrollContainer = q._find_scroll(App.main.current)
+	if sc2:
+		sc2.scroll_vertical = 100000
+		await q._frames(3)
+		await q.shot(tag + "look_credits_end")
 
 func clip_win() -> void:
 	await q._dismiss_stories("")
@@ -634,3 +655,145 @@ func evidence() -> void:
 	expect(await wait_solved(), "solved with the coffee delivered last")
 	await q._wait(1.2)
 	await q.shot("ev_04_d07_solved")
+
+# --------------------------------------------------------------- keyboard / pad
+
+func key(code: int, echo: bool = false) -> void:
+	var ev := InputEventKey.new()
+	ev.keycode = code
+	ev.pressed = true
+	ev.echo = echo
+	Input.parse_input_event(ev)
+	await q._frames(1)
+	if not echo:
+		ev = ev.duplicate()
+		ev.pressed = false
+		Input.parse_input_event(ev)
+	await q._frames(2)
+
+func pad(button: int) -> void:
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = button
+	ev.pressed = true
+	Input.parse_input_event(ev)
+	await q._frames(1)
+	ev = ev.duplicate()
+	ev.pressed = false
+	Input.parse_input_event(ev)
+	await q._frames(2)
+
+func focused() -> Control:
+	return q.get_viewport().gui_get_focus_owner()
+
+func focused_text() -> String:
+	var f := focused()
+	return q._btn_text(f).strip_edges() if f is Button else ("<%s>" % (f.name if f else "none"))
+
+## A direction the courier can walk without pushing (for focus checks).
+func free_dir() -> int:
+	var s := scr()
+	for d in 4:
+		var t: int = s.level.nbr(s.ps.state.player, d)
+		if s.level.floor_at(t) and s.ps.state.at[t] < 0:
+			return d
+	return -1
+
+func keys() -> void:
+	# 1. the intro advances with Enter, then puzzle 1 opens
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 5000 and (App.main.overlays.is_empty() or not (App.main.overlays.back() is SpeechBubble)):
+		await q._frames(2)
+	expect(not App.main.overlays.is_empty() and App.main.overlays.back() is SpeechBubble, "intro story shown")
+	await q.shot("keys_00_intro")
+	for i in 8:
+		if App.main.overlays.is_empty():
+			break
+		await q._wait(0.45)
+		await key(KEY_ENTER)
+	await q._wait(0.8)
+	expect(App.main.current_name() == "puzzle" and scr().level_id == "d01", "Enter through the intro opens puzzle 1")
+	# 2. the first-move guide: a gold arrow on the crate to push first
+	t0 = Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 4000 and scr().board.hint_crate < 0:
+		await q._frames(2)
+	expect(scr().board.hint_crate >= 0 and scr().board.hint_dir >= 0, "puzzle 1 shows the first push before any move")
+	await q.shot("keys_01_first_move_guide")
+	# 3. an echoed key (key held down) never moves
+	var snap: PackedInt32Array = scr().ps.state.snapshot()
+	await key([KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT][free_dir()], true)
+	expect(scr().ps.state.snapshot() == snap, "a key-repeat echo makes no move")
+	# 4. solve by keys only: arrows, WASD and the D-pad in turn; one move each
+	var mv := solution_moves()
+	var codes := [[KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT], [KEY_W, KEY_D, KEY_S, KEY_A]]
+	var pads := [JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_LEFT]
+	var single := true
+	for k in mv.size():
+		var before: int = scr().ps.state.steps + scr().ps.state.pushes
+		if k % 3 == 2:
+			await pad(pads[mv[k]])
+		else:
+			await key(codes[k % 3][mv[k]])
+		if k == 0:
+			expect(scr().board.hint_crate < 0, "the first move clears the guide")
+		# steps count walks and pushes count pushes: one press adds one in total
+		if scr().ps.state.steps + scr().ps.state.pushes != before + 1:
+			print("QA: note move %d dir %d: %d -> %d" % [k, mv[k], before, scr().ps.state.steps + scr().ps.state.pushes])
+			single = false
+		if scr().ps.is_won():
+			break
+	expect(single, "every key or D-pad press made exactly one move")
+	expect(await wait_solved(), "puzzle 1 solved by keys")
+	await q._wait(0.9)
+	expect(focused_text().contains(Loc.t("dl_next_puzzle")), "result card focuses Next Puzzle (%s)" % focused_text())
+	await q.shot("keys_02_solved_focus_ring")
+	await key(KEY_ENTER)
+	await q._wait(0.9)
+	expect(App.main.current_name() == "puzzle" and scr().level_id == "d02", "Enter on Next Puzzle opens puzzle 2")
+	# 5. Escape = Back: pause opens (Resume focused), Escape closes it
+	snap = scr().ps.state.snapshot()
+	await key(KEY_ESCAPE)
+	await q._wait(0.5)
+	expect(not App.main.overlays.is_empty() and card_text().contains(Loc.t("paused")), "Escape opens Pause")
+	expect(focused_text() == Loc.t("resume"), "Pause focuses Resume (%s)" % focused_text())
+	await q.shot("keys_03_pause_focus")
+	await key(KEY_DOWN)
+	expect(focused_text() != Loc.t("resume"), "Down moves focus in the dialog (%s)" % focused_text())
+	await key(KEY_ESCAPE)
+	await q._wait(0.3)
+	expect(App.main.overlays.is_empty() and scr().ps.state.snapshot() == snap, "Escape closes Pause; nothing moved")
+	# 6. a dock key focused by Tab; arrows still move the courier
+	await key(KEY_TAB)
+	var f0 := focused()
+	expect(f0 != null, "Tab focuses a key on the puzzle screen")
+	var d := free_dir()
+	var st0: int = scr().ps.state.steps
+	await key([KEY_UP, KEY_RIGHT, KEY_DOWN, KEY_LEFT][d])
+	expect(scr().ps.state.steps == st0 + 1 and focused() == f0, "arrows move the courier, not the focus")
+	await key(KEY_Z)
+	expect(scr().ps.state.steps == st0, "Z undoes")
+	# 7. leave by keys: Pause -> Tab to Quit -> Enter; Home focuses Play
+	await key(KEY_ESCAPE)
+	await q._wait(0.5)
+	for i in 10:
+		if focused_text() == Loc.t("quit_to_home"):
+			break
+		await key(KEY_TAB)
+	await key(KEY_ENTER)
+	await q._wait(0.9)
+	expect(App.main.current_name() == "home", "Quit to home by keys")
+	expect(focused() != null and focused().name == "PlayButton", "Home focuses Play for keyboard players (%s)" % focused_text())
+	await q.shot("keys_04_home_play_focused")
+	await key(KEY_TAB)
+	expect(focused() != null and focused().name != "PlayButton", "Tab moves on (%s)" % focused_text())
+	await q.shot("keys_05_home_tab")
+	# 8. Escape on Home asks before leaving; Enter on the focused Stay keeps the game
+	await key(KEY_ESCAPE)
+	await q._wait(0.5)
+	expect(card_text().contains(Loc.t("exit_title")), "Escape on Home asks before leaving")
+	expect(focused_text() == Loc.t("exit_stay"), "the safe choice is focused (%s)" % focused_text())
+	await key(KEY_ENTER)
+	await q._wait(0.4)
+	expect(App.main.overlays.is_empty() and App.main.current_name() == "home", "Stay closes the prompt")
+	# 9. a tap hides keyboard mode: no ring drawn after a pointer press
+	await q.click(Vector2(360, 300))
+	expect(not App.main.keyboard_nav, "a tap leaves keyboard mode")

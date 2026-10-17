@@ -24,6 +24,8 @@ run life_a dl_life_a 720x1280
 run life_b dl_life_b 720x1280
 run rapid dl_rapid 720x1280
 run evidence dl_evidence 720x1280
+run keys dl_keys 720x1280
+run keys_ar_large dl_keys 720x1280 --qa-lang=ar --qa-large-text
 [ -n "$V7" ] && run migrated dl_migrated 720x1280
 run look dl_look 720x1280
 run look_ar dl_look 720x1280 --qa-lang=ar

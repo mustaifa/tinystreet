@@ -13,7 +13,10 @@ The café storeroom is full of crates. Push each crate onto the pad that shows
 
 ## Moving
 * **Swipe** on the board, or use the **arrow buttons**, to walk one square.
-  On a computer, the arrow keys (or W A S D) work too.
+  On a computer, the arrow keys (or W A S D) work too, and a game pad's
+  D-pad does the same. **Z** undoes and **Y** redoes. **Tab** moves between
+  buttons, **Enter** or **Space** presses the highlighted one, and **Escape**
+  goes back.
 * **Tap** an empty square to walk there. Walking never pushes a crate.
 * Walk into a crate to **push** it one square. You **can't pull** a crate, and
   you **can't push two** at once.

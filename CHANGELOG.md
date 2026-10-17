@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.8.1 (v8.1), 2026-10-17: keyboard and pad play, first-run guide, release polish
+A polish release on the v8 Delivery Logic game (branch `feature/game-polish-release`). Rules, levels, proofs, economy and the save schema (6) are unchanged. Real purchases stay disabled; no ad IDs, keys or credentials were added.
+
+### Input and accessibility
+- **Keyboard / D-pad focus.** Every shared UI key (buttons, chips, tiles, list rows, switches, sliders) now takes focus; Enter, Space or a pad's A presses it. Before, every key was `FOCUS_NONE`, so nothing could be reached without a pointer.
+- **Visible, consistent focus ring:** a 4 px GOLD_EDGE ring drawn just outside the key (LANTERN on night keys), from `Style.focus_ring()`. It shows only after key or pad input (`gui/common/show_focus_state_on_pointer_event = 0`), never after a tap.
+- **Default focus:** Home focuses Play, Puzzles its play button, every dialog its first (main) action (Puzzle Solved → Next Puzzle, Pause → Resume, the exit prompt → Stay). With nothing focused, the first arrow or Tab press focuses the screen's main action. Scroll areas follow focus.
+- **Escape / a pad's B = Back**, through the same route as Android Back (overlay → screen → previous screen → exit prompt).
+- **Puzzle screen:** arrow keys, WASD and the D-pad always move the courier, even while a dock key has focus (Tab moves focus there). Key-repeat echoes and a held analog stick never move; one press = one move. Z / Backspace undo, Y redoes.
+- **Story bubbles** advance with Enter / Space / A as well as a tap; "Tap to continue" now sits at the end of the line in Arabic too.
+
+### First run
+- **Puzzle 1 shows its first push** before the player's first move: the gold hint arrow on the crate, from the proved solution. Any move clears it. The two-line intro stays short and skippable.
+- **Help → "Show tutorial tips again"** now also brings back the coach lines of the three lesson puzzles (until each is solved again). In v8 it only reset the retired mode's tips.
+- Help gains a **Keyboard and controller** topic (EN/AR).
+
+### Readability and layout
+- HUD captions (Delivered · Pushes · Steps) use the caption size (21 px, was 19) and the strip grows with Larger text, so captions and numbers never touch.
+- Count badges follow the Larger text setting (they used a fixed 22 px).
+- Android: the bottom safe margin is at least 28 px (≈14 dp), so the dock stays clear of the gesture-navigation strip even when immersive mode reports no inset.
+
+### Release
+- **0.8.1 / versionCode 9** in all three Android presets (same package and debug key). A new test checks `App.VERSION`, every Android preset's name and code, and the package id agree.
+- **Credits → Licences** shows Godot's licence text and its third-party component list from the engine itself (release checklist item).
+- New tests: focus on every key type, focus ring on every key variation with contrast, dialog default focus, version consistency, the tips-replay flag surviving a save. New real-input QA journey `dl_keys` (in `tools/dl_battery.sh`).
+
 ## 0.8.0 (v8), 2026-10-17: Delivery Logic, a rebuilt core puzzle
 The owner found the sorting game "feels like clicking highlighted items rather than solving puzzles" and authorised a core rebuild. v8 replaces the puzzle with **Delivery Logic** (working title): a courier pushes picture-marked crates onto matching pads in small storerooms. Save schema 5 → 6. Branch `feature/delivery-logic`.
 

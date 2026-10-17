@@ -81,6 +81,14 @@ func test_best_and_medals() -> void:
 	eq(DeliveryProgress.best(d, "tlv").steps, fast.state.steps)
 	check(DeliveryProgress.medal(d, "tlv", "unassisted"), "medals are never taken away")
 
+func test_win_does_not_feed_retired_achievements() -> void:
+	var d := GameData.fresh()
+	var l := _lv(ROOM, 4, 4)
+	DeliveryProgress.record_win(d, l, _solve(l))
+	eq(int(d.stats.wins), 0, "sorting-mode stats untouched")
+	eq(Achievements.claimable_count(d), 0, "no retired achievement becomes claimable")
+	eq(int(d.tokens), 4, "only the completion reward")
+
 func test_no_medal_without_proof() -> void:
 	var d := GameData.fresh()
 	var l := _lv(ROOM, 4, -1)

@@ -601,8 +601,9 @@ func _on_won() -> void:
 	_check = null
 	board.hint_crate = -1
 	App.main.lock_input(700)
+	# Only Delivery Logic records change here: the retired sorting mode's
+	# stats feed its own achievements and tasks, which must not pay for this.
 	var res := DeliveryProgress.record_win(App.data, level, ps)
-	App.data.stats.wins = int(App.data.stats.wins) + 1
 	App.analytics.event("dl_win", {"level": level_id, "pushes": ps.state.pushes, "steps": ps.state.steps,
 		"hints": ps.hints_used, "first": res.first_clear})
 	App.save_now()

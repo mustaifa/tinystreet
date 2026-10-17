@@ -11,7 +11,14 @@ extends Control
 ##  6 seating    tables and chairs (bistro / rattan / booth); Theo and Basil
 ##  7 plants     plants and a window box (ferns / olive / flowers)
 ##  8 opening    the sign, bunting, OPEN board, neighbours at the window
-## Extras (clock, cake stand, gramophone, cat, photos) draw when owned.
+## Extras (clock, cake stand, gramophone, cat, photos, chalkboard) draw when
+## owned.
+##
+## v3 life: once the counter is restored, neighbours come in through the side
+## door, queue at the counter, Mira hands over a drink and they leave with it
+## (a fixed, cheap timeline; no AI). Plants sway, the door swings, the lights
+## breathe. `cheer()` makes the cast celebrate a milestone for a moment.
+## Reduced motion: one customer simply stands at the counter; nothing moves.
 
 const W := 600.0
 const H := 560.0
@@ -24,6 +31,12 @@ var choices := {}
 var extras := {}
 var preview := false       # draws a "preview" ribbon (restore screen peek)
 var _t := 0.0
+var _cheer := 0.0          # > 0 while the cast celebrates a milestone
+
+const VISIT := 14.0        # seconds per customer visit cycle
+const DOOR_X := 34.0
+const QUEUE_X := 300.0
+const FEET_Y := 404.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -33,7 +46,21 @@ func _process(delta: float) -> void:
 	if App.reduced_motion() or not is_visible_in_tree():
 		return
 	_t += delta
+	_cheer = maxf(0.0, _cheer - delta)
 	queue_redraw()
+
+## The cast bounces with a happy face for a couple of seconds.
+func cheer() -> void:
+	_cheer = 2.4
+	queue_redraw()
+
+func _cast_mood() -> int:
+	return 1 if steps >= 8 or _cheer > 0.0 else 0
+
+func _hop(phase: float) -> Vector2:
+	if _cheer <= 0.0 or App.reduced_motion():
+		return Vector2.ZERO
+	return Vector2(0, -absf(sin(_t * 9.0 + phase)) * 12.0)
 
 func configure_state(v: Dictionary) -> void:
 	steps = int(v.get("steps", 0))
@@ -72,7 +99,15 @@ func _scene() -> void:
 	_room(s, evening)
 	_window(s, evening)
 	_lights(s, evening)
+	_door(s)
+	_visitor(s)
 	_shelves_counter(s)
+	if extras.has("chalkboard"):
+		_chalkboard(s)
+	if extras.has("breadbasket"):
+		_breadbasket(s)
+	if extras.has("lamp"):
+		_lamp()
 	_extras_back(s)
 	_seating(s)
 	_plants(s)
@@ -169,7 +204,7 @@ func _room(s: int, evening: bool) -> void:
 # --- window on the back wall --------------------------------------------------
 
 func _window(s: int, evening: bool) -> void:
-	var r := Rect2(40, 130, 210, 170)
+	var r := Rect2(70, 130, 186, 170)
 	var trim: Color = TRIMS.get(_c("walls"), TRIMS.cream) if s >= 2 else Color("6d655c")
 	_rect(r.position.x - 10, r.position.y - 10, r.size.x + 20, r.size.y + 24, trim, 8)
 	var sky := Color("bfe0e8") if not evening else Color("2c3e5a")
@@ -259,7 +294,7 @@ func _shelves_counter(s: int) -> void:
 	for i in 6:
 		ProductArt.draw(self, Products.COFFEE, Vector2(358 + i * 38, 202), 32)
 	# Mira behind the counter
-	CharacterArt.draw(self, "mira", Vector2(470, 278), 110, 1 if steps >= 8 else 0)
+	CharacterArt.draw(self, "mira", Vector2(470, 278) + _hop(0.0) + _mira_lean(), 110, _cast_mood())
 	# counter body
 	var front := Color("a8714a")
 	var top := Color("d9a87c")
@@ -306,8 +341,8 @@ func _seating(s: int) -> void:
 	var style := _c("seating")
 	var c: Color = {"bistro": Style.WOOD_DARK, "rattan": Color("c9a26b"), "booth": Style.TERRACOTTA, "evening": Color("2b2b2b")}.get(style, Style.WOOD_DARK)
 	# characters sit first, then tables in front
-	CharacterArt.draw(self, "theo", Vector2(110, 420), 96, 1 if steps >= 8 else 0)
-	CharacterArt.draw(self, "basil", Vector2(262, 424), 96, 1 if steps >= 8 else 0)
+	CharacterArt.draw(self, "theo", Vector2(110, 420) + _hop(1.3), 96, _cast_mood())
+	CharacterArt.draw(self, "basil", Vector2(262, 424) + _hop(2.1), 96, _cast_mood())
 	for tx in [150.0, 230.0]:
 		if style == "booth":
 			_rect(tx - 120 if tx < 200 else tx + 30, 440, 90, 70, c, 12)
@@ -365,11 +400,12 @@ func _plants(s: int) -> void:
 			_:
 				for i in 9:
 					var a := PI + PI * i / 8.0
-					draw_line(Vector2(x + 22, 470), Vector2(x + 22, 470) + Vector2(cos(a), sin(a)) * 50, Color("3f8a52"), 7, true)
+					var sway := sin(_t * 1.3 + i) * 0.06 if not App.reduced_motion() else 0.0
+					draw_line(Vector2(x + 22, 470), Vector2(x + 22, 470) + Vector2(cos(a + sway), sin(a + sway)) * 50, Color("3f8a52"), 7, true)
 	# window box under the window
-	_rect(46, 312, 198, 18, Style.WOOD, 4)
+	_rect(62, 312, 198, 18, Style.WOOD, 4)
 	for i in 10:
-		var p := Vector2(56 + i * 20, 306)
+		var p := Vector2(72 + i * 19, 306)
 		match style:
 			"flowers": draw_circle(p, 7, [Color("e58fa8"), Color("f0c25a"), Color("d6453d")][i % 3])
 			"olive": draw_circle(p, 8, Color("8aa26a"))
@@ -485,3 +521,108 @@ func _bunting() -> void:
 		var x := 20 + i * 40.0
 		var y := 76 + sin(i / 13.0 * PI) * 14
 		_poly([Vector2(x, y), Vector2(x + 32, y), Vector2(x + 16, y + 24)], [Style.TERRACOTTA, Style.TEAL, Style.GOLD][i % 3])
+
+# --- v3: door, visitors ----------------------------------------------------------
+
+## Where the current visitor is: {who, x, phase (walk cycle), cup, at_counter}
+## or {} when the café is empty. A fixed 14 s timeline per visit.
+func _visit_state() -> Dictionary:
+	if steps < 4:
+		return {}
+	var cycle := int(_t / VISIT)
+	var k := fmod(_t, VISIT)
+	var who := "n%d" % posmod(cycle * 5 + 2, 6)
+	if App.reduced_motion():
+		return {"who": "n2", "x": QUEUE_X, "phase": 0.0, "cup": false, "at_counter": true}
+	if k < 3.0:
+		return {"who": who, "x": lerpf(DOOR_X - 20, QUEUE_X, k / 3.0), "phase": k * 7.0, "cup": false, "at_counter": false}
+	if k < 5.5:
+		return {"who": who, "x": QUEUE_X, "phase": 0.0, "cup": k > 4.6, "at_counter": true}
+	if k < 8.5:
+		return {"who": who, "x": lerpf(QUEUE_X, DOOR_X - 30, (k - 5.5) / 3.0), "phase": k * 7.0, "cup": true, "at_counter": false}
+	return {}
+
+## Mira leans toward the counter while serving.
+func _mira_lean() -> Vector2:
+	var v := _visit_state()
+	if v.is_empty() or not v.at_counter or App.reduced_motion():
+		return Vector2.ZERO
+	return Vector2(-10, 4)
+
+func _door(s: int) -> void:
+	var x := 16.0
+	var y := 214.0
+	var w := 40.0
+	var h := 188.0
+	var frame := TRIMS.get(_c("walls"), TRIMS.cream) as Color if s >= 2 else Color("6d655c")
+	_rect(x - 4, y - 6, w + 8, h + 6, frame, 4)
+	_rect(x, y, w, h, Color("e9e2c8") if s >= 1 else Color("4f463d"))   # street light behind
+	var open := 0.0
+	var v := _visit_state()
+	if not v.is_empty() and not App.reduced_motion():
+		open = clampf(1.0 - absf(float(v.x) - DOOR_X) / 70.0, 0.0, 1.0)
+	var pw := lerpf(w, 8.0, open)
+	_rect(x, y, pw, h, Style.WOOD if s >= 1 else Color("5e5246"), 3)
+	if pw > 20:
+		_rect(x + 6, y + 14, pw - 12, 60, Color("bfe0dc") if s >= 1 else Color("3b322b"), 3)
+		draw_circle(Vector2(x + pw - 8, y + 100), 3, Style.GOLD)
+
+func _visitor(s: int) -> void:
+	var v := _visit_state()
+	if v.is_empty():
+		return
+	var spec: Array = CharacterArt.NEIGHBOURS[int(str(v.who).substr(1)) % CharacterArt.NEIGHBOURS.size()]
+	var x: float = v.x
+	var feet := FEET_Y
+	var swing := sin(float(v.phase)) * 7.0
+	var trousers := Color("4a4a58")
+	draw_line(Vector2(x - 6, feet - 40), Vector2(x - 6 + swing, feet), trousers, 9, true)
+	draw_line(Vector2(x + 6, feet - 40), Vector2(x + 6 - swing, feet), trousers, 9, true)
+	_rect(x - 18, feet - 78, 36, 44, spec[2], 10)
+	CharacterArt.draw(self, str(v.who), Vector2(x, feet - 92), 70, 1 if v.cup else 2)
+	if v.cup:
+		ProductArt.draw(self, Products.COFFEE, Vector2(x + 20, feet - 52), 24)
+	elif v.at_counter:
+		# a small speech bubble with what they ordered
+		_rect(x + 14, feet - 150, 40, 34, Style.PAPER, 10)
+		ProductArt.draw(self, Products.COFFEE, Vector2(x + 34, feet - 133), 24)
+
+## Theo's study-group menu board (special-order reward): on the counter front
+## once the counter is restored, otherwise leaning on the wall.
+func _chalkboard(s: int) -> void:
+	var r := Rect2(362, 330, 104, 62) if s >= 4 else Rect2(266, 330, 62, 72)
+	_rect(r.position.x - 4, r.position.y - 4, r.size.x + 8, r.size.y + 8, Style.WOOD_DARK, 4)
+	_rect(r.position.x, r.position.y, r.size.x, r.size.y, Color("2f3b34"), 3)
+	draw_string(Style.font_bold, Vector2(r.position.x, r.position.y + 18), Loc.t("menu_board"), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 14, Color(1, 1, 1, 0.9))
+	for i in 3:
+		var y := r.position.y + 28 + i * 11
+		draw_line(Vector2(r.position.x + 8, y), Vector2(r.position.x + r.size.x * (0.55 + 0.12 * (i % 2)), y), Color(1, 1, 1, 0.55), 2)
+		draw_circle(Vector2(r.end.x - 10, y), 2, Color(1, 0.85, 0.5, 0.8))
+	if s < 4:
+		draw_line(Vector2(r.position.x + 6, r.end.y + 4), Vector2(r.position.x - 4, r.end.y + 14), Style.WOOD_DARK, 4)
+		draw_line(Vector2(r.end.x - 6, r.end.y + 4), Vector2(r.end.x + 4, r.end.y + 14), Style.WOOD_DARK, 4)
+
+## Mira's bread basket (bakery special-order reward).
+func _breadbasket(s: int) -> void:
+	var c := Vector2(478, 292) if s >= 4 else Vector2(112, 300)
+	draw_colored_polygon(PackedVector2Array([c + Vector2(-24, -6), c + Vector2(24, -6), c + Vector2(18, 12), c + Vector2(-18, 12)]), Color("c9a26b"))
+	for k in 3:
+		draw_line(c + Vector2(-22 + k * 2, -2 + k * 5), c + Vector2(22 - k * 2, -2 + k * 5), Color("a8834e"), 2)
+	for k in 3:
+		var pts := PackedVector2Array()
+		for i in 16:
+			var t := TAU * i / 16.0
+			pts.append(c + Vector2(-12 + k * 12, -12) + Vector2(cos(t) * 10, sin(t) * 6))
+		draw_colored_polygon(pts, Color("c8873f"))
+
+## The Midnight Ledger lantern (reward for stamping every expert page).
+func _lamp() -> void:
+	var c := Vector2(206, 112)
+	draw_line(Vector2(c.x, 72), c + Vector2(0, -16), Color("2f2a28"), 2)
+	_rect(c.x - 12, c.y - 16, 24, 6, Style.GOLD.darkened(0.2), 2)
+	_rect(c.x - 10, c.y - 10, 20, 26, Color("26365a"), 5)
+	var glow := 0.75 + (0.15 * sin(_t * 2.2) if not App.reduced_motion() else 0.0)
+	draw_circle(c + Vector2(0, 3), 7, Color(1, 0.86, 0.45, glow))
+	draw_circle(c + Vector2(3, 0), 6, Color("26365a"))   # crescent moon cut-out
+	draw_circle(c + Vector2(0, 3), 22, Color(1, 0.86, 0.45, 0.12))
+	_rect(c.x - 12, c.y + 16, 24, 4, Style.GOLD.darkened(0.2), 2)

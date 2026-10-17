@@ -8,11 +8,31 @@ A portrait, single-player, offline puzzle game for Android, built with **Godot 4
 
 **Status:** first-release candidate for **internal testing**. It isn't store-ready. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) and [TEST_REPORT.md](TEST_REPORT.md).
 
-## What's in the box
-- A deterministic sorting puzzle with crates, a counter and up to 3 order trays, plus two-stage orders from level 31.
-- **60 campaign levels** and a **60-level daily pool**, all verified solvable by the real solver and shipped with recorded solutions.
-- Unlimited free undo, free restart, and a hint computed from the current position.
-- Café restoration: 5 visible milestones and 4 cosmetic categories, all earnable without purchases.
+## What's in the box (v8, 0.8.0): Delivery Logic
+The core puzzle was rebuilt in v8. A courier pushes picture-marked crates
+(coffee, croissant, strawberry, tea) onto matching pads in small storerooms:
+no pulling, no double pushes, wrong pads don't count, and wrong pushes can trap
+crates for good. *"Delivery Logic" is an internal working title.*
+- **30 puzzles** in 7 chapters, each with a proved minimum push count, a
+  verified mistake that leads to a proven dead end, and design notes
+  ([docs/DELIVERY_LEVEL_REPORT.md](docs/DELIVERY_LEVEL_REPORT.md)).
+- Rules: [docs/DELIVERY_RULES.md](docs/DELIVERY_RULES.md) (one module:
+  `game/src/core/delivery_rules.gd`). Design and audit:
+  [docs/DELIVERY_DESIGN.md](docs/DELIVERY_DESIGN.md). Player guide:
+  [docs/DELIVERY_PLAYER_GUIDE.md](docs/DELIVERY_PLAYER_GUIDE.md). Three-minute
+  smoke test and QA access: [docs/DELIVERY_SMOKE_TEST.md](docs/DELIVERY_SMOKE_TEST.md).
+- Proven "Route blocked" explanations with Undo/Restart, three-tier hints,
+  "Puzzle Solved!" card with pushes and steps, completion reward paid once,
+  personal bests and medals; café restoration unchanged.
+- Android APK, plus a **Web** build and a separate **Web QA** build.
+- The v1–v7 sorting game is retired from the main flow but kept in the source
+  (description below), with players' records preserved.
+
+## What was in the box before v8 (v3, 0.3.0, sorting mode)
+- A deterministic sorting puzzle with crates, a counter and up to 3 order tickets. Mechanics: the **bell** (choose which customer is served first), fresh items, paper bags, delivery locks, two-part and special orders.
+- **96 campaign levels** in 7 chapters, **8 bakery levels**, a **60-level daily pool** and 12 challenge cards. All are proven solvable by the real solver and shipped with recorded solutions; bell claims are proven by search.
+- Unlimited free undo, free restart, and a hint that is the first action of a real solution from the current position.
+- A living café: 8 visible restoration steps, décor themes with preview, extras, walk-in customers, a cast of three, and a second destination (Mira's Bakery).
 - English and Arabic (RTL) UI. The Arabic text is awaiting qualified review.
 - Versioned, checksummed, atomic saves with backup recovery. In-progress puzzles survive process death.
 - Ads, billing, consent and analytics adapters. Simulated variants exist for development only. Real AdMob test ads and Play Billing are opt-in through an export feature, and **real-money purchasing is disabled**.
@@ -64,7 +84,7 @@ $GODOT --headless --path game --install-android-build-template \
        --export-debug "Android Monetization Test APK" ../build/tinystreet-monetization-test.apk
 adb install -r build/tinystreet-debug.apk
 ```
-Regenerate content (authoring only): `$GODOT --headless --path game -s res://tools/generate_levels.gd -- campaign 1 60` and `python3 tools/make_audio.py game/assets/audio`.
+Regenerate content (authoring only): `$GODOT --headless --path game -s res://tools/generate_levels.gd -- ids p02 c025 …` (bakery: `-- ids m02 …`), `python3 tools/make_audio.py game/assets/audio` and `python3 tools/build_i18n.py`.
 
 ## Install and play
 1. `adb install -r build/tinystreet-debug.apk`. The APK is debug-signed and supports arm64-v8a, armeabi-v7a and x86_64.
@@ -72,9 +92,12 @@ Regenerate content (authoring only): `$GODOT --headless --path game -s res://too
 3. Tap a crate to send its front item to the lowest-numbered order that needs it, or to the counter. Hold a crate to preview where it'll go.
 
 ## Docs
-[GAME_DESIGN](GAME_DESIGN.md) · [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) · [DECISIONS](DECISIONS.md) · [TEST_REPORT](TEST_REPORT.md) · [RELEASE_CHECKLIST](RELEASE_CHECKLIST.md) · [SESSION_HANDOVER](SESSION_HANDOVER.md) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md) · [docs/PRIVACY](docs/PRIVACY.md) · [docs/PLAYTEST](docs/PLAYTEST.md) · [docs/STORE_LISTING](docs/STORE_LISTING.md) · [docs/LEVEL_REPORT](docs/LEVEL_REPORT.md)
+[GAME_DESIGN](GAME_DESIGN.md) · [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md) · [DECISIONS](DECISIONS.md) · [TEST_REPORT](TEST_REPORT.md) · [RELEASE_CHECKLIST](RELEASE_CHECKLIST.md) · [SESSION_HANDOVER](SESSION_HANDOVER.md) · [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md) · [docs/PRIVACY](docs/PRIVACY.md) · [docs/PLAYTEST](docs/PLAYTEST.md) · [docs/STORE_LISTING](docs/STORE_LISTING.md) · [docs/LEVEL_REPORT](docs/LEVEL_REPORT.md) · [docs/ECONOMY](docs/ECONOMY.md) · [CHANGELOG](CHANGELOG.md)
 
-## Artifacts (session 1 build, 2026-10-15)
+## Artifacts
+Current builds and checksums are listed in [SESSION_HANDOVER](SESSION_HANDOVER.md) and `build/SHA256SUMS.txt`. The table below records the first (v1) build.
+
+### Session 1 build (2026-10-15)
 | File | Signing | SHA-256 |
 |---|---|---|
 | `build/tinystreet-debug.apk` (87.5 MB, debug engine, 3 ABIs) | **Debug key** (Godot auto-generated, local). Not for store upload. | `61a7b72a7ef0e859c45bfa917f022662f7d1c157c9be2994fc69e022d560e9de` |

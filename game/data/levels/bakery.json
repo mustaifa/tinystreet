@@ -1,0 +1,877 @@
+{
+	"kind": "bakery",
+	"levels": [
+		{
+			"counter": 3.0,
+			"crates": [
+				[
+					"cupcake",
+					"strawberry"
+				],
+				[
+					"strawberry",
+					"cupcake"
+				],
+				[
+					"croissant!",
+					"croissant!"
+				]
+			],
+			"id": "m01",
+			"locks": [
+				0.0,
+				0.0,
+				1.0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0.0,
+					"bell_rings": 0.0,
+					"crates": 3.0,
+					"fresh": 2.0,
+					"fresh_waits": 0.0,
+					"items": 6.0,
+					"lock_moves": 2.0,
+					"locked_crates": 1.0,
+					"max_depth": 2.0,
+					"min_counter": 0.0,
+					"orders": 3.0,
+					"random_win_rate": 1.0,
+					"reveals": 0.0,
+					"slack": 3.0,
+					"solver_nodes": 6.0,
+					"two_stage": 0.0
+				},
+				"par_counter": 1.0,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					2.0,
+					2.0
+				],
+				"tier": "bakery",
+				"tutorial": "tut_oven",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"cupcake": 1.0,
+						"strawberry": 1.0
+					}
+				],
+				[
+					{
+						"croissant": 2.0
+					}
+				],
+				[
+					{
+						"cupcake": 1.0,
+						"strawberry": 1.0
+					}
+				]
+			],
+			"trays": 2.0
+		},
+		{
+			"counter": 3.0,
+			"crates": [
+				[
+					"cupcake",
+					"cupcake!",
+					"cupcake"
+				],
+				[
+					"cupcake!",
+					"cupcake",
+					"chocolate!"
+				],
+				[
+					"cupcake!",
+					"strawberry",
+					"cupcake"
+				]
+			],
+			"id": "m02",
+			"locks": [
+				0.0,
+				0.0,
+				2.0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0.0,
+					"bell": "optional",
+					"bell_rings": 0.0,
+					"crates": 3.0,
+					"fresh": 4.0,
+					"fresh_waits": 2.0,
+					"items": 9.0,
+					"lock_moves": 6.0,
+					"locked_crates": 1.0,
+					"max_depth": 3.0,
+					"min_counter": 0.0,
+					"orders": 4.0,
+					"random_win_rate": 0.69,
+					"reveals": 0.0,
+					"slack": 3.0,
+					"solver_nodes": 21.0,
+					"two_stage": 0.0
+				},
+				"par_counter": 1.0,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					0.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0
+				],
+				"tier": "bakery",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"strawberry": 1.0
+					}
+				],
+				[
+					{
+						"chocolate": 1.0,
+						"cupcake": 2.0
+					}
+				],
+				[
+					{
+						"cupcake": 3.0
+					}
+				],
+				[
+					{
+						"cupcake": 2.0
+					}
+				]
+			],
+			"trays": 2.0
+		},
+		{
+			"counter": 3,
+			"crates": [
+				[
+					"strawberry!",
+					"croissant",
+					"strawberry!"
+				],
+				[
+					"croissant",
+					"strawberry",
+					"cupcake"
+				],
+				[
+					"cupcake",
+					"cupcake!",
+					"strawberry"
+				],
+				[
+					"strawberry",
+					"croissant!",
+					"cupcake"
+				]
+			],
+			"id": "m03",
+			"locks": [
+				2,
+				0,
+				0,
+				0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0,
+					"bell": "tidier",
+					"bell_rings": 0,
+					"crates": 4,
+					"fresh": 4,
+					"fresh_waits": 1,
+					"items": 12,
+					"lock_moves": 8,
+					"locked_crates": 1,
+					"max_depth": 3,
+					"min_counter": 0,
+					"orders": 5,
+					"random_win_rate": 0.705,
+					"reveals": 0,
+					"slack": 3,
+					"solver_nodes": 12,
+					"two_stage": 0
+				},
+				"par_counter": 1,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					2,
+					2,
+					1,
+					1,
+					1,
+					2,
+					3,
+					3,
+					3,
+					0,
+					0,
+					0
+				],
+				"tier": "bakery",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"cupcake": 3
+					}
+				],
+				[
+					{
+						"cupcake": 1
+					}
+				],
+				[
+					{
+						"croissant": 2,
+						"strawberry": 1
+					}
+				],
+				[
+					{
+						"croissant": 1,
+						"strawberry": 2
+					}
+				],
+				[
+					{
+						"strawberry": 2
+					}
+				]
+			],
+			"trays": 2
+		},
+		{
+			"counter": 3.0,
+			"crates": [
+				[
+					"cupcake",
+					"chocolate",
+					"strawberry!",
+					"croissant!"
+				],
+				[
+					"croissant",
+					"croissant",
+					"chocolate"
+				],
+				[
+					"strawberry",
+					"chocolate",
+					"cupcake",
+					"cupcake"
+				],
+				[
+					"cupcake",
+					"cupcake",
+					"cupcake"
+				]
+			],
+			"id": "m04",
+			"locks": [
+				0.0,
+				0.0,
+				2.0,
+				0.0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0.0,
+					"bell": "optional",
+					"bell_rings": 0.0,
+					"crates": 4.0,
+					"fresh": 2.0,
+					"fresh_waits": 5.0,
+					"items": 14.0,
+					"lock_moves": 8.0,
+					"locked_crates": 1.0,
+					"max_depth": 4.0,
+					"min_counter": 2.0,
+					"orders": 5.0,
+					"random_win_rate": 0.45,
+					"reveals": 0.0,
+					"slack": 1.0,
+					"solver_nodes": 14.0,
+					"two_stage": 0.0
+				},
+				"par_counter": 3.0,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					0.0,
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					3.0,
+					0.0,
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0
+				],
+				"tier": "bakery",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"chocolate": 2.0,
+						"cupcake": 1.0
+					}
+				],
+				[
+					{
+						"strawberry": 2.0
+					}
+				],
+				[
+					{
+						"cupcake": 2.0
+					}
+				],
+				[
+					{
+						"croissant": 3.0
+					}
+				],
+				[
+					{
+						"chocolate": 1.0,
+						"cupcake": 3.0
+					}
+				]
+			],
+			"trays": 2.0
+		},
+		{
+			"counter": 2.0,
+			"crates": [
+				[
+					"croissant",
+					"chocolate",
+					"cupcake"
+				],
+				[
+					"cupcake",
+					"cupcake",
+					"chocolate",
+					"cupcake"
+				],
+				[
+					"croissant!",
+					"cupcake!",
+					"chocolate",
+					"chocolate"
+				],
+				[
+					"chocolate",
+					"strawberry!",
+					"strawberry!",
+					"strawberry"
+				]
+			],
+			"id": "m05",
+			"locks": [
+				2.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0.0,
+					"bell": "required",
+					"bell_rings": 1.0,
+					"crates": 4.0,
+					"fresh": 4.0,
+					"fresh_waits": 9.0,
+					"items": 15.0,
+					"lock_moves": 4.0,
+					"locked_crates": 1.0,
+					"max_depth": 4.0,
+					"min_counter": 2.0,
+					"orders": 6.0,
+					"random_win_rate": 0.0,
+					"reveals": 0.0,
+					"slack": 0.0,
+					"solver_nodes": 64.0,
+					"two_stage": 0.0
+				},
+				"par_counter": 2.0,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					1.0,
+					1.0,
+					-2.0,
+					1.0,
+					3.0,
+					0.0,
+					0.0,
+					2.0,
+					3.0,
+					3.0,
+					0.0,
+					1.0,
+					2.0,
+					2.0,
+					2.0,
+					3.0
+				],
+				"tier": "bakery",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"chocolate": 3.0
+					}
+				],
+				[
+					{
+						"chocolate": 2.0
+					}
+				],
+				[
+					{
+						"cupcake": 2.0
+					}
+				],
+				[
+					{
+						"croissant": 2.0
+					}
+				],
+				[
+					{
+						"strawberry": 2.0
+					}
+				],
+				[
+					{
+						"cupcake": 3.0,
+						"strawberry": 1.0
+					}
+				]
+			],
+			"trays": 2.0
+		},
+		{
+			"counter": 3.0,
+			"crates": [
+				[
+					"chocolate!",
+					"cupcake",
+					"strawberry",
+					"cupcake!"
+				],
+				[
+					"croissant!",
+					"strawberry",
+					"chocolate",
+					"croissant"
+				],
+				[
+					"croissant",
+					"strawberry",
+					"chocolate",
+					"chocolate!"
+				],
+				[
+					"strawberry",
+					"chocolate",
+					"strawberry",
+					"croissant!"
+				],
+				[
+					"strawberry",
+					"strawberry",
+					"croissant",
+					"chocolate!"
+				]
+			],
+			"id": "m06",
+			"locks": [
+				0.0,
+				0.0,
+				3.0,
+				0.0,
+				0.0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0.0,
+					"bell": "optional",
+					"bell_rings": 1.0,
+					"crates": 5.0,
+					"fresh": 6.0,
+					"fresh_waits": 17.0,
+					"items": 20.0,
+					"lock_moves": 15.0,
+					"locked_crates": 1.0,
+					"max_depth": 4.0,
+					"min_counter": 0.0,
+					"orders": 6.0,
+					"random_win_rate": 0.44,
+					"reveals": 0.0,
+					"slack": 3.0,
+					"solver_nodes": 28.0,
+					"two_stage": 0.0
+				},
+				"par_counter": 1.0,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					0.0,
+					0.0,
+					0.0,
+					3.0,
+					3.0,
+					3.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					4.0,
+					4.0,
+					4.0,
+					-2.0,
+					4.0,
+					2.0,
+					2.0,
+					0.0,
+					2.0,
+					2.0
+				],
+				"tier": "bakery",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"cupcake": 1.0,
+						"strawberry": 3.0
+					}
+				],
+				[
+					{
+						"chocolate": 4.0
+					}
+				],
+				[
+					{
+						"croissant": 3.0,
+						"strawberry": 1.0
+					}
+				],
+				[
+					{
+						"chocolate": 2.0,
+						"strawberry": 1.0
+					}
+				],
+				[
+					{
+						"croissant": 2.0,
+						"strawberry": 2.0
+					}
+				],
+				[
+					{
+						"cupcake": 1.0
+					}
+				]
+			],
+			"trays": 2.0
+		},
+		{
+			"counter": 3.0,
+			"crates": [
+				[
+					"strawberry",
+					"strawberry!",
+					"cupcake",
+					"strawberry"
+				],
+				[
+					"strawberry",
+					"croissant",
+					"croissant!",
+					"croissant"
+				],
+				[
+					"croissant",
+					"chocolate",
+					"cupcake!",
+					"croissant"
+				],
+				[
+					"chocolate",
+					"croissant",
+					"strawberry!",
+					"croissant!"
+				],
+				[
+					"strawberry!",
+					"croissant",
+					"strawberry",
+					"cupcake"
+				]
+			],
+			"id": "m07",
+			"locks": [
+				0.0,
+				0.0,
+				1.0,
+				2.0,
+				0.0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0.0,
+					"bell": "tidier",
+					"bell_rings": 0.0,
+					"crates": 5.0,
+					"fresh": 6.0,
+					"fresh_waits": 3.0,
+					"items": 20.0,
+					"lock_moves": 7.0,
+					"locked_crates": 2.0,
+					"max_depth": 4.0,
+					"min_counter": 0.0,
+					"orders": 7.0,
+					"random_win_rate": 0.785,
+					"reveals": 0.0,
+					"slack": 3.0,
+					"solver_nodes": 20.0,
+					"two_stage": 0.0
+				},
+				"par_counter": 1.0,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					0.0,
+					0.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					2.0,
+					4.0,
+					4.0,
+					4.0,
+					0.0,
+					0.0,
+					2.0,
+					3.0,
+					3.0,
+					3.0,
+					2.0,
+					2.0,
+					3.0,
+					4.0
+				],
+				"tier": "bakery",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"croissant": 1.0,
+						"strawberry": 3.0
+					}
+				],
+				[
+					{
+						"strawberry": 2.0
+					}
+				],
+				[
+					{
+						"croissant": 3.0
+					}
+				],
+				[
+					{
+						"croissant": 2.0
+					}
+				],
+				[
+					{
+						"strawberry": 2.0
+					}
+				],
+				[
+					{
+						"chocolate": 2.0,
+						"croissant": 2.0
+					}
+				],
+				[
+					{
+						"cupcake": 3.0
+					}
+				]
+			],
+			"trays": 2.0
+		},
+		{
+			"counter": 3.0,
+			"crates": [
+				[
+					"croissant",
+					"strawberry",
+					"croissant",
+					"chocolate!"
+				],
+				[
+					"cupcake",
+					"strawberry",
+					"croissant",
+					"croissant"
+				],
+				[
+					"croissant!",
+					"croissant!",
+					"chocolate",
+					"strawberry"
+				],
+				[
+					"strawberry",
+					"strawberry!",
+					"cupcake",
+					"strawberry"
+				],
+				[
+					"chocolate",
+					"chocolate",
+					"croissant",
+					"chocolate!"
+				]
+			],
+			"id": "m08",
+			"locks": [
+				3.0,
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"meta": {
+				"metrics": {
+					"bags": 0.0,
+					"bell": "tidier",
+					"bell_rings": 0.0,
+					"crates": 5.0,
+					"fresh": 5.0,
+					"fresh_waits": 2.0,
+					"items": 20.0,
+					"lock_moves": 13.0,
+					"locked_crates": 1.0,
+					"max_depth": 4.0,
+					"min_counter": 0.0,
+					"orders": 5.0,
+					"random_win_rate": 0.925,
+					"reveals": 0.0,
+					"slack": 3.0,
+					"solver_nodes": 20.0,
+					"two_stage": 1.0
+				},
+				"par_counter": 1.0,
+				"playtest": "AWAITING_HUMAN",
+				"solution": [
+					2.0,
+					2.0,
+					2.0,
+					2.0,
+					4.0,
+					1.0,
+					1.0,
+					1.0,
+					1.0,
+					3.0,
+					3.0,
+					3.0,
+					3.0,
+					0.0,
+					4.0,
+					4.0,
+					0.0,
+					0.0,
+					0.0,
+					4.0
+				],
+				"special": {
+					"customer": "basil",
+					"order": 1,
+					"reward": "extra:breadbasket",
+					"title": "special_m08"
+				},
+				"tier": "bakery",
+				"verified": "PASSED"
+			},
+			"orders": [
+				[
+					{
+						"chocolate": 2.0
+					}
+				],
+				[
+					{
+						"croissant": 3.0,
+						"strawberry": 1.0
+					},
+					{
+						"cupcake": 2.0,
+						"strawberry": 1.0
+					},
+					{
+						"chocolate": 2.0
+					}
+				],
+				[
+					{
+						"croissant": 2.0
+					}
+				],
+				[
+					{
+						"strawberry": 4.0
+					}
+				],
+				[
+					{
+						"chocolate": 1.0,
+						"croissant": 2.0
+					}
+				]
+			],
+			"trays": 2.0
+		}
+	],
+	"version": 2
+}

@@ -66,6 +66,7 @@ write("warn.wav", mix((tone(440, 0.12, "sine", r=0.05, vol=0.35), 0), (tone(440,
 write("combo.wav", mix((tone(880, 0.16, "bell", r=0.07, vol=0.5), 0), (tone(1320, 0.18, "bell", r=0.08, vol=0.35), 0.05)))
 write("coin.wav", mix((tone(1568, 0.12, "bell", r=0.05, vol=0.5), 0), (tone(2093, 0.22, "bell", r=0.1, vol=0.45), 0.06)))
 write("bag.wav", mix((noise(0.12, 0.5, 0.04, 7), 0), (noise(0.1, 0.35, 0.03, 8), 0.06), (tone(740, 0.12, "soft", r=0.05, vol=0.35), 0.1)))
+write("bell.wav", mix((tone(1318, 0.5, "bell", r=0.22, vol=0.5), 0), (tone(1760, 0.45, "bell", r=0.18, vol=0.3), 0.012), (tone(2637, 0.2, "bell", r=0.06, vol=0.15), 0.0)))
 write("unlock.wav", mix((noise(0.03, 0.4, 0.01, 9), 0), (tone(523, 0.18, "bell", r=0.08, vol=0.5), 0.04), (tone(784, 0.28, "bell", r=0.12, vol=0.5), 0.12)))
 
 # Music: an original, gentle café tune (jazz-waltz-free 4/4 in F major) with an

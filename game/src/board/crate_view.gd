@@ -15,9 +15,11 @@ signal released(index: int, global_pos: Vector2)
 signal dragged(index: int, global_pos: Vector2)
 
 var index := 0
+var capacity := 0              # items at level start: the crate is sized for these
 var items: PackedInt32Array = PackedInt32Array()   # remaining, [0] = front; -1 = bagged
 var fresh: Array = []          # bool per remaining item
 var lock_left := 0             # deliveries still needed to open
+var oven := false              # v3 bakery: locked crates are drawn as ovens
 var badge := {}                # {kind: "tray"|"counter"|"fresh"|"locked"|"full", tray: int}
 var highlight := false         # hint / tutorial ring
 var hide_front := false        # while the front item is flying
@@ -29,6 +31,7 @@ var _pulse := 0.0
 var _down := false
 var _press_pos := Vector2.ZERO
 var _unlock_flash := 0.0
+var _rows := -1.0              # v7: items the crate body is drawn for (eases toward items.size())
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -42,10 +45,22 @@ func set_state(it: PackedInt32Array, fr: Array, lock: int, b: Dictionary) -> voi
 	queue_redraw()
 
 func front_size() -> float:
-	return minf(size.x * 0.86, 124.0)
+	return minf(size.x * 0.84, 136.0)
 
 func back_size() -> float:
-	return front_size() * 0.62
+	return front_size() * 0.76
+
+## Top of the crate body. The crate is as tall as its remaining stack needs
+## (v7: it settles down as items leave, so no empty slats tower over the
+## board), never taller than the control.
+func body_top() -> float:
+	var fs := front_size()
+	var behind := (_rows if _rows >= 0.0 else float(maxi(capacity, items.size()))) - 1.0
+	var need := fs + 38 + maxf(0, behind) * back_size() * 0.86 + 34
+	return clampf(size.y - need, 2.0, size.y - fs - 60)
+
+func _skinned() -> bool:
+	return ArtSkin.has("board.crate")
 
 func front_center() -> Vector2:
 	return Vector2(size.x / 2, size.y - front_size() * 0.5 - 20)
@@ -64,7 +79,18 @@ func flash_unlock() -> void:
 	tw.tween_method(func(v): _unlock_flash = v; queue_redraw(), 1.0, 0.0, App.dur(0.6))
 
 func _process(delta: float) -> void:
-	if highlight or (not fresh.is_empty() and fresh[0]):
+	var want := float(items.size())
+	if _rows < 0.0 or App.reduced_motion():
+		if _rows != want:
+			_rows = want
+			queue_redraw()
+	elif absf(_rows - want) > 0.01:
+		_rows = move_toward(_rows, want, delta * 5.0)
+		queue_redraw()
+	elif _rows != want:
+		_rows = want
+		queue_redraw()
+	if highlight or (not fresh.is_empty() and fresh[0]) or (oven and lock_left > 0):
 		_pulse = fmod(_pulse + delta * (0.0 if App.reduced_motion() else 1.4), 1.0)
 		queue_redraw()
 
@@ -109,7 +135,7 @@ func _draw() -> void:
 	# Items behind the front, bottom-to-top = next-to-last. Every item is always
 	# drawn: if the column is short, items shrink to fit instead of being cut.
 	var behind := items.size() - 1
-	var avail := tray.position.y - 8.0
+	var avail := tray.position.y - body_top() - 22.0
 	var step := bs * 0.86
 	if behind > 0 and behind * step > avail:
 		step = avail / behind
@@ -117,11 +143,12 @@ func _draw() -> void:
 	var y0 := tray.position.y - step * 0.5 - 4
 	for i in range(1, items.size()):
 		var c := Vector2(w / 2, y0 - (i - 1) * step) + off
-		var plate := StyleBoxFlat.new()
-		plate.bg_color = Color(Style.PAPER, 0.85)
-		plate.set_corner_radius_all(int(bs * 0.3))
-		draw_style_box(plate, Rect2(c - Vector2(bs, bs) * 0.48, Vector2(bs, bs) * 0.96))
-		_draw_item(items[i], c, bs * 0.82, 0.55 if dim else 0.92, i < fresh.size() and fresh[i])
+		if not _skinned():
+			var plate := StyleBoxFlat.new()
+			plate.bg_color = Color(Style.PAPER, 0.85)
+			plate.set_corner_radius_all(int(bs * 0.3))
+			draw_style_box(plate, Rect2(c - Vector2(bs, bs) * 0.48, Vector2(bs, bs) * 0.96))
+		_draw_item(items[i], c, bs * (0.92 if _skinned() else 0.82), 0.55 if dim else 1.0, i < fresh.size() and fresh[i])
 	if not hide_front:
 		var fc := front_center() + off
 		var sc := 1.0
@@ -145,34 +172,47 @@ func _draw() -> void:
 			shadow.set_corner_radius_all(int(fs * 0.28))
 			draw_style_box(shadow, Rect2(fc - Vector2(fs, fs) * 0.5 * sc, Vector2(fs, fs) * sc))
 		var is_fresh: bool = not fresh.is_empty() and fresh[0]
-		_plate(fc, fs * sc, Style.PAPER if not is_fresh else Color("fff3e4"))
+		if not _skinned() or is_fresh or lifted or drag_local != Vector2.INF:
+			_plate(fc, fs * sc, Style.PAPER if not is_fresh else Color("fff3e4"))
 		if is_fresh:
 			_fresh_ring(fc, fs * sc)
-		_draw_item(items[0], fc, fs * 0.86 * sc, 0.6 if dim else 1.0, false)
+		_draw_item(items[0], fc, fs * (0.94 if _skinned() else 0.86) * sc, 0.6 if dim else 1.0, false)
 		if drag_local == Vector2.INF:
 			_draw_badge(fc + Vector2(fs * 0.42, -fs * 0.42) * sc)
 	if lock_left > 0:
 		_draw_lock(off, w)
 	if _unlock_flash > 0.0:
-		draw_rect(Rect2(Vector2.ZERO, size), Color(1, 0.95, 0.75, 0.45 * _unlock_flash))
+		draw_rect(_body(Vector2.ZERO), Color(1, 0.95, 0.75, 0.45 * _unlock_flash))
+
+func _body(off: Vector2) -> Rect2:
+	var t := body_top()
+	return Rect2(Vector2(6, t) + off, Vector2(size.x - 12, size.y - 8 - t))
 
 func _draw_crate(off: Vector2, w: float, fs: float) -> void:
 	# Back boards: a slatted wooden crate standing behind the stack.
-	var body := Rect2(Vector2(6, 2) + off, Vector2(w - 12, size.y - 8))
+	var body := _body(off)
+	var tray := Rect2(Vector2(4, size.y - fs - 38) + off, Vector2(w - 8, fs + 34))
+	if _skinned():
+		ArtSkin.draw_rect(self, "board.crate", body, Color.WHITE if not items.is_empty() else Color(1, 1, 1, 0.55))
+		if not ArtSkin.draw_rect(self, "board.crate_front", tray, Color.WHITE if not items.is_empty() else Color(1, 1, 1, 0.55)):
+			_draw_tray_flat(tray, off, w)
+		return
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color("e9cfae")
 	sb.set_corner_radius_all(18)
 	sb.border_color = Color(Style.WOOD, 0.55)
 	sb.set_border_width_all(3)
 	draw_style_box(sb, body)
-	var slats := int((size.y - fs - 40) / 46.0)
+	var slats := int((size.y - fs - 40 - body.position.y) / 46.0)
 	for k in slats:
-		var y := 30 + k * 46.0
+		var y := body.position.y + 28 + k * 46.0
 		draw_line(Vector2(14, y) + off, Vector2(w - 14, y) + off, Color(Style.WOOD, 0.22), 3, true)
-	draw_line(Vector2(18, 10) + off, Vector2(18, size.y - fs - 40) + off, Color(Style.WOOD, 0.18), 4)
-	draw_line(Vector2(w - 18, 10) + off, Vector2(w - 18, size.y - fs - 40) + off, Color(Style.WOOD, 0.18), 4)
-	# Front box that holds the selectable item.
-	var tray := Rect2(Vector2(4, size.y - fs - 38) + off, Vector2(w - 8, fs + 34))
+	draw_line(Vector2(18, body.position.y + 8) + off, Vector2(18, size.y - fs - 40) + off, Color(Style.WOOD, 0.18), 4)
+	draw_line(Vector2(w - 18, body.position.y + 8) + off, Vector2(w - 18, size.y - fs - 40) + off, Color(Style.WOOD, 0.18), 4)
+	_draw_tray_flat(tray, off, w)
+
+## Front box that holds the selectable item (built-in look).
+func _draw_tray_flat(tray: Rect2, off: Vector2, w: float) -> void:
 	var tb := StyleBoxFlat.new()
 	tb.bg_color = Style.WOOD if not items.is_empty() else Color(Style.WOOD, 0.35)
 	tb.set_corner_radius_all(20)
@@ -218,6 +258,8 @@ static func draw_steam(ci: CanvasItem, c: Vector2, s: float, a: float) -> void:
 
 ## Kraft paper bag with a folded top and a question mark.
 static func draw_bag(ci: CanvasItem, c: Vector2, s: float, a: float) -> void:
+	if ArtSkin.draw_fit(ci, "product.bag", c, s, a):
+		return
 	var lw := maxf(1.5, s * 0.03)
 	var body := PackedVector2Array([c + Vector2(-0.3, -0.18) * s, c + Vector2(0.3, -0.18) * s,
 		c + Vector2(0.34, 0.38) * s, c + Vector2(-0.34, 0.38) * s])
@@ -263,12 +305,16 @@ func _draw_badge(at: Vector2) -> void:
 
 ## Straps across the crate and a padlock tag with the deliveries remaining.
 func _draw_lock(off: Vector2, w: float) -> void:
-	draw_rect(Rect2(Vector2(4, 0) + off, Vector2(w - 8, size.y - 4)), Color(Style.CREAM_DEEP, 0.45))
+	if oven:
+		_draw_oven(off, w)
+		return
+	var b := _body(off)
+	draw_rect(b, Color(Style.CREAM_DEEP, 0.45))
 	var strap := Color("7c5034")
-	for y in [size.y * 0.3, size.y * 0.72]:
+	for y in [b.position.y + b.size.y * 0.3, b.position.y + b.size.y * 0.72]:
 		draw_line(Vector2(2, y - 18) + off, Vector2(w - 2, y + 18) + off, strap, 12, true)
 		draw_line(Vector2(2, y - 18) + off, Vector2(w - 2, y + 18) + off, Color(Style.WOOD_LIGHT, 0.6), 3, true)
-	var c := Vector2(w / 2, size.y * 0.5) + off
+	var c := b.get_center()
 	var tag := StyleBoxFlat.new()
 	tag.bg_color = Style.PAPER
 	tag.set_corner_radius_all(16)
@@ -283,3 +329,33 @@ func _draw_lock(off: Vector2, w: float) -> void:
 	draw_rect(Rect2(lc + Vector2(-14, -8), Vector2(28, 24)), Style.INK)
 	draw_string(Style.font_bold, c + Vector2(0, 14), str(lock_left), HORIZONTAL_ALIGNMENT_LEFT, -1, 38, Style.INK)
 	draw_string(Style.font_regular, c + Vector2(-tw / 2, 38), Loc.t("lock_orders_short"), HORIZONTAL_ALIGNMENT_CENTER, tw, 17, Style.INK_SOFT)
+
+## Bakery "oven batch": a brick oven front with a glowing door and the same
+## countdown tag (orders until it opens). Shape and number, not colour.
+func _draw_oven(off: Vector2, w: float) -> void:
+	var r := _body(off)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("b0563f")
+	sb.set_corner_radius_all(20)
+	sb.corner_radius_top_left = int(minf(w * 0.45, 60))
+	sb.corner_radius_top_right = int(minf(w * 0.45, 60))
+	draw_style_box(sb, r)
+	for k in int(r.size.y / 26):
+		var y := r.position.y + 30 + k * 26
+		draw_line(Vector2(r.position.x + 8, y), Vector2(r.end.x - 8, y), Color(0, 0, 0, 0.15), 2)
+	var door := Rect2(r.position + Vector2(r.size.x * 0.18, r.size.y * 0.55), Vector2(r.size.x * 0.64, r.size.y * 0.3))
+	var dsb := StyleBoxFlat.new()
+	dsb.bg_color = Color("2a1d18")
+	dsb.set_corner_radius_all(int(door.size.x * 0.4))
+	draw_style_box(dsb, door)
+	draw_rect(door.grow(-8), Color(1, 0.6, 0.2, 0.35 + 0.15 * sin(_pulse * TAU)))
+	var c := Vector2(w / 2, r.position.y + r.size.y * 0.3)
+	var tag := StyleBoxFlat.new()
+	tag.bg_color = Style.PAPER
+	tag.set_corner_radius_all(16)
+	tag.border_color = Style.WOOD_DARK
+	tag.set_border_width_all(4)
+	var tw := minf(w - 16, 104.0)
+	draw_style_box(tag, Rect2(c - Vector2(tw / 2, 40), Vector2(tw, 80)))
+	draw_string(Style.font_bold, c + Vector2(-tw / 2, 10), str(lock_left), HORIZONTAL_ALIGNMENT_CENTER, tw, 38, Style.INK)
+	draw_string(Style.font_regular, c + Vector2(-tw / 2, 32), Loc.t("lock_orders_short"), HORIZONTAL_ALIGNMENT_CENTER, tw, 17, Style.INK_SOFT)

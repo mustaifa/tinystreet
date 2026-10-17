@@ -1,0 +1,62 @@
+{
+  "name": "Tiny Street (default)",
+  "version": 1,
+  "notes": "Default art. Every key is optional: a missing key falls back to the built-in vector art. See docs/ART_PIPELINE.md.",
+  "colors": {},
+  "images": {
+    "product.coffee": "products/coffee.svg",
+    "product.tea": "products/tea.svg",
+    "product.croissant": "products/croissant.svg",
+    "product.cupcake": "products/cupcake.svg",
+    "product.strawberry": "products/strawberry.svg",
+    "product.chocolate": "products/chocolate.svg",
+    "product.bag": "products/bag.svg",
+    "board.crate": {
+      "file": "board/crate.svg",
+      "margins": [
+        28,
+        28,
+        28,
+        28
+      ],
+      "tile": true
+    },
+    "board.crate_front": {
+      "file": "board/crate_front.svg",
+      "margins": [
+        36,
+        36,
+        36,
+        36
+      ]
+    },
+    "board.counter": {
+      "file": "board/counter.svg",
+      "margins": [
+        44,
+        40,
+        44,
+        40
+      ]
+    },
+    "board.slot": "board/slot.svg"
+  },
+  "sounds": {
+    "sfx.tap": "sfx/tap.ogg",
+    "sfx.place": "sfx/place.ogg",
+    "sfx.counter": "sfx/counter.ogg",
+    "sfx.invalid": "sfx/invalid.ogg",
+    "sfx.stage": "sfx/stage.ogg",
+    "sfx.deliver": "sfx/deliver.ogg",
+    "sfx.win": "sfx/win.ogg",
+    "sfx.star": "sfx/star.ogg",
+    "sfx.restore": "sfx/restore.ogg",
+    "sfx.undo": "sfx/undo.ogg",
+    "sfx.warn": "sfx/warn.ogg",
+    "sfx.combo": "sfx/combo.ogg",
+    "sfx.coin": "sfx/coin.ogg",
+    "sfx.bag": "sfx/bag.ogg",
+    "sfx.unlock": "sfx/unlock.ogg",
+    "sfx.bell": "sfx/bell.ogg"
+  }
+}

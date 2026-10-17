@@ -7,7 +7,7 @@ extends SceneTree
 ## achievable, duplicates, trivial layouts, and (v2) that every mechanic a
 ## level uses is exercised on its solution line. Exit code 1 on any FAILED level.
 
-const FILES := ["res://data/levels/campaign.json", "res://data/levels/daily.json"]
+const FILES := ["res://data/levels/campaign.json", "res://data/levels/bakery.json", "res://data/levels/daily.json"]
 
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
@@ -38,6 +38,15 @@ func _initialize() -> void:
 					errs.append("lock never matters on the solution line")
 				if str(l.id).begins_with("f") and int(eng.fresh_waits) == 0:
 					errs.append("fresh items never force a wait")
+				# v3 bell levels: re-prove what the bell adds (search, not structure).
+				var claimed := str(l.meta.get("metrics", {}).get("bell", "required" if str(l.meta.get("tutorial", "")) == "tut_bell" else ""))
+				if claimed in ["required", "tidier"]:
+					var proven := LevelValidator.bell_value(def, 300000)
+					if proven == "unknown":
+						verdict = LevelValidator.UNVERIFIED
+					elif proven != claimed:
+						errs.append("bell claimed %s, proven %s" % [claimed, proven])
+					l.meta["bell_proven"] = proven
 				var r := Solver.new(300000).solve(PuzzleState.create(def))
 				if r.status == Solver.TIMEOUT:
 					verdict = LevelValidator.UNVERIFIED
@@ -72,18 +81,19 @@ func _write_report(rows: Array, failed: int, unverified: int) -> void:
 	md += "Automated solvability does NOT establish fun or fair difficulty; every level below is **awaiting human playtest**.\n\n"
 	md += "Totals: %d levels, %d FAILED, %d UNVERIFIED.\n\n" % [rows.size(), failed, unverified]
 	md += "Rows are in campaign PLAY ORDER (# = position), then the daily pool.\n\n"
-	md += "Columns: crates, items, orders (two-stage), trays, counter capacity, min counter (solver), par (★★ target), random-play win rate (200 seeded playouts; lower = harder), solver nodes, solution length, mechanics (fresh items / bagged items / locked crates).\n\n"
-	md += "| # | id | verdict | tier | crates | items | orders (2-stage) | trays | counter | min ctr | par | rand win | nodes | sol len | fresh/bags/locks |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n"
+	md += "Columns: crates, items, orders (multi-part), trays, counter capacity, min counter (solver, bell allowed), par (★★ target), random-play win rate (200 seeded playouts that never ring the bell; lower = harder), solver nodes, solution length, mechanics (fresh items / bagged items / locked crates), bell: `required` = proven unsolvable without it, `tidier` = proven to lower the minimum counter, re-proven by this run (blank = not claimed), `off` = bell disabled.\n\n"
+	md += "| # | id | verdict | tier | crates | items | orders (multi) | trays | counter | min ctr | par | rand win | nodes | sol len | fresh/bags/locks | bell |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n"
 	var pos := 0
 	for r in rows:
 		var m: Dictionary = r[2]
 		var l: Dictionary = r[3]
 		pos += 1
-		md += "| %s | %s | %s | %s | %d | %d | %d (%d) | %d | %d | %d | %d | %.2f | %d | %d | %d/%d/%d |\n" % [str(pos) if str(l.id)[0] != "d" else "", r[0], r[1], l.meta.get("tier", ""),
+		md += "| %s | %s | %s | %s | %d | %d | %d (%d) | %d | %d | %d | %d | %.2f | %d | %d | %d/%d/%d | %s |\n" % [str(pos) if str(l.id)[0] == "c" or str(l.id)[0] in ["f", "b", "k", "x", "p"] else "", r[0], r[1], l.meta.get("tier", ""),
 			int(m.get("crates", 0)), int(m.get("items", 0)), int(m.get("orders", 0)), int(m.get("two_stage", 0)),
 			int(l.trays), int(l.counter), int(m.get("min_counter", -1)), int(l.meta.get("par_counter", -1)),
 			float(m.get("random_win_rate", 0)), int(m.get("solver_nodes", 0)), l.meta.get("solution", []).size(),
-			int(m.get("fresh", 0)), int(m.get("bags", 0)), int(m.get("locked_crates", 0))]
+			int(m.get("fresh", 0)), int(m.get("bags", 0)), int(m.get("locked_crates", 0)),
+			"off" if l.get("bell", true) == false else str(l.meta.get("bell_proven", ""))]
 	var docs := ProjectSettings.globalize_path("res://").path_join("../docs").simplify_path()
 	DirAccess.make_dir_recursive_absolute(docs)
 	var f := FileAccess.open(docs.path_join("LEVEL_REPORT.md"), FileAccess.WRITE)

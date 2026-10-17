@@ -18,7 +18,13 @@ const NEIGHBOURS := [
 	[Color("f0c8a8"), Color("b9b2a8"), Color("5f8a5a"), "short"],
 ]
 
+const MOODS := ["neutral", "happy", "waiting"]
+
 static func draw(ci: CanvasItem, who: String, c: Vector2, s: float, mood: int = 0, a: float = 1.0) -> void:
+	# Skin art: "character.<who>.<mood>" first, then "character.<who>".
+	var m: String = MOODS[clampi(mood, 0, 2)]
+	if ArtSkin.draw_fit(ci, "character.%s.%s" % [who, m], c, s, a) or ArtSkin.draw_fit(ci, "character." + who, c, s, a):
+		return
 	match who:
 		"mira": _mira(ci, c, s, mood, a)
 		"theo": _theo(ci, c, s, mood, a)

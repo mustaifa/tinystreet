@@ -17,6 +17,10 @@ const ADMOB_TEST_REWARDED_ID := "ca-app-pub-3940256099942544/5224354917"
 const REAL_PURCHASES_ENABLED := false
 const INTERSTITIALS_ENABLED := false
 
+## Art/sound/colour skin (see ArtSkin, docs/ART_PIPELINE.md). A future
+## seasonal or purchased theme sets `settings.skin`; `--skin=<id>` previews one.
+const DEFAULT_SKIN := "default"
+
 static var force_profile := ""   # tests may set "dev" / "release"
 
 static func is_dev() -> bool:
@@ -30,3 +34,15 @@ static func wants_admob() -> bool:
 static func wants_play_billing() -> bool:
 	return REAL_PURCHASES_ENABLED and OS.has_feature("monetization") \
 		and Engine.has_singleton("GodotGooglePlayBilling")
+
+## QA builds only (export preset with the custom feature "qa", never the
+## player APK): every Delivery Logic level is open for review.
+static func qa_unlock_all() -> bool:
+	return OS.has_feature("qa")
+
+static func skin_id(settings: Dictionary) -> String:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--skin="):
+			return a.substr(7)
+	var s := str(settings.get("skin", ""))
+	return s if s != "" else DEFAULT_SKIN

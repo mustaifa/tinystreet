@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="box" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a5a45"/><stop offset="0.5" stop-color="#6a4033"/><stop offset="1" stop-color="#432519"/>
+    </linearGradient>
+    <linearGradient id="lid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9c6a52"/><stop offset="1" stop-color="#6a4033"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b9821f"/><stop offset="0.35" stop-color="#ffd773"/><stop offset="0.7" stop-color="#e7aa36"/><stop offset="1" stop-color="#a87414"/>
+    </linearGradient>
+    <radialGradient id="bow" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffe6a0"/><stop offset="0.6" stop-color="#eab040"/><stop offset="1" stop-color="#a87414"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="128" cy="230" rx="96" ry="12" fill="#3b2418" opacity="0.18"/>
+  <rect x="44" y="96" width="168" height="126" rx="10" fill="url(#box)" stroke="#2a1710" stroke-width="5"/>
+  <rect x="36" y="78" width="184" height="36" rx="10" fill="url(#lid)" stroke="#2a1710" stroke-width="5"/>
+  <path d="M46 88 L210 88" stroke="#c8957a" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+  <rect x="114" y="78" width="28" height="144" fill="url(#gold)" stroke="#6b4a10" stroke-width="3.5"/>
+  <rect x="44" y="150" width="168" height="22" fill="url(#gold)" stroke="#6b4a10" stroke-width="3.5"/>
+  <rect x="114" y="150" width="28" height="22" fill="#ffd773"/>
+  <g stroke="#6b4a10" stroke-width="4.5" stroke-linejoin="round">
+    <path d="M128 78 C108 48 70 44 70 66 C70 84 104 86 128 78 Z" fill="url(#bow)"/>
+    <path d="M128 78 C148 48 186 44 186 66 C186 84 152 86 128 78 Z" fill="url(#bow)"/>
+    <path d="M124 82 L104 112 L116 110 L120 122 L130 88 Z" fill="url(#bow)"/>
+    <path d="M132 82 L152 112 L140 110 L136 122 L126 88 Z" fill="url(#bow)"/>
+    <ellipse cx="128" cy="78" rx="15" ry="13" fill="#e7aa36"/>
+  </g>
+  <path d="M82 58 C88 54 96 54 102 58" fill="none" stroke="#fff6d6" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+  <path d="M58 112 L58 140" stroke="#b07a62" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+</svg>

@@ -66,7 +66,7 @@ func test_migrated_save_roundtrips_at_v3() -> void:
 	var d := s.load_data()
 	check(s.save(d))
 	var env = JSON.parse_string(FileAccess.get_file_as_string(s.path))
-	eq(int(env.schema), 3)
+	eq(int(env.schema), SaveStore.SCHEMA)
 	var back := s.load_data()
 	eq(Restoration.steps(back), 3)
 

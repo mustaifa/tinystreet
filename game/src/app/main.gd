@@ -16,9 +16,13 @@ const SCREENS := {
 	"privacy": "res://src/screens/privacy_screen.gd",
 	"shop": "res://src/screens/shop_screen.gd",
 	"journal": "res://src/screens/journal_screen.gd",
+	"bakery": "res://src/screens/bakery_screen.gd",
+	"ledger": "res://src/screens/ledger_screen.gd",
+	"puzzle": "res://src/screens/puzzle_screen.gd",     # v8 Delivery Logic
+	"puzzles": "res://src/screens/puzzles_screen.gd",
 }
 
-var bg: ColorRect
+var bg: ScreenBackdrop
 var safe: MarginContainer
 var host: Control
 var overlay_host: Control
@@ -26,12 +30,12 @@ var stack: Array = []        # [{name, params}]
 var current: Control
 var overlays: Array = []
 var sim_cutout := 0          # debug: simulate a top cutout (px) via --sim-cutout=N
-var _toast: Label
+var _toast: Control
+var _lock_until := 0         # ms: UI buttons ignore presses during a screen transition
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg = ColorRect.new()
-	bg.color = Style.CREAM
+	bg = ScreenBackdrop.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	safe = MarginContainer.new()
@@ -105,6 +109,9 @@ func back() -> void:
 	var top: Dictionary = stack.back()
 	_show(top.name, top.params)
 
+## Screens may set `var screen_mode := "night"` (or "bakery") to change the
+## full-bleed background. New screens fade and rise in briefly; presses on UI
+## buttons are ignored until the transition ends (no duplicate actions).
 func _show(name: String, params: Dictionary) -> void:
 	_apply_direction()
 	if current:
@@ -116,6 +123,23 @@ func _show(name: String, params: Dictionary) -> void:
 	current = scr
 	if scr.has_method("setup"):
 		scr.setup(params)
+	var mode = scr.get("screen_mode")
+	bg.set_mode(str(mode) if mode != null else "cafe")
+	_lock_until = Time.get_ticks_msec() + int(Style.M_BASE * 1000)
+	if not App.reduced_motion() and App.data.size() > 0:
+		scr.modulate.a = 0.0
+		scr.position.y = 18
+		var tw := scr.create_tween().set_parallel()
+		tw.tween_property(scr, "modulate:a", 1.0, Style.M_BASE)
+		tw.tween_property(scr, "position:y", 0.0, Style.M_BASE + 0.04).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+## Ignores UI-key presses for `ms` (e.g. a result card that appears under a
+## finger still tapping the board must not take that tap as a choice).
+func lock_input(ms: int) -> void:
+	_lock_until = maxi(_lock_until, Time.get_ticks_msec() + ms)
+
+func input_locked() -> bool:
+	return Time.get_ticks_msec() < _lock_until
 
 func current_name() -> String:
 	return stack.back().name if not stack.is_empty() else ""
@@ -140,7 +164,7 @@ func _confirm_exit() -> void:
 	var d := Dialog.make(Loc.t("exit_title"), Loc.t("exit_body"), [
 		[Loc.t("exit_stay"), func(): pass, "SecondaryButton"],
 		[Loc.t("exit_leave"), func(): App.save_now(); get_tree().quit(), ""],
-	])
+	], null, "door")
 	show_overlay(d)
 
 func show_overlay(o: Control) -> void:
@@ -163,6 +187,7 @@ func close_all_overlays() -> void:
 	for o in overlays.duplicate():
 		close_overlay(o)
 
+## A short message in an espresso pill above the thumb zone. Never blocks input.
 func toast(text: String, seconds: float = 2.2) -> void:
 	if _toast and is_instance_valid(_toast):
 		_toast.queue_free()
@@ -170,15 +195,30 @@ func toast(text: String, seconds: float = 2.2) -> void:
 	l.text = text
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.add_theme_color_override("font_color", Color.WHITE)
-	l.add_theme_stylebox_override("normal", Style.box(Color(Style.INK, 0.92), 24))
-	l.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	l.custom_minimum_size = Vector2(560, 0)
-	l.position = Vector2(get_viewport_rect().size.x / 2 - 280, get_viewport_rect().size.y - 260)
+	l.add_theme_color_override("font_color", Style.PAPER)
+	l.add_theme_font_override("font", Style.font_bold)
+	l.add_theme_font_size_override("font_size", Style.fs(26))
+	var sb := Style.box(Color(Style.INK, 0.94), 30)
+	sb.content_margin_left = 28
+	sb.content_margin_right = 28
+	sb.content_margin_top = 16
+	sb.content_margin_bottom = 18
+	l.add_theme_stylebox_override("normal", sb)
+	var vw := get_viewport_rect().size.x
+	l.custom_minimum_size = Vector2(minf(600.0, vw - 64), 0)
+	l.size = l.custom_minimum_size
+	l.position = Vector2((vw - l.size.x) / 2, get_viewport_rect().size.y - 300)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(l)
 	_toast = l
 	var tw := create_tween()
+	if not App.reduced_motion():
+		l.modulate.a = 0.0
+		l.position.y += 16
+		tw.set_parallel()
+		tw.tween_property(l, "modulate:a", 1.0, Style.M_BASE)
+		tw.tween_property(l, "position:y", l.position.y - 16, Style.M_BASE).set_ease(Tween.EASE_OUT)
+		tw.set_parallel(false)
 	tw.tween_interval(seconds)
 	tw.tween_property(l, "modulate:a", 0.0, 0.3)
 	tw.tween_callback(l.queue_free)

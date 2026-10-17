@@ -8,11 +8,12 @@ signal data_changed
 signal language_changed
 signal settings_changed
 
-const VERSION := "0.2.0"
+const VERSION := "0.8.0"
 
 var data: Dictionary = {}
 var store: SaveStore
-var progression := Progression.new()
+var progression := Progression.new()   # retired sorting campaign (records kept)
+var delivery := DeliveryProgress.new()   # v8 Delivery Logic
 var ads: AdService
 var billing: BillingService
 var analytics: Analytics
@@ -48,12 +49,16 @@ func boot(save_path: String = "user://save.json", services: Dictionary = {}) -> 
 	elif store.last_load_source == "fresh" and store.last_load_issue.contains("corrupt"):
 		load_notice = "save_reset"
 	progression.load_levels()
+	delivery.load_levels()
 	# Today's café tasks exist before any play, so every win counts.
 	Tasks.refresh(data, Progression.today_key(), Meta.seen_mechanics(data, progression))
 	if str(data.settings.lang) == "":
 		data.settings.lang = Loc.detect()
 	Loc.set_lang(data.settings.lang)
 	Style.text_scale = 1.15 if data.settings.large_text else 1.0
+	ArtSkin.load_skin(BuildConfig.skin_id(data.settings))
+	for e in ArtSkin.errors:
+		push_warning("skin: " + e)
 	theme = Style.build_theme()
 	get_tree().root.theme = theme
 	var made := ServiceFactory.create(self, services)
@@ -176,4 +181,4 @@ func on_rush_win() -> void:
 			rush = RushRun.create(progression.daily_pool, int(Time.get_unix_time_from_system()))
 			goto_rush_level(), "WarmButton"],
 		[Loc.t("challenges"), func(): main.goto("home", {}, false); main.goto("daily"), "SecondaryButton"],
-	]))
+	], null, "bolt"))

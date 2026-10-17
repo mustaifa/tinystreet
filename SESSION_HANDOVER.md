@@ -3,7 +3,8 @@
 **Last updated:** 2026-10-17, session 8 (v8 / 0.8.0: Delivery Logic core rebuild).
 
 ## State
-- Branch **`feature/delivery-logic`**, created from `feature/gameplay-clarity` @ `72993d7` (the latest baseline: v7 0.7.0 / code 7; `origin/main` is an older ancestor). Nothing pushed or merged. PR #1 is still open. `backup/pre-strip-build`: **never push it**.
+- Branch **`feature/delivery-logic`**, created from `feature/gameplay-clarity` @ `72993d7` (the latest baseline: v7 0.7.0 / code 7; `origin/main` is an older ancestor). **Pushed to `origin/feature/delivery-logic`** (this also published the v6/v7 commits); a PR to `main` is open for it. Nothing merged. PR #1 is still open. `backup/pre-strip-build`: **never push it**.
+- Late session-8 fixes: v8 wins no longer feed the retired mode's achievements/journal (`puzzle_screen.gd`, test in `test_delivery_meta.gd`); the Route blocked card is compact and ignores taps for its first 600 ms (QA journeys wait 0.8 s before tapping it). Tests: **194 passed**. `tools/qa_battery.sh` is the retired mode's battery; the v8 one is `tools/dl_battery.sh`.
 - The owner said the game "feels like clicking highlighted items rather than solving puzzles" and authorised a core rebuild. v8 replaces the puzzle with **Delivery Logic** (working title): push picture-marked crates onto matching pads (Sokoban-family rules with symbols). See `docs/DELIVERY_RULES.md`, `docs/DELIVERY_DESIGN.md`.
 - **30 puzzles**, all passing the quality gates (`docs/DELIVERY_LEVEL_REPORT.md`); minimum pushes proved (`data/delivery/proofs.json`).
 - The sorting game is **retired from the primary flow, not deleted** (source, levels, tests and players' records kept).

@@ -1,4 +1,8 @@
 #!/bin/bash
+# Retired sorting mode's UI QA battery (v1-v7). Since v8 the primary flow
+# (first launch, Home Play) leads to Delivery Logic, so `player`,
+# `player_reopen`, `finale` and `tour` are expected not to match it (not
+# re-run in v8). The v8 battery is tools/dl_battery.sh.
 # Full UI QA battery. Every scenario gets its own fresh save file, because the
 # scenarios assume a new player (rewards paid once, tasks unclaimed, ...).
 #   game/tools/qa_battery.sh OUT_DIR [scenario ...]

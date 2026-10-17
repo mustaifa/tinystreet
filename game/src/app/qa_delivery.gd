@@ -216,6 +216,7 @@ func journey() -> void:
 	expect(scr().ps.state.pushes == 1, "board kept as it was (player stays in control)")
 	await q.shot("dl_06_blocked_dead_cell")
 	var undo_b: Button = scr().find_child("BlockedUndo", true, false)
+	await q._wait(0.8)   # a reader takes longer than the card's 600 ms tap guard
 	await q.click(undo_b.get_global_rect().get_center())
 	await q._wait(0.5)
 	expect(not scr().blocked_card.visible and scr().ps.state.pushes == 0, "Undo on the card recovers the position")
@@ -247,6 +248,7 @@ func journey() -> void:
 	await q._tap_button(Loc.t("close"))
 	await q._wait(0.3)
 	var rs_b: Button = scr().find_child("BlockedRestart", true, false)
+	await q._wait(0.8)   # a reader takes longer than the card's 600 ms tap guard
 	await q.click(rs_b.get_global_rect().get_center())
 	await q._wait(0.5)
 	var fresh := DeliveryRules.start_state(scr().level)
@@ -476,6 +478,7 @@ func clip_blocked() -> void:
 	await wait_blocked()
 	await q._wait(2.5)
 	var undo_b: Button = scr().find_child("BlockedUndo", true, false)
+	await q._wait(0.8)   # a reader takes longer than the card's 600 ms tap guard
 	await q.click(undo_b.get_global_rect().get_center())
 	await q._wait(1.0)
 	await play(solution_moves(), "clip")
@@ -492,6 +495,7 @@ func clip_silent() -> void:
 	await wait_blocked()
 	await q._wait(2.5)
 	var rs_b: Button = scr().find_child("BlockedRestart", true, false)
+	await q._wait(0.8)   # a reader takes longer than the card's 600 ms tap guard
 	await q.click(rs_b.get_global_rect().get_center())
 	await q._wait(1.0)
 	await play(solution_moves(), "clip")
@@ -614,6 +618,7 @@ func evidence() -> void:
 	expect(await wait_blocked(4.0), "...and search proves the puzzle can no longer be finished")
 	await q.shot("ev_02_d07_tempting_push_proved_blocked")
 	var undo_b: Button = scr().find_child("BlockedUndo", true, false)
+	await q._wait(0.8)   # a reader takes longer than the card's 600 ms tap guard
 	await q.click(undo_b.get_global_rect().get_center())
 	await q._wait(0.6)
 	await q._tap_named(scr(), Loc.t("hint"))

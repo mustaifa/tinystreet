@@ -3,8 +3,8 @@ extends Control
 
 signal tapped(tray: int)
 ## One customer order ticket. Shows who ordered (portrait), the current
-## stage's requirements with fill pips, and the SECOND stage (if any) in
-## advance, marked "then".
+## stage's requirements as one picture per unit (ghosted until filled), and
+## the SECOND stage (if any) in advance, marked "then".
 
 var tray := 0
 var order := -1
@@ -84,21 +84,76 @@ func _rows(stage_req: PackedInt32Array) -> Array:
 			r.append(p)
 	return r
 
+## v6 layout: one picture per unit the stage needs ("2 coffees" = two cups),
+## ghosted until filled, so a ticket reads at a glance with no counting pips.
+const HEAD := 58.0
+const GAP := 8.0
+const UNIT_MAX := 84.0
+const UNIT_MIN := 50.0
+
+static func units_of(req: PackedInt32Array) -> Array:
+	var u: Array = []
+	for p in Products.COUNT:
+		for k in req[p]:
+			u.append(p)
+	return u
+
+## [columns, unit size] that fit n units into `width`.
+static func grid(n: int, width: float) -> Array:
+	var avail := width - 28.0
+	var cols := maxi(1, n)
+	var u := 0.0
+	for rows in range(1, 4):
+		cols = int(ceil(n / float(rows)))
+		u = minf(UNIT_MAX, (avail - (cols - 1) * GAP) / maxf(1, cols))
+		if u >= UNIT_MIN:
+			break
+	return [cols, u]
+
+## Height a ticket needs for the largest stage in `orders` at `width`.
+static func needed_height(orders: Array, width: float) -> float:
+	var h := 0.0
+	for o in orders:
+		var stg: Array = o
+		for st in stg:
+			var n := units_of(st).size()
+			var g := grid(n, width)
+			var rows := int(ceil(n / float(g[0])))
+			h = maxf(h, HEAD + 12 + rows * (g[1] + GAP) + (52.0 if stg.size() > 1 else 6.0))
+	return h
+
 func icon_size() -> float:
-	return minf(70.0, size.x * 0.3)
+	if order < 0 or stages.is_empty():
+		return UNIT_MAX
+	return grid(units_of(stages[stage]).size(), size.x)[1]
+
+func unit_pos(j: int, n: int) -> Vector2:
+	var g := grid(n, size.x)
+	var cols: int = g[0]
+	var u: float = g[1]
+	var row := j / cols
+	var in_row := mini(cols, n - row * cols)
+	var col := j % cols
+	var row_w := in_row * u + (in_row - 1) * GAP
+	var x := (size.x - row_w) / 2 + u / 2 + col * (u + GAP)
+	if Loc.is_rtl():
+		x = size.x - x
+	return Vector2(x, HEAD + 12 + row * (u + GAP) + u / 2)
 
 func _row_y(i: int) -> float:
-	return 74 + i * (icon_size() + 10) + icon_size() / 2
+	var g := grid(units_of(stages[stage]).size(), size.x)
+	return HEAD + 12 + i * (g[1] + GAP) + g[1] / 2
 
+## Where the next item of product `p` lands: its first unit not drawn as filled.
 func product_pos(p: int) -> Vector2:
 	if order < 0 or stages.is_empty():
 		return size / 2
-	var rows := _rows(stages[stage])
-	var i := maxi(0, rows.find(p))
-	var x := 18 + icon_size() / 2
-	if Loc.is_rtl():
-		x = size.x - x
-	return Vector2(x, _row_y(i))
+	var units := units_of(stages[stage])
+	var first := units.find(p)
+	if first < 0:
+		return size / 2
+	var have := clampi(fill[p] - int(in_flight.get(p, 0)), 0, stages[stage][p] - 1)
+	return unit_pos(first + have, units.size())
 
 func product_global_pos(p: int) -> Vector2:
 	return get_global_transform() * product_pos(p)
@@ -134,9 +189,9 @@ func _draw() -> void:
 		head.bg_color = Color("f6dd9c")
 	head.corner_radius_top_left = 22
 	head.corner_radius_top_right = 22
-	draw_style_box(head, Rect2(Vector2(4, 4), Vector2(size.x - 8, 60)))
+	draw_style_box(head, Rect2(Vector2(4, 4), Vector2(size.x - 8, HEAD)))
 	for k in int((size.x - 30) / 16):
-		draw_circle(Vector2(18 + k * 16, 64), 3, Style.CREAM_DEEP)
+		draw_circle(Vector2(18 + k * 16, HEAD + 4), 3, Style.CREAM_DEEP)
 	if order < 0:
 		draw_string(Style.font_regular, Vector2(0, size.y / 2 + 10), Loc.t("tray_free"), HORIZONTAL_ALIGNMENT_CENTER, size.x, Style.fs(24), Style.INK_SOFT)
 		return
@@ -159,30 +214,35 @@ func _draw() -> void:
 		var lbl := "%d/%d" % [stage + 1, stages.size()]
 		var lx := 58.0 if not rtl else size.x - 58.0 - 40
 		draw_string(Style.font_regular, Vector2(lx, 42), lbl, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22), Style.INK_SOFT)
-	# current stage rows
+	# current stage: one picture per unit, ghosted until it arrives
 	var req: PackedInt32Array = stages[stage]
-	var rows := _rows(req)
-	var isz := icon_size()
-	for i in rows.size():
-		var p: int = rows[i]
-		var pos := product_pos(p)
-		ProductArt.draw(self, p, pos, isz * 0.9)
-		var need := req[p]
+	var units := units_of(req)
+	var u := icon_size()
+	var seen := {}
+	for j in units.size():
+		var p: int = units[j]
+		var k := int(seen.get(p, 0))
+		seen[p] = k + 1
+		var pos := unit_pos(j, units.size())
 		var have := fill[p] - int(in_flight.get(p, 0))
-		var pip := minf(16.0, (size.x - isz - 48) / maxf(1.0, need) / 2.4)
-		for k in need:
-			var px := 30 + isz + pip + k * pip * 2.4
-			if rtl:
-				px = size.x - px
-			var pc := Vector2(px, pos.y)
-			if k < have:
-				draw_circle(pc, pip, Style.TEAL)
-				draw_polyline(PackedVector2Array([pc + Vector2(-pip * 0.45, 0), pc + Vector2(-pip * 0.1, pip * 0.4), pc + Vector2(pip * 0.5, -pip * 0.4)]), Color.WHITE, maxf(2.0, pip * 0.25), true)
-			else:
-				draw_arc(pc, pip - 1.5, 0, TAU, 20, Color(Style.INK_SOFT, 0.7), 3, true)
+		var plate := StyleBoxFlat.new()
+		plate.bg_color = Color(Style.CREAM_DEEP, 0.7) if k >= have else Color(Style.TEAL_SOFT, 0.9)
+		plate.set_corner_radius_all(int(u * 0.3))
+		draw_style_box(plate, Rect2(pos - Vector2(u, u) / 2, Vector2(u, u)))
+		if k < have:
+			ProductArt.draw(self, p, pos, u * 0.92)
+			var cc := pos + Vector2(u * 0.34, u * 0.34)
+			draw_circle(cc, u * 0.17 + 2, Style.PAPER)
+			draw_circle(cc, u * 0.17, Style.TEAL)
+			var q := u * 0.17
+			draw_polyline(PackedVector2Array([cc + Vector2(-q * 0.45, 0), cc + Vector2(-q * 0.1, q * 0.4), cc + Vector2(q * 0.5, -q * 0.4)]), Color.WHITE, maxf(2.0, q * 0.28), true)
+		else:
+			ProductArt.draw(self, p, pos, u * 0.86, 0.38)
+	var grid_rows := int(ceil(units.size() / float(grid(units.size(), size.x)[0])))
+	var isz := u
 	# next stage preview
 	if stage + 1 < stages.size():
-		var y := _row_y(rows.size()) - isz / 2 + 6
+		var y := _row_y(grid_rows) - isz / 2 + 6
 		draw_line(Vector2(18, y - 4), Vector2(size.x - 18, y - 4), Color(Style.INK_SOFT, 0.25), 2, true)
 		var nreq: PackedInt32Array = stages[stage + 1]
 		var x := 22.0

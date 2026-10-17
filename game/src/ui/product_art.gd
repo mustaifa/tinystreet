@@ -1,6 +1,7 @@
 class_name ProductArt
 extends RefCounted
-## Original vector product illustrations drawn with CanvasItem primitives.
+## Product art. The active skin's "product.<id>" image wins (see ArtSkin);
+## otherwise these original vector illustrations are drawn with primitives.
 ## Each product has a unique SILHOUETTE (cup, tin, crescent, cupcake, basket,
 ## gift box) so colour is never the only distinguishing cue.
 
@@ -12,6 +13,8 @@ static var cache := {}
 const BAKE_PX := 192
 
 static func draw(ci: CanvasItem, p: int, c: Vector2, s: float, a: float = 1.0) -> void:
+	if p >= 0 and p < Products.COUNT and ArtSkin.draw_fit(ci, "product." + Products.IDS[p], c, s, a):
+		return
 	var tex: Texture2D = cache.get(p)
 	if tex:
 		ci.draw_texture_rect(tex, Rect2(c - Vector2(s, s) / 2, Vector2(s, s)), false, Color(1, 1, 1, a))

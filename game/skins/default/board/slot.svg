@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="plate" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#fffaf3"/><stop offset="0.75" stop-color="#f4e7d3"/><stop offset="1" stop-color="#e2cfb3"/>
+    </radialGradient>
+  </defs>
+  <rect x="4" y="8" width="120" height="118" rx="30" fill="#3b2418" opacity="0.28"/>
+  <rect x="4" y="4" width="120" height="118" rx="30" fill="url(#plate)" stroke="#c9a77a" stroke-width="3"/>
+  <ellipse cx="64" cy="98" rx="38" ry="8" fill="#d9c3a3" opacity="0.6"/>
+</svg>

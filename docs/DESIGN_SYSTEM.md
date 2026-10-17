@@ -17,6 +17,9 @@ Everything lives in code, so there is one source of truth:
 
 Screens choose a theme **variation** by name (`"WarmButton"`, `"NightCard"`, …) and never build their own colours. A screen can set `var screen_mode := "night"` (or `"bakery"`) to switch the full-bleed background.
 
+
+> **v6:** colour tokens are now `static var`s that an art skin can override, and products, board furniture, characters, icons, backgrounds and sounds can all come from a skin. See `docs/ART_PIPELINE.md`.
+
 ## Colour tokens
 
 | Token | Hex | Use |

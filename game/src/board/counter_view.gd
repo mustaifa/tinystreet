@@ -19,7 +19,7 @@ func set_slots(s: PackedInt32Array, base: int) -> void:
 
 func slot_size() -> float:
 	var n := maxi(1, slots.size())
-	return minf(104.0, (size.x - 32 - (n - 1) * 12) / n)
+	return minf(minf(112.0, size.y - 28), (size.x - 40 - (n - 1) * 12) / n)
 
 func slot_center(i: int) -> Vector2:
 	var n := slots.size()
@@ -48,15 +48,30 @@ func _draw() -> void:
 	sb.shadow_size = 8
 	sb.shadow_offset = Vector2(0, 4)
 	var free := free_count()
-	if free <= 1 and slots.size() > 1:
+	var low := free <= 1 and slots.size() > 1
+	if low:
 		sb.border_color = Style.WARN
 		sb.set_border_width_all(5)
-	draw_style_box(sb, r)
-	draw_line(Vector2(18, r.position.y + 14), Vector2(size.x - 18, r.position.y + 14), Color(Style.WOOD_LIGHT, 0.6), 3, true)
+	if ArtSkin.draw_rect(self, "board.counter", r):
+		if low:
+			var warn := StyleBoxFlat.new()
+			warn.draw_center = false
+			warn.border_color = Style.WARN
+			warn.set_border_width_all(5)
+			warn.set_corner_radius_all(26)
+			draw_style_box(warn, r.grow(2))
+	else:
+		draw_style_box(sb, r)
+		draw_line(Vector2(18, r.position.y + 14), Vector2(size.x - 18, r.position.y + 14), Color(Style.WOOD_LIGHT, 0.6), 3, true)
 	var s := slot_size()
+	var skin_slot := ArtSkin.has("board.slot")
 	for i in slots.size():
 		var c := slot_center(i)
 		var bonus := i >= base_slots
+		if skin_slot:
+			ArtSkin.draw_fit(self, "board.slot", c, s, 1.0)
+			if i == preview_slot or bonus:
+				draw_arc(c, s * 0.5, 0, TAU, 40, Style.TEAL, 5 if i == preview_slot else 3, true)
 		var slot := StyleBoxFlat.new()
 		slot.bg_color = Color(Style.CREAM, 0.95) if not bonus else Color(Style.TEAL_SOFT, 0.95)
 		slot.set_corner_radius_all(int(s * 0.26))
@@ -66,10 +81,11 @@ func _draw() -> void:
 		elif bonus:
 			slot.border_color = Style.TEAL
 			slot.set_border_width_all(3)
-		draw_style_box(slot, Rect2(c - Vector2(s, s) / 2, Vector2(s, s)))
+		if not skin_slot:
+			draw_style_box(slot, Rect2(c - Vector2(s, s) / 2, Vector2(s, s)))
 		var p := slots[i]
 		if p >= 0 and not hidden_slots.has(i):
-			ProductArt.draw(self, p, c, s * 0.84)
+			ProductArt.draw(self, p, c, s * (0.9 if skin_slot else 0.84))
 		elif gone_slots.has(i):
 			pass
 		elif bonus and p < 0:

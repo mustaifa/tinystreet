@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="berry" cx="0.38" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#ff8a7a"/><stop offset="0.5" stop-color="#e2443b"/><stop offset="1" stop-color="#a51f22"/>
+    </radialGradient>
+    <linearGradient id="basket" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2d7a6"/><stop offset="1" stop-color="#c99a5c"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3b876"/><stop offset="1" stop-color="#a87634"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="128" cy="230" rx="96" ry="12" fill="#3b2418" opacity="0.16"/>
+  <g stroke="#6b1a1c" stroke-width="4.5" stroke-linejoin="round">
+    <path d="M58 70 C80 60 102 74 100 100 C98 124 80 140 70 140 C58 140 38 120 36 98 C34 80 44 72 58 70 Z" fill="url(#berry)"/>
+    <path d="M198 70 C176 60 154 74 156 100 C158 124 176 140 186 140 C198 140 218 120 220 98 C222 80 212 72 198 70 Z" fill="url(#berry)"/>
+    <path d="M128 46 C154 40 172 62 168 92 C164 120 144 138 128 138 C112 138 92 120 88 92 C84 62 102 40 128 46 Z" fill="url(#berry)"/>
+  </g>
+  <g fill="#ffe7a1">
+    <ellipse cx="114" cy="74" rx="3" ry="4"/><ellipse cx="140" cy="70" rx="3" ry="4"/><ellipse cx="128" cy="92" rx="3" ry="4"/>
+    <ellipse cx="110" cy="104" rx="3" ry="4"/><ellipse cx="148" cy="100" rx="3" ry="4"/><ellipse cx="130" cy="118" rx="3" ry="4"/>
+    <ellipse cx="56" cy="92" rx="3" ry="4"/><ellipse cx="74" cy="104" rx="3" ry="4"/><ellipse cx="62" cy="118" rx="3" ry="4"/>
+    <ellipse cx="200" cy="92" rx="3" ry="4"/><ellipse cx="182" cy="104" rx="3" ry="4"/><ellipse cx="194" cy="118" rx="3" ry="4"/>
+  </g>
+  <g fill="#4ea34c" stroke="#245d26" stroke-width="4" stroke-linejoin="round">
+    <path d="M128 50 L108 36 L122 40 L128 26 L134 40 L148 36 Z"/>
+    <path d="M60 74 L44 62 L56 64 L62 52 L68 64 L80 62 Z"/>
+    <path d="M196 74 L180 62 L192 64 L198 52 L204 64 L216 62 Z"/>
+  </g>
+  <path d="M110 60 C116 54 124 52 130 54" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+  <path d="M30 128 L226 128 L208 214 C200 222 56 222 48 214 Z" fill="url(#basket)" stroke="#5a3f1e" stroke-width="5" stroke-linejoin="round"/>
+  <g stroke="#a87634" stroke-width="4" stroke-linecap="round" opacity="0.85">
+    <path d="M38 156 L218 156"/><path d="M42 182 L214 182"/>
+    <path d="M70 136 L76 214"/><path d="M104 136 L106 216"/><path d="M152 136 L150 216"/><path d="M186 136 L180 214"/>
+  </g>
+  <rect x="24" y="118" width="208" height="22" rx="11" fill="url(#rim)" stroke="#5a3f1e" stroke-width="5"/>
+  <rect x="98" y="160" width="60" height="34" rx="8" fill="#d6453d" stroke="#6b1a1c" stroke-width="4"/>
+  <path d="M112 177 C120 168 136 168 144 177 C136 186 120 186 112 177 Z" fill="#fff3e4"/>
+</svg>

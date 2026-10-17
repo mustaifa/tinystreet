@@ -7,53 +7,55 @@ extends RefCounted
 ## by name; they never build their own colours. See docs/DESIGN_SYSTEM.md.
 
 # ------------------------------------------------------------------ palette
+# Static vars (not consts) so a skin can override any token by name
+# (ArtSkin._apply_colors). Derived tokens (SUCCESS = TEAL) are overridden separately.
 # Ground and paper
-const CREAM := Color("fbf4e8")        # screen background
-const CREAM_DEEP := Color("f2e5d0")   # recessed areas, empty tracks
-const LINEN := Color("f7eddc")        # soft panels
-const PAPER := Color("fffaf3")        # cards, dialogs
-const PAPER_EDGE := Color("eadcc6")   # hairline borders on paper
+static var CREAM := Color("fbf4e8")        # screen background
+static var CREAM_DEEP := Color("f2e5d0")   # recessed areas, empty tracks
+static var LINEN := Color("f7eddc")        # soft panels
+static var PAPER := Color("fffaf3")        # cards, dialogs
+static var PAPER_EDGE := Color("eadcc6")   # hairline borders on paper
 # Text: rich espresso (contrast on cream: INK 12.6:1, INK_SOFT 6.1:1)
-const INK := Color("3a2a22")
-const INK_SOFT := Color("6b584c")
-const INK_FAINT := Color("9c8a7c")    # decorative only, never for body text
+static var INK := Color("3a2a22")
+static var INK_SOFT := Color("6b584c")
+static var INK_FAINT := Color("9c8a7c")    # decorative only, never for body text
 # Teal: primary actions and "done"
-const TEAL := Color("1f7a72")
-const TEAL_DARK := Color("165a54")
-const TEAL_EDGE := Color("0f4540")
-const TEAL_SOFT := Color("d3ebe6")
+static var TEAL := Color("1f7a72")
+static var TEAL_DARK := Color("165a54")
+static var TEAL_EDGE := Color("0f4540")
+static var TEAL_SOFT := Color("d3ebe6")
 # Coral (restrained): restoration, warm calls to action
-const TERRACOTTA := Color("c95f3f")
-const CORAL_EDGE := Color("94412a")
-const TERRA_SOFT := Color("f6dccf")
+static var TERRACOTTA := Color("c95f3f")
+static var CORAL_EDGE := Color("94412a")
+static var TERRA_SOFT := Color("f6dccf")
 # Gold: stars, tokens, highlights
-const GOLD := Color("e3a83a")
-const GOLD_EDGE := Color("a8761b")
-const GOLD_SOFT := Color("f8e8c4")
+static var GOLD := Color("e3a83a")
+static var GOLD_EDGE := Color("a8761b")
+static var GOLD_SOFT := Color("f8e8c4")
 # Wood (board furniture)
-const WOOD := Color("a8714a")
-const WOOD_DARK := Color("7c5034")
-const WOOD_LIGHT := Color("d9a87c")
+static var WOOD := Color("a8714a")
+static var WOOD_DARK := Color("7c5034")
+static var WOOD_LIGHT := Color("d9a87c")
 # Semantic states
-const SUCCESS := TEAL
-const WARN := Color("cf7a22")
-const DANGER := Color("b8442c")
-const LOCKED := Color("b3a596")
-const SHADOW := Color(0.23, 0.14, 0.08, 0.16)
+static var SUCCESS := TEAL
+static var WARN := Color("cf7a22")
+static var DANGER := Color("b8442c")
+static var LOCKED := Color("b3a596")
+static var SHADOW := Color(0.23, 0.14, 0.08, 0.16)
 # Midnight Ledger: refined midnight blue with warm lantern light
-const NIGHT := Color("161e36")
-const NIGHT_2 := Color("1f2a49")
-const NIGHT_3 := Color("2b3860")
-const NIGHT_LINE := Color("3e4c7a")
-const MOON := Color("f3efe4")         # text on night (contrast 13:1)
-const MOON_SOFT := Color("bcc3dc")    # secondary text on night (7.4:1)
-const LANTERN := Color("f2b84b")
-const LANTERN_EDGE := Color("b07c1e")
-const PARCHMENT := Color("f6eedb")
-const PARCHMENT_EDGE := Color("dccaa4")
+static var NIGHT := Color("161e36")
+static var NIGHT_2 := Color("1f2a49")
+static var NIGHT_3 := Color("2b3860")
+static var NIGHT_LINE := Color("3e4c7a")
+static var MOON := Color("f3efe4")         # text on night (contrast 13:1)
+static var MOON_SOFT := Color("bcc3dc")    # secondary text on night (7.4:1)
+static var LANTERN := Color("f2b84b")
+static var LANTERN_EDGE := Color("b07c1e")
+static var PARCHMENT := Color("f6eedb")
+static var PARCHMENT_EDGE := Color("dccaa4")
 # Bakery accent
-const ROSE := Color("e7a3a8")
-const ROSE_SOFT := Color("f8e1df")
+static var ROSE := Color("e7a3a8")
+static var ROSE_SOFT := Color("f8e1df")
 
 # ------------------------------------------------------------------ type scale (px at 720-wide base)
 const T_DISPLAY := 52

@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.6.0 (v6), 2026-10-16: production polish, phase A (skins, art, sound, board)
+First step of the production plan (`docs/PRODUCTION_ROADMAP.md`), with the owner's direction: **free resources only for now, and built so art can be swapped easily later.** Puzzle rules, levels, economy and save format are unchanged (schema 4).
+
+### Skins: all art, sound and colour can be replaced without code
+- New **`ArtSkin`** system (`src/ui/art_skin.gd`): a skin is a folder with a `skin.json` that maps keys (`product.coffee`, `board.counter`, `character.mira.happy`, `icon.gear`, `bg.cafe.wall`, `sfx.deliver`, `music.cafe`, …) to SVG/PNG/WebP/OGG/WAV/MP3 files, plus optional colour-token overrides.
+- Skins can **extend** another skin and override only some keys (seasonal or purchasable themes later). They load from `res://skins/` or, for future downloads, `user://skins/`. Every missing key falls back to the built-in art, and errors never crash the game.
+- Nine-patch support (margins in design pixels, density-aware, optional tiling), "cover" backgrounds, tintable icons (mirrored in Arabic), per-sound volume.
+- Colour tokens in `Style` are now `static var`s, so a skin can recolour the UI.
+- `--skin=<id>` previews a skin; `tools/skin_sheet.gd` renders a contact sheet of a skin's images.
+- Guide: **`docs/ART_PIPELINE.md`** (every key, size and format, plus the workflow for an art drop). Tests: `tests/test_skin.gd` (6 tests).
+
+### New default art and sound (free)
+- **Products redrawn** as shaded SVG illustrations (gradients, highlights, soft shadows) with the same distinct silhouettes; new paper bag.
+- **Wooden crate, crate front, counter and counter plates** as nine-patch SVG art.
+- **Sound effects** replaced by Kenney's CC0 packs (plate and wood impacts, chimes, chips for coins, paper slide for bags, a real bell; pizzicato win jingle). Credited in-game and in `THIRD_PARTY_NOTICES.md`.
+
+### Puzzle board
+- **Order tickets show one picture per unit** ("2 coffees" = two cups), ghosted until filled and then ticked. This replaces the small icon plus dot pips. Tickets are sized to their largest stage.
+- **Crates fit their contents**: a crate is as tall as its starting stack, and the café wall shows above short crates. Front items are larger (up to 136 px); stacked items are larger too (70% of the front, was 62%).
+- Less text: the "Counter 0/3" caption is gone (the plates show it; warnings still use the status line), and "Orders 1/6" is now "1/6" beside the bar.
+
+### Home and win card
+- Home: the **Play key leads with the level number** ("Level 54", with "Continue · chapter" under it). The help chip moved off the top bar (Help stays in Settings and on every puzzle).
+- Win card: stars, then a **coin reward that counts up** with coin sounds, one quiet stats line instead of three stat chips, the next café step, and the actions. Award and task notices are no longer repeated here (the home screen badges them).
+
 ## 0.5.0 (v5), 2026-10-16: UI polish ("an inviting miniature café street")
 After the owner's phone feedback ("the screens work, but the UI looks dull and does not feel inviting"). A presentation and usability milestone: **puzzle rules, level content, economy and save format are unchanged** (schema 4; the level validator and ledger proofs re-run clean). Design: `docs/DESIGN_SYSTEM.md`.
 

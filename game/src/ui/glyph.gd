@@ -36,6 +36,16 @@ static func paint(ci: CanvasItem, kind: String, rect: Rect2, color: Color, thick
 		ci.draw_line(c + a * s, c + b * s, color, w * k, true)
 		ci.draw_circle(c + a * s, w * k * 0.5, color)
 		ci.draw_circle(c + b * s, w * k * 0.5, color)
+	# Skin icons: "icon.<kind>" (mark white line icons "tint": true in the manifest).
+	# Directional ones mirror in RTL like the built-in glyphs.
+	if ArtSkin.has("icon." + kind):
+		if flip < 0:
+			ci.draw_set_transform(c, 0.0, Vector2(-1, 1))
+			ArtSkin.draw_fit(ci, "icon." + kind, Vector2.ZERO, s, 1.0, color)
+			ci.draw_set_transform(Vector2.ZERO)
+		else:
+			ArtSkin.draw_fit(ci, "icon." + kind, c, s, 1.0, color)
+		return
 	if kind.begins_with("p_"):
 		# the game's own full-colour product art, e.g. "p_croissant"
 		ProductArt.draw(ci, Products.IDS.find(kind.substr(2)), c, s * 0.82, color.a)

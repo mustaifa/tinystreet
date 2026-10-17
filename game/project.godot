@@ -6,7 +6,7 @@ config_version=5
 
 config/name="Tiny Street: Sort & Restore"
 config/description="Sort deliveries, complete orders, and restore a neighborhood café."
-config/version="0.5.0"
+config/version="0.6.0"
 run/main_scene="res://src/app/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/bg_color=Color(0.984, 0.957, 0.91, 1)
@@ -55,3 +55,10 @@ renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 textures/canvas_textures/default_texture_filter=3
 environment/defaults/default_clear_color=Color(0.984, 0.957, 0.91, 1)
+
+[importer_defaults]
+
+texture={
+"mipmaps/generate": true,
+"svg/scale": 2.0
+}

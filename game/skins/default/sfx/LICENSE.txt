@@ -1,0 +1,15 @@
+Sound effects in this folder are by Kenney (www.kenney.nl), released under
+Creative Commons Zero (CC0 1.0): http://creativecommons.org/publicdomain/zero/1.0/
+Packs: Interface Sounds 1.0, Impact Sounds 1.0, Casino Audio 1.1, Music Jingles.
+Downloaded 2026-10-16 from https://kenney.nl/assets. Credit is not required; we
+credit Kenney in the in-game Credits anyway.
+
+  tap      interface-sounds/click_002      deliver  interface-sounds/confirmation_002
+  place    impact-sounds/impactPlate_light_000   win  music-jingles/Pizzicato/jingles_PIZZI00
+  counter  impact-sounds/impactWood_light_000    star interface-sounds/glass_002
+  invalid  interface-sounds/error_004      restore  music-jingles/Steel/jingles_STEEL02
+  stage    interface-sounds/confirmation_001     undo interface-sounds/back_002
+  warn     interface-sounds/question_002   combo    interface-sounds/maximize_003
+  coin     casino-audio/chips-collide-1    bag      casino-audio/card-slide-1
+  unlock   interface-sounds/open_002       bell     impact-sounds/impactBell_heavy_002
+"lose" and the café music keep the original synthesised files (assets/audio).

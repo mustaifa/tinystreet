@@ -23,12 +23,17 @@ func set_split(y: float) -> void:
 
 func _draw() -> void:
 	var w := size.x
-	match mode:
-		"night": _night_wall(w)
-		"bakery": _wall(w, Color("f8e6df"), Color(1, 1, 1, 0.45), Color(Style.ROSE, 0.22))
-		_: _wall(w, Color("f6e7cf"), Color(1, 1, 1, 0.30), Color(Style.WOOD, 0.12))
-	_rail(w)
-	_counter(w)
+	# Skin art: "bg.<mode>.wall" above the split, "bg.<mode>.floor" below it.
+	var wall := ArtSkin.draw_cover(self, "bg.%s.wall" % mode, Rect2(0, 0, w, split))
+	var floor_done := ArtSkin.draw_cover(self, "bg.%s.floor" % mode, Rect2(0, split, w, size.y - split))
+	if not wall:
+		match mode:
+			"night": _night_wall(w)
+			"bakery": _wall(w, Color("f8e6df"), Color(1, 1, 1, 0.45), Color(Style.ROSE, 0.22))
+			_: _wall(w, Color("f6e7cf"), Color(1, 1, 1, 0.30), Color(Style.WOOD, 0.12))
+		_rail(w)
+	if not floor_done:
+		_counter(w)
 
 func _wall(w: float, base: Color, stripe: Color, motif: Color) -> void:
 	draw_rect(Rect2(0, 0, w, split), base)

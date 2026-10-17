@@ -1,5 +1,29 @@
 # Test Report
 
+## v6 (0.6.0), production polish phase A (skins, art, sound, board), 2026-10-16
+Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU, no Android device or emulator**. Visual and interaction checks ran in a desktop Linux build under Xvfb (Mesa software GL). **This isn't Android runtime verification.**
+
+| Check | Result |
+|---|---|
+| Unit/integration tests | **PASS: 135 passed, 0 failed** (+6 `test_skin.gd`: default skin complete and every file loads; nine-patch margins follow import density; a partial user:// skin extends the default and overrides images and colours, with errors reported; a missing skin falls back; a missing key returns false so built-in art draws; skin selection from settings) |
+| Level validation | **PASS: levels=164 failed=0 unverified=0** (rules and levels unchanged) |
+| All 96 campaign levels via simulated taps on the new board | **PASS: 96/96 won** (`play=1-48`, `play=49-96`) |
+| Scripted UI flows, each on a fresh save (`game/tools/qa_battery.sh`) | **PASS**: slice 4/4, v3 11/11, v2 10/10, ledger 17/17, nav/Android Back 17/17, rewards 8/8 |
+| Rapid tapping (400 taps) | **PASS**: consistent with a clean replay, 0 leftover effects |
+| Layouts | 720×1280, 720×1600, and 720×1000 with large text (renders 921×1280): no script errors, no clipping or overlap; reviewed by eye. With 6 crates on a short screen the stacked items shrink to fit (as designed) |
+| Screen tour EN + AR (39 screens) | 0 script errors; game, home, win, bakery and ledger screens reviewed by eye. RTL tickets, units and dock mirror correctly |
+| Frame times (software GL, not representative of a phone) | play runs avg 78–82 ms, p95 ~102 ms: the same range as v5 (75–93 ms), so the SVG art adds no measurable cost here |
+| Skin contact sheet (`tools/skin_sheet.gd`) | 11 images, 0 errors (`docs/screenshots/v6/skin_default_sheet.png`) |
+| APK `build/tinystreet-v6-polish-debug.apk` | `com.tinystreet.sortrestore` **0.6.0 / code 6**, contains `skins/default/skin.json` and all skin art and sounds; SHA-256 `93e14be0…6cb4cca` (in `build/SHA256SUMS.txt`). **Not run on Android.** |
+
+Found during v6 QA:
+- **Win card, café fully restored:** the "café is restored" line wrapped one letter per line (a wrapping label in a row without width; the old stat chips had hidden it by widening the card). Fixed and re-checked in Arabic.
+- **QA harness:** running scenarios back to back on one save made reward-once checks fail (rewards already paid, tasks claimed, ledger lantern earned). Not a game bug. `game/tools/qa_battery.sh` now gives every scenario its own fresh save; all four affected scenarios then passed.
+
+Known nit: the tiled crate slats show a faint seam at some heights (art, not layout).
+
+Not verified (needs the phone): real sound levels of the Kenney effects on a phone speaker, haptics, GPU frame rate, touch comfort with the larger items.
+
 ## v5 (0.5.0), UI polish, 2026-10-16
 Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU**. `/dev/kvm` exists but is still `root:109 0660` and this user isn't in group 109 (checked: opening it fails with "Permission denied"), so the emulator acceleration blocker hasn't changed and **the emulator wasn't retried**. No Android device is attached (`adb devices` is empty). All visual and interaction checks below ran in a **desktop Linux build** under Xvfb (Mesa software GL). **This isn't Android runtime verification.**
 

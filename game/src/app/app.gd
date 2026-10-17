@@ -8,7 +8,7 @@ signal data_changed
 signal language_changed
 signal settings_changed
 
-const VERSION := "0.5.0"
+const VERSION := "0.6.0"
 
 var data: Dictionary = {}
 var store: SaveStore
@@ -54,6 +54,9 @@ func boot(save_path: String = "user://save.json", services: Dictionary = {}) -> 
 		data.settings.lang = Loc.detect()
 	Loc.set_lang(data.settings.lang)
 	Style.text_scale = 1.15 if data.settings.large_text else 1.0
+	ArtSkin.load_skin(BuildConfig.skin_id(data.settings))
+	for e in ArtSkin.errors:
+		push_warning("skin: " + e)
 	theme = Style.build_theme()
 	get_tree().root.theme = theme
 	var made := ServiceFactory.create(self, services)

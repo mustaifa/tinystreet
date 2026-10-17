@@ -1,8 +1,8 @@
 class_name WinPanel
 extends Dialog
-## Level-complete card, short and satisfying: the stars land one by one, then
-## three stat chips, one rewards line, the next café goal, and at most one
-## highlighted notice. Next is the main action; Replay and Return share a row.
+## Level-complete card, short and satisfying: the stars land one by one, the
+## coin reward counts up, one quiet stats line, the next café goal, and at most
+## one highlighted notice. Next is the main action; Replay and Return share a row.
 
 static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: PuzzleSession) -> Dialog:
 	var d := WinPanel.new()
@@ -26,12 +26,8 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 			tw.tween_property(g, "scale", Vector2(1.2, 1.2), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 			tw.tween_property(g, "scale", Vector2.ONE, 0.1)
 	extra.add_child(star_row)
-	# --- stats
-	var stats := UI.hbox(10)
-	stats.alignment = BoxContainer.ALIGNMENT_CENTER
-	stats.add_child(_stat("tap", str(ps.state.moves), Loc.t("stat_moves")))
-	stats.add_child(_stat("counter", str(ps.state.peak_counter), Loc.t("stat_peak")))
-	stats.add_child(_stat("undo", str(ps.undo_count), Loc.t("stat_undos")))
+	# --- stats: one quiet line (v6; the card is about the reward, not numbers)
+	var stats := UI.label(Loc.t("win_stats", [ps.state.moves, ps.state.peak_counter, ps.undo_count]), "CaptionLabel")
 	extra.add_child(stats)
 	# --- rewards line
 	var meta: Dictionary = res.get("meta", {})
@@ -40,7 +36,7 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		var rw := UI.hbox(10)
 		rw.alignment = BoxContainer.ALIGNMENT_CENTER
 		if tok > 0:
-			rw.add_child(UI.pill("coin", "+%d" % tok))
+			rw.add_child(_coin_reward(tok))
 		if bool(res.get("mastery", false)):
 			var mp := UI.pill("ribbon", Loc.t("win_mastery_short"), Style.TEAL)
 			rw.add_child(mp)
@@ -68,15 +64,7 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		if int(res.get("tokens", 0)) > 0:
 			txt += "  " + Loc.t("got_tokens", [int(res.tokens)])
 		extra.add_child(_notice("trophy" if met else "info", txt, "TealPanel" if met else "SoftPanel"))
-	var news: Array = meta.get("new_achievements", [])
-	var tasks := int(meta.get("tasks_ready", 0))
-	if not news.is_empty() or tasks > 0:
-		var parts: Array = []
-		if not news.is_empty():
-			parts.append(Loc.t("ach_unlocked", [Loc.t("ach_" + str(news[0]))]) + (" " + Loc.t("win_and_more", [news.size() - 1]) if news.size() > 1 else ""))
-		if tasks > 0:
-			parts.append(Loc.t("tasks_ready_n", [tasks]))
-		extra.add_child(_notice("journal", "\n".join(parts), "SoftPanel"))
+	# Awards and café tasks are not repeated here: the home screen badges them.
 	if kind in ["campaign", "bakery"]:
 		extra.add_child(_goal())
 	# --- actions
@@ -111,6 +99,30 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		title = Loc.t("challenge_done_title")
 	d._build(title, "", buttons, extra)
 	return d
+
+## A large coin pill whose number counts up after the stars have landed.
+static func _coin_reward(n: int) -> Control:
+	var p := UI.pill("coin", "+0")
+	p.scale = Vector2(1.25, 1.25)
+	p.custom_minimum_size = Vector2(150, 0)
+	var l: Label = null
+	for c in p.find_children("*", "Label", true, false):
+		l = c
+	if l == null or App.reduced_motion():
+		if l:
+			l.text = "+%d" % n
+		return p
+	var tw := p.create_tween()
+	tw.tween_interval(0.25 + 3 * 0.22)
+	tw.tween_method(func(v: float):
+		var t := "+%d" % int(round(v))
+		if l.text != t:
+			l.text = t
+			App.audio.play("coin", 1.0 + v * 0.02), 0.0, float(n), minf(0.9, 0.12 * n))
+	tw.tween_callback(func(): p.pivot_offset = p.size / 2)
+	tw.tween_property(p, "scale", Vector2(1.4, 1.4), 0.1)
+	tw.tween_property(p, "scale", Vector2(1.25, 1.25), 0.12)
+	return p
 
 static func _stat(glyph: String, value: String, caption: String) -> Control:
 	var p := PanelContainer.new()
@@ -154,7 +166,9 @@ static func _goal() -> Control:
 	var r := UI.hbox(12)
 	if i < 0:
 		r.add_child(UI.medallion("spark", Style.GOLD_SOFT, Style.GOLD_EDGE, 48))
-		r.add_child(UI.label(Loc.t("cafe_complete_extras"), "SoftLabel", UI.al()))
+		var done := UI.label(Loc.t("cafe_complete_extras"), "SoftLabel", UI.al())
+		done.size_flags_horizontal = Control.SIZE_EXPAND_FILL   # a wrapping label in a row needs width
+		r.add_child(done)
 		return r
 	var st: Dictionary = Restoration.STEPS[i]
 	var ready := have >= int(st.cost)

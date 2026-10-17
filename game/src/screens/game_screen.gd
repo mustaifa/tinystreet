@@ -178,9 +178,10 @@ func _build() -> void:
 	root.add_child(orders_row)
 	# counter, with its caption
 	counter_label = UI.label("", "NightSoft" if night else "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	counter_label.visible = false   # v6: the slots say it; warnings use the status line
 	root.add_child(counter_label)
 	counter = CounterView.new()
-	counter.custom_minimum_size = Vector2(0, 108)
+	counter.custom_minimum_size = Vector2(0, 124)
 	root.add_child(counter)
 	# status line: a reserved row, so messages never shift the board
 	status_label = StatusPill.new()
@@ -212,6 +213,7 @@ func _build() -> void:
 	for i in def.crates.size():
 		var cv := CrateView.new()
 		cv.index = i
+		cv.capacity = def.crates[i].size()
 		cv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cv.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		cv.custom_minimum_size = Vector2(0, 220)
@@ -275,7 +277,12 @@ func _update_hint_badge() -> void:
 
 func _process(delta: float) -> void:
 	if crates_row and backdrop:
-		var y := (crates_row.get_global_rect().position.y - backdrop.get_global_rect().position.y) + 40
+		var top := 1e9
+		for cv: CrateView in crate_views:
+			top = minf(top, cv.body_top())
+		if top > 1e8:
+			top = 0.0
+		var y := (crates_row.get_global_rect().position.y + top - backdrop.get_global_rect().position.y) - 26
 		backdrop.set_split(y)
 	# Rush clock: counts up only while the puzzle is in play and unobstructed.
 	if kind == "rush" and App.rush and ps and not ps.is_won() and App.main.overlays.is_empty():
@@ -310,19 +317,9 @@ func _subtitle() -> String:
 	return Loc.t(ch) if ch != "" else ""
 
 func _card_height() -> int:
-	var rows := 1
-	var two := false
-	for o in def.orders:
-		for st in o:
-			var n := 0
-			for p in Products.COUNT:
-				if st[p] > 0:
-					n += 1
-			rows = maxi(rows, n)
-		if o.size() > 1:
-			two = true
-	var isz := 70
-	return 92 + rows * (isz + 10) + (64 if two else 0)
+	var n := mini(def.trays, 3)
+	var w := (720.0 - 48.0 - 12.0 * (n - 1)) / n
+	return int(OrderCard.needed_height(def.orders, w))
 
 # --------------------------------------------------------------------- render
 
@@ -1079,7 +1076,7 @@ class _ProgressBar extends Control:
 		var d: LevelDef = game.def
 		var total := d.orders.size()
 		var rtl := Loc.is_rtl()
-		var txt := Loc.t("orders_progress", [s.completed, total])
+		var txt := "%d/%d" % [s.completed, total]
 		var tw := Style.font_bold.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24)).x
 		var x0 := 6.0
 		var ink := Style.MOON if night else Style.INK

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 168" width="200" height="168">
+  <!-- nine-patch: margins 36/36/36/36 -->
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c78b5b"/><stop offset="0.55" stop-color="#a8714a"/><stop offset="1" stop-color="#7c5034"/>
+    </linearGradient>
+    <linearGradient id="lip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ecc394"/><stop offset="1" stop-color="#c48a5c"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="10" width="192" height="154" rx="24" fill="#3b2418" opacity="0.25"/>
+  <rect x="2" y="4" width="196" height="154" rx="24" fill="url(#wood)" stroke="#5a3620" stroke-width="4"/>
+  <rect x="8" y="8" width="184" height="18" rx="9" fill="url(#lip)"/>
+  <path d="M20 60 C70 54 120 66 180 58 M20 110 C80 104 120 116 180 108" fill="none" stroke="#8a5a38" stroke-width="3" opacity="0.5"/>
+  <rect x="8" y="136" width="184" height="14" rx="7" fill="#6b4329" opacity="0.6"/>
+</svg>

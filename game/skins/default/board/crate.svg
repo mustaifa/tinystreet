@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 152" width="160" height="152">
+  <!-- nine-patch: margins 28/28/28/28; the middle 96 px (two slats) tiles vertically -->
+  <defs>
+    <linearGradient id="slat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9c99d"/><stop offset="0.5" stop-color="#ddb684"/><stop offset="1" stop-color="#c99f6c"/>
+    </linearGradient>
+    <linearGradient id="post" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a8714a"/><stop offset="0.5" stop-color="#c48a5c"/><stop offset="1" stop-color="#8f5d3b"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="156" height="148" rx="16" fill="#b0805a"/>
+  <rect x="10" y="66" width="140" height="10" fill="#9a6c47"/>
+  <rect x="10" y="114" width="140" height="10" fill="#9a6c47"/>
+  <rect x="10" y="28" width="140" height="38" rx="4" fill="url(#slat)"/>
+  <rect x="10" y="76" width="140" height="38" rx="4" fill="url(#slat)"/>
+  <path d="M14 34 L146 34 M14 82 L146 82" stroke="#f6dfbd" stroke-width="2" opacity="0.8"/>
+  <path d="M30 50 C60 46 90 54 130 48 M24 98 C64 94 96 102 136 96" fill="none" stroke="#b88a58" stroke-width="2" opacity="0.6"/>
+  
+  <rect x="2" y="2" width="156" height="26" rx="14" fill="#8f5d3b"/>
+  <rect x="6" y="8" width="148" height="14" rx="7" fill="#c48a5c"/>
+  <rect x="2" y="124" width="156" height="26" rx="14" fill="#8f5d3b"/>
+  <rect x="2" y="2" width="24" height="148" rx="12" fill="url(#post)"/>
+  <rect x="134" y="2" width="24" height="148" rx="12" fill="url(#post)"/>
+  <circle cx="14" cy="15" r="3.5" fill="#4a2c18"/><circle cx="146" cy="15" r="3.5" fill="#4a2c18"/>
+  <circle cx="14" cy="137" r="3.5" fill="#4a2c18"/><circle cx="146" cy="137" r="3.5" fill="#4a2c18"/>
+</svg>

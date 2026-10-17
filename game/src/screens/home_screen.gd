@@ -45,7 +45,7 @@ func _top_bar() -> Control:
 	top.add_child(UI.chip("journal", func(): App.main.goto("journal"), "ChipButton", Style.CHIP, ready, Loc.t("journal")))
 	if App.billing.is_available():
 		top.add_child(UI.chip("plus", func(): App.main.goto("shop"), "ChipButton", Style.CHIP, 0, Loc.t("shop")))
-	top.add_child(UI.chip("help", func(): App.main.goto("help"), "ChipButton", Style.CHIP, 0, Loc.t("help")))
+	# Help lives in Settings and on every puzzle screen (v6: a calmer top bar).
 	top.add_child(UI.chip("gear", func(): App.main.goto("settings"), "ChipButton", Style.CHIP, 0, Loc.t("settings")))
 	return top
 
@@ -165,10 +165,12 @@ func _play_button() -> Control:
 		n = prog.campaign_index(cur.id) + 1
 		title = Loc.t("home_continue")
 	var ch := prog.chapter_of(n - 1)
-	var sub := Loc.t("level_n", [n]) + ((" · " + Loc.t(ch)) if ch != "" else "")
-	if _all_done() and title == Loc.t("home_play"):
+	# v6: the level number is the headline; the verb and chapter are the line under it.
+	var sub := title + ((" · " + Loc.t(ch)) if ch != "" else "")
+	title = Loc.t("level_n", [n])
+	if _all_done() and sub.begins_with(Loc.t("home_play")):
 		sub = Loc.t("home_all_cleared", [n])
-	play_btn = UI.icon_text_button("play", title, func(): App.main.goto("game", {"kind": "campaign", "id": play_id}), "", 124, sub, 52)
+	play_btn = UI.icon_text_button("play", title, func(): App.main.goto("game", {"kind": "campaign", "id": play_id}), "", 132, sub, 56)
 	_breathe(play_btn)
 	return play_btn
 

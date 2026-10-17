@@ -19,6 +19,8 @@ func set_mode(m: String) -> void:
 		queue_redraw()
 
 func _draw() -> void:
+	if ArtSkin.draw_cover(self, "bg.%s.screen" % mode, Rect2(Vector2.ZERO, size)):
+		return
 	match mode:
 		"night": _night()
 		"bakery": _cafe(Color("fbefe9"), Color(Style.ROSE, 0.10))

@@ -9,6 +9,7 @@
 - GDScript 4.7: `:=` with a Variant right-hand side is a warning here (project setting). Prefer explicit types for Dictionary and Array reads.
 - UI strings belong in `tools/strings_en.py` + `tools/strings_ar.py`. Regenerate `game/data/i18n/*.json` and keep `%s` counts equal (a test enforces this).
 - Never enable `BuildConfig.REAL_PURCHASES_ENABLED` without a server-side verification endpoint. Never commit keystores or credentials.
+- Art, sounds and colour overrides come from skins (`game/skins/<id>/skin.json`, `ArtSkin`; see `docs/ART_PIPELINE.md`). New drawable things get a skin key with the code drawing as fallback; never hard-wire an image path.
 - UI colours, sizes and components come from `src/ui/style.gd` and `src/ui/ui.gd` (see `docs/DESIGN_SYSTEM.md`); don't style screens ad hoc. For start alignment use `UI.al()` (Godot mirrors LEFT in RTL).
 - Screen QA: `-- --qa=tour --qa-out=DIR [--qa-lang=ar]` captures every screen. Guides/PDFs are generated (see `SESSION_HANDOVER.md`); never hand-edit `docs/TINY_STREET_PLAYER_GUIDE.md` (edit `docs/guide_src/`).
 - Keep `SESSION_HANDOVER.md` current at the end of each session.

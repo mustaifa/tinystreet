@@ -39,6 +39,7 @@ enabled=PackedStringArray("res://addons/tinystreet_monetization/plugin.cfg")
 [gui]
 
 common/drop_mouse_on_gui_input_disabled=true
+common/show_focus_state_on_pointer_event=0
 
 [input_devices]
 

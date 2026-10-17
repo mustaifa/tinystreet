@@ -5,6 +5,8 @@ extends Control
 ## the next puzzle. QA builds (export feature "qa") open every puzzle and say
 ## so; player builds never do.
 
+var default_focus: Control   # keyboard / pad players start on the play button
+
 func setup(_p: Dictionary) -> void:
 	var dp := App.delivery
 	var root := UI.vbox(12)
@@ -27,6 +29,7 @@ func setup(_p: Dictionary) -> void:
 	var txt := Loc.t("dl_continue_n", [play_i + 1]) if cur != "" and dp.index_of(cur) >= 0 else Loc.t("dl_play_n", [play_i + 1])
 	var b := UI.icon_text_button("play", txt, func(): App.main.goto("puzzle", {"id": dp.id_at(play_i)}), "", 104)
 	root.add_child(b)
+	default_focus = b
 
 func _row(i: int, is_next: bool) -> Control:
 	var dp := App.delivery

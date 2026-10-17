@@ -177,7 +177,7 @@ static func _button_variant(t: Theme, name: String, face: Color, edge: Color, te
 	var dis := key(face.lerp(ground, 0.55), edge.lerp(ground, 0.6), false, Color.TRANSPARENT, radius)
 	dis.shadow_size = 0
 	t.set_stylebox("disabled", name, dis)
-	t.set_stylebox("focus", name, box(Color.TRANSPARENT, radius + 4, GOLD, 4, false))
+	t.set_stylebox("focus", name, focus_ring(radius, name.begins_with("Night")))
 	for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		t.set_color(c, name, text)
 	t.set_color("font_disabled_color", name, Color(text, 0.45) if name.begins_with("Night") else (text.lerp(INK_SOFT, 0.6) if text != Color.WHITE else Color(1, 1, 1, 0.85)))
@@ -275,6 +275,7 @@ static func build_theme() -> Theme:
 	var knob := _knob_texture()
 	t.set_icon("grabber", "HSlider", knob)
 	t.set_icon("grabber_highlight", "HSlider", knob)
+	t.set_stylebox("focus", "HSlider", focus_ring(16))
 	t.set_constant("separation", "HBoxContainer", S3)
 	t.set_constant("separation", "VBoxContainer", S3)
 	# --- rich text
@@ -301,6 +302,15 @@ static func _label(t: Theme, name: String, font: Font, size: int, color: Color) 
 	t.set_font("font", name, font)
 	t.set_font_size("font_size", name, fs(size))
 	t.set_color("font_color", name, color)
+
+## Keyboard / D-pad focus ring: drawn just outside the control, so it reads
+## against the cream ground on every key colour (GOLD_EDGE on cream ≥ 3:1).
+## Pointer presses never show it (gui/common/show_focus_state_on_pointer_event).
+static func focus_ring(radius: int = RADIUS, night: bool = false) -> StyleBoxFlat:
+	var sb := box(Color.TRANSPARENT, radius + 6, LANTERN if night else GOLD_EDGE, 4, false)
+	sb.set_expand_margin_all(6)
+	sb.draw_center = false
+	return sb
 
 ## Paper card: hairline edge, soft warm shadow.
 static func card_box(bg: Color, radius: int = 28) -> StyleBoxFlat:

@@ -9,6 +9,7 @@ extends Control
 
 var cafe: CafeView
 var play_btn: Button
+var default_focus: Control   # keyboard / pad players start on Play
 
 func setup(params: Dictionary) -> void:
 	Tasks.refresh(App.data, Progression.today_key(), Meta.seen_mechanics(App.data, App.progression))
@@ -173,6 +174,7 @@ func _play_button() -> Control:
 		sub = Loc.t("dl_all_solved", [i + 1])
 	play_btn = UI.icon_text_button("play", Loc.t("dl_puzzle_n", [i + 1]), func(): App.main.goto("puzzle", {"id": play_id}), "", 132, sub, 56)
 	play_btn.name = "PlayButton"
+	default_focus = play_btn
 	_breathe(play_btn)
 	return play_btn
 

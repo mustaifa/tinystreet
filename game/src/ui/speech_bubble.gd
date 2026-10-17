@@ -1,8 +1,8 @@
 class_name SpeechBubble
 extends Control
 ## Short dialogue overlay: portrait, name and one line at a time near the
-## bottom of the screen. Tap anywhere for the next line; "Skip" or Back ends
-## it. Never more than a few lines, so it never stands between the player and
+## bottom of the screen. Tap anywhere (or Enter / Space / a pad's A) for the
+## next line; "Skip" or Back ends it. Never more than a few lines, so it never stands between the player and
 ## play for long.
 
 var lines: Array = []     # [[who, key], ...]
@@ -64,7 +64,8 @@ func _build() -> void:
 	text_label.custom_minimum_size = Vector2(380, 0)
 	text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(text_label)
-	var tapl := UI.label(Loc.t("tap_continue"), "SoftLabel", HORIZONTAL_ALIGNMENT_RIGHT if not Loc.is_rtl() else HORIZONTAL_ALIGNMENT_LEFT)
+	# RIGHT is mirrored in RTL, so this sits at the end of the line in both
+	var tapl := UI.label(Loc.t("tap_continue"), "SoftLabel", HORIZONTAL_ALIGNMENT_RIGHT)
 	tapl.add_theme_font_size_override("font_size", Style.fs(20))
 	tapl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(tapl)
@@ -91,15 +92,26 @@ func appear() -> void:
 func _gui_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
 		accept_event()
-		if text_label.visible_ratio < 1.0:
-			text_label.visible_ratio = 1.0
-			return
-		App.audio.play("tap")
-		idx += 1
-		if idx >= lines.size():
-			_finish()
-		else:
-			_show_line()
+		_advance()
+
+## Enter / Space / pad A, unless a focused key (Skip) took the press.
+func _unhandled_input(e: InputEvent) -> void:
+	if not _closing and e.is_action_pressed("ui_accept"):
+		get_viewport().set_input_as_handled()
+		_advance()
+
+func _advance() -> void:
+	if _closing:
+		return
+	if text_label.visible_ratio < 1.0:
+		text_label.visible_ratio = 1.0
+		return
+	App.audio.play("tap")
+	idx += 1
+	if idx >= lines.size():
+		_finish()
+	else:
+		_show_line()
 
 func _finish() -> void:
 	if _closing:

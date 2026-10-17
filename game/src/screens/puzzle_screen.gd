@@ -87,7 +87,7 @@ func _build() -> void:
 	root.add_child(top)
 	hud = _Hud.new()
 	hud.screen = self
-	hud.custom_minimum_size = Vector2(0, 74)
+	hud.custom_minimum_size = Vector2(0, roundf(74 * Style.text_scale))
 	root.add_child(hud)
 	# message row: coach (lessons), hint result or a refusal; reserved height
 	message = PanelContainer.new()
@@ -215,16 +215,27 @@ func _make_blocked_card() -> PanelContainer:
 
 # --------------------------------------------------------------- input
 
-func _unhandled_input(e: InputEvent) -> void:
-	if not (e is InputEventKey) or not e.pressed or e.echo or _won or not App.main.overlays.is_empty():
+## Arrow keys, WASD and a pad's D-pad always move the courier here, even
+## while a dock key has focus (Tab / Shift+Tab move focus on this screen).
+## Taken before GUI focus navigation; one press = one move (echoes ignored).
+func _input(e: InputEvent) -> void:
+	if _won or ps == null or not App.main.overlays.is_empty() or e.is_echo() or not e.is_pressed():
 		return
-	var k: int = e.keycode
+	if not (e is InputEventKey or e is InputEventJoypadButton):
+		return   # a held analog stick would repeat; the D-pad is a button
+	if e is InputEventKey and (e.ctrl_pressed or e.alt_pressed or e.meta_pressed):
+		return
 	var d := -1
+	if e.is_action_pressed("ui_up"): d = DeliveryRules.Dir.UP
+	elif e.is_action_pressed("ui_right"): d = DeliveryRules.Dir.RIGHT
+	elif e.is_action_pressed("ui_down"): d = DeliveryRules.Dir.DOWN
+	elif e.is_action_pressed("ui_left"): d = DeliveryRules.Dir.LEFT
+	var k: int = (e as InputEventKey).keycode if e is InputEventKey else KEY_NONE
 	match k:
-		KEY_UP, KEY_W: d = DeliveryRules.Dir.UP
-		KEY_RIGHT, KEY_D: d = DeliveryRules.Dir.RIGHT
-		KEY_DOWN, KEY_S: d = DeliveryRules.Dir.DOWN
-		KEY_LEFT, KEY_A: d = DeliveryRules.Dir.LEFT
+		KEY_W: d = DeliveryRules.Dir.UP
+		KEY_D: d = DeliveryRules.Dir.RIGHT
+		KEY_S: d = DeliveryRules.Dir.DOWN
+		KEY_A: d = DeliveryRules.Dir.LEFT
 		KEY_Z, KEY_BACKSPACE: _on_undo()
 		KEY_Y: _on_redo()
 	if d >= 0:
@@ -326,6 +337,7 @@ func _after_change(save: bool) -> void:
 		persist()
 	_evaluate()
 	_refresh()
+	_first_move_guide()
 
 func _refresh() -> void:
 	hud.queue_redraw()
@@ -369,6 +381,7 @@ func _process(_delta: float) -> void:
 		App.analytics.event("dl_blocked", {"level": level_id, "kind": "search"})
 	if _hint_dialog and is_instance_valid(_hint_dialog) and _hint_key == _check_key:
 		_fill_hint()
+	_first_move_guide()
 	_update_message()
 
 func _set_blocked(code: int, crates: Array) -> void:
@@ -414,7 +427,7 @@ func _update_message() -> void:
 
 func _coach_text() -> String:
 	var coach: Dictionary = level.meta.get("coach", {}) if level.meta.get("coach") is Dictionary else {}
-	if coach.is_empty() or DeliveryProgress.is_cleared(App.data, level_id):
+	if coach.is_empty() or (DeliveryProgress.is_cleared(App.data, level_id) and not coach_replay(App.data, level_id)):
 		return ""
 	var phase := "start"
 	if is_blocked():
@@ -434,6 +447,26 @@ func _coach_text() -> String:
 	if not coach.has(phase):
 		phase = "start" if phase != "blocked" else ""
 	return Loc.t(str(coach[phase])) if phase != "" and coach.has(phase) else ""
+
+## Help > "Show tutorial tips again" brings a cleared lesson's coach back
+## until that lesson is solved again.
+static func coach_replay(data: Dictionary, id: String) -> bool:
+	return data.tutorial.done.has("dl_tips:" + id)
+
+## Puzzle 1, before the first move of a new player: the gold hint arrow shows
+## which crate to push and which way (the proved first push), so the first
+## interaction is obvious. Any move clears it (_after_change).
+func _first_move_guide() -> void:
+	if index != 0 or ps.can_undo() or is_blocked() or (DeliveryProgress.is_cleared(App.data, level_id) and not coach_replay(App.data, level_id)):
+		return
+	var k := DeliveryRules.key(level, ps.state, DeliveryRules.reach(level, ps.state))
+	var sol: Dictionary = _cache.get(k, {})
+	if sol.is_empty() or int(sol.status) != DeliverySolver.SOLVED:
+		return
+	var h := DeliveryHints.from_solution(level, ps.state, sol.pushes)
+	if bool(h.get("ok", false)):
+		board.hint_crate = int(h.crate)
+		board.hint_dir = int(h.dir)
 
 func _show_flash(t: String) -> void:
 	_flash = t
@@ -604,6 +637,7 @@ func _on_won() -> void:
 	# Only Delivery Logic records change here: the retired sorting mode's
 	# stats feed its own achievements and tasks, which must not pay for this.
 	var res := DeliveryProgress.record_win(App.data, level, ps)
+	App.data.tutorial.done.erase("dl_tips:" + level_id)
 	App.analytics.event("dl_win", {"level": level_id, "pushes": ps.state.pushes, "steps": ps.state.steps,
 		"hints": ps.hints_used, "first": res.first_clear})
 	App.save_now()
@@ -682,5 +716,5 @@ class _Hud extends Control:
 			if i > 0:
 				var lx := x if not rtl else x + cw
 				draw_line(Vector2(lx, 12), Vector2(lx, size.y - 12), Color(Style.INK_SOFT, 0.25), 2)
-			draw_string(Style.font_regular, Vector2(x, 26), cols[i][0], HORIZONTAL_ALIGNMENT_CENTER, cw, Style.fs(19), Style.INK_SOFT)
+			draw_string(Style.font_regular, Vector2(x, 12 + Style.fs(Style.T_CAPTION)), cols[i][0], HORIZONTAL_ALIGNMENT_CENTER, cw, Style.fs(Style.T_CAPTION), Style.INK_SOFT)
 			draw_string(Style.font_black, Vector2(x, size.y - 12), cols[i][1], HORIZONTAL_ALIGNMENT_CENTER, cw, Style.fs(32), cols[i][2])

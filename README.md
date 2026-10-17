@@ -8,7 +8,7 @@ A portrait, single-player, offline puzzle game for Android, built with **Godot 4
 
 **Status:** first-release candidate for **internal testing**. It isn't store-ready. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) and [TEST_REPORT.md](TEST_REPORT.md).
 
-## What's in the box (v8, 0.8.0): Delivery Logic
+## What's in the box (v8, 0.8.1): Delivery Logic
 The core puzzle was rebuilt in v8. A courier pushes picture-marked crates
 (coffee, croissant, strawberry, tea) onto matching pads in small storerooms:
 no pulling, no double pushes, wrong pads don't count, and wrong pushes can trap
@@ -24,6 +24,8 @@ crates for good. *"Delivery Logic" is an internal working title.*
 - Proven "Route blocked" explanations with Undo/Restart, three-tier hints,
   "Puzzle Solved!" card with pushes and steps, completion reward paid once,
   personal bests and medals; café restoration unchanged.
+- Touch (swipe, arrow keys on screen, tap-to-walk), keyboard and game pad:
+  every key takes focus with a visible ring, Escape/B is Back (0.8.1).
 - Android APK, plus a **Web** build and a separate **Web QA** build.
 - The v1–v7 sorting game is retired from the main flow but kept in the source
   (description below), with players' records preserved.

@@ -15,3 +15,16 @@ func setup(_p: Dictionary) -> void:
 		var r := UI.row(UI.medallion(it[1], Style.LINEN, Style.TEAL_DARK, 56), Loc.t(it[0]), "", null, "")
 		(r.get_child(0) as Control).size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		v.add_child(UI.card(r))
+	# The engine's own licence and its third-party notices, from the engine
+	# itself, so the text always matches the shipped build.
+	v.add_child(UI.section(Loc.t("credits_licences"), "info"))
+	var lic := UI.label(Engine.get_license_text(), "SoftLabel", UI.al())
+	lic.custom_minimum_size = Vector2(560, 0)
+	v.add_child(UI.card(lic))
+	var parts := Engine.get_copyright_info()
+	var names := PackedStringArray()
+	for p in parts:
+		names.append(str(p.name))
+	var used := UI.label(Loc.t("credits_engine_parts", [", ".join(names)]), "SoftLabel", UI.al())
+	used.custom_minimum_size = Vector2(560, 0)
+	v.add_child(UI.card(used))

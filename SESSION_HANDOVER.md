@@ -1,5 +1,24 @@
 # Session Handover
 
+**Last updated:** 2026-10-17, session 9 (v8.1 / 0.8.1: keyboard and pad play, first-run guide, release polish).
+
+## State (session 9)
+- Branch **`feature/game-polish-release`** from `feature/delivery-logic` @ `95a5eb1`. Pushed to `origin/feature/game-polish-release`; a PR into `feature/delivery-logic` is open. The owner's brief was written for `main` 0.2.1; they chose to apply it to v8 instead.
+- 0.8.1 / **versionCode 9** in all three Android presets and `App.VERSION` (a test keeps them equal). APK `build/tinystreet-v8.1-polish-debug.apk`, same debug key. Web `build/web/`, Web QA `build/web-qa/` rebuilt. Not run on Android.
+- Changes: every UI key focusable with a gold ring that shows only after key/pad input (`Style.focus_ring`, project setting `gui/common/show_focus_state_on_pointer_event=0`); `default_focus` on screens/dialogs (`Main.focus_default`); Escape / pad B = Back (`Main._unhandled_input`); the puzzle screen takes arrows/WASD/D-pad in `_input` (before focus navigation), ignores echoes and analog sticks; story bubbles advance with Enter/Space/A; puzzle 1's first push shown as the hint arrow before the first move; Help → "Show tutorial tips again" also re-enables the lesson coaches (`tutorial.done["dl_tips:<id>"]`, cleared on that lesson's win); Help topic "Keyboard and controller"; HUD captions 21 px and scaled strip; switch word fits (Arabic + Larger text); Android bottom margin ≥ 28 px; Credits → Licences from `Engine.get_license_text()`.
+- QA: new `dl_keys` journey (in `tools/dl_battery.sh`, EN and AR + Larger text). Results in `TEST_REPORT.md` v8.1; evidence `docs/screenshots/v8.1/`.
+- Known: the 480×800 journey's rapid-input step fails under software GL (a scripted press lands on the result card's Replay after its 450 ms guard; reward still paid once). Pre-existing; QA timing.
+- `TEST_REPORT.md` has no v8 (0.8.0) section, although the notes below refer to one.
+- The retired sorting mode (crate badges, lock counters, order tickets) was **not** touched: it is off the primary flow. Its board text still uses fixed sizes.
+
+### Gotchas learned (session 9)
+- Buttons in Godot grab focus on click once they are focusable; the project setting above keeps the ring hidden for pointer input. Screens that use arrow keys for play must read them in `_input`, or focus navigation eats them.
+- Run QA scenarios one at a time: three in parallel under Xvfb made `dl_journey` fail 72 checks from timing alone.
+- `python3 -I` hides the user-installed Playwright; run the Web smoke script without `-I` (it's our own script).
+
+---
+*Session 8 notes below remain valid.*
+
 **Last updated:** 2026-10-17, session 8 (v8 / 0.8.0: Delivery Logic core rebuild).
 
 ## State

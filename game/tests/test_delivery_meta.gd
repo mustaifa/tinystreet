@@ -307,3 +307,17 @@ func test_hint_displacement_flag() -> void:
 	var h := DeliveryHints.compute(l, DeliveryRules.start_state(l))
 	check(h.ok and h.away, "tier 2 says the crate must move away first")
 	eq(l.crate_sym[int(h.crate)], 1, "...and it is the croissant")
+
+## Help > "Show tutorial tips again": a cleared lesson's coach comes back
+## (flag "dl_tips:<id>"), survives a save and reload, and an ordinary cleared
+## level stays quiet.
+func test_coach_tips_replay_flag_survives_save() -> void:
+	var PS = load("res://src/screens/puzzle_screen.gd")
+	var store := _store("tips")
+	var d := GameData.fresh()
+	check(not PS.coach_replay(d, "d01"), "no replay by default")
+	d.tutorial.done["dl_tips:d01"] = true
+	store.save(d)
+	var back := store.load_data()
+	check(PS.coach_replay(back, "d01"), "flag survives a reload")
+	check(not PS.coach_replay(back, "d02"), "only flagged lessons")

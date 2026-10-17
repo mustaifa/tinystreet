@@ -1,5 +1,29 @@
 # Test Report
 
+## v8.1 (0.8.1), keyboard/pad play, first-run guide, release polish, 2026-10-17
+Environment unchanged: GitHub Codespace, **no GPU, no Android device or emulator**. UI checks ran in a desktop Linux build under Xvfb (Mesa software GL) and the Web build in headless Chromium (SwiftShader). **This isn't Android runtime verification.** Branch `feature/game-polish-release` from `feature/delivery-logic` @ `95a5eb1` (v8, 0.8.0).
+
+Note: this file had no v8 (0.8.0) section, although `SESSION_HANDOVER.md` refers to one. The v8 results weren't reconstructed here.
+
+| Kind | Check | Result |
+|---|---|---|
+| Automated logic | `run_tests.gd` | **PASS: 199 passed, 0 failed** (+5: keys take focus; focus ring on every key variation, ring contrast ≥ 3:1; dialogs focus their main action and scroll to focus; `App.VERSION` = every Android preset's name, one versionCode, package id unchanged; the tips-replay flag survives a save) |
+| Automated logic | `validate_levels.gd` (retired sorting mode) | **PASS: levels=164 failed=0 unverified=0** |
+| Automated logic | `delivery_report.gd` (run without `--write`; rules and levels unchanged) | **PASS: 30/30**, 27 non-tutorial levels with a verified dependency |
+| Repo | `git diff --check` | clean |
+| Desktop UI, real input | **`dl_keys`** (new; keyboard and pad events only) 720×1280 | **PASS 23/23**: Enter advances the intro; puzzle 1 shows the first push before any move and the first move clears it; a key-repeat echo moves nothing; puzzle 1 solved by arrows, WASD and D-pad with exactly one move per press; the result card focuses Next Puzzle and Enter opens puzzle 2; Escape opens Pause with Resume focused, Down moves focus, Escape closes it with nothing moved; with a dock key focused by Tab, arrows still move the courier; Z undoes; Pause → Back to café by Tab/Enter; Home focuses Play; Escape on Home asks before leaving with Stay focused; a tap leaves keyboard mode |
+| Desktop UI, real input | `dl_keys` in Arabic + Larger text | **PASS 23/23** |
+| Desktop UI, real input | v8 battery (`tools/dl_battery.sh`, one scenario at a time, fresh saves) | journey **95/95**; reduced motion **95/95**; life_a/life_b **7/7** (life_a exits 137 by design: hard kill); rapid **4/4**; evidence **4/4**; look EN/AR: 0 script errors |
+| Desktop UI, real input | journey in Arabic at **480×800 + Larger text** | **93/96**. Before any change, the same run in English failed too (36 pass / 72 fail with three runs in parallel; 38 pass / 5 fail alone, the same steps): timing under software GL. Fixed in the QA script: the Hint tap now waits past the blocked card's 600 ms guard, as Undo/Restart already did. **Still failing (3, QA timing, not a regression):** the scripted rapid-input storm after puzzle 7's last push runs ~4 s on this slow renderer, so a later press lands on the result card's **Replay** after its 450 ms guard; the level restarts. The reward was still paid exactly once (checked) |
+| Desktop UI | Screens at Larger text, EN + AR (`dl_look`, now also Settings, Credits and the end of Help) | Reviewed by eye. **Found and fixed:** the Arabic "On" word in Settings switches was clipped to one letter at Larger text (now shrinks to fit). HUD captions now 21 px and the strip grows with text size |
+| Web | `build/web` in headless Chromium (405×720) | Loads, **0 page errors**; Enter advances the intro, puzzle 1 shows the guide arrow, one ArrowRight = one step and clears it (`docs/screenshots/v8.1/web_*.jpg`) |
+| Build | APK `build/tinystreet-v8.1-polish-debug.apk` | `com.tinystreet.sortrestore` **0.8.1 / versionCode 9**, permissions: VIBRATE only; `apksigner` certificate SHA-256 **`62fa12828ad217be61c751322a58f2ce10988c3fccc11b1c704b7259a6281b2e`** (same as v1–v8: updates in place); APK SHA-256 `946d9cefef7b896a4acc5f22dc6bd04e6c3fd65f8a813acad2502e5a1b45b813` |
+| Android emulator / device | none | **NOT RUN** |
+
+Evidence: `docs/screenshots/v8.1/`.
+
+**Not verified (needs the phone):** Android Back during each overlay, the 28 px bottom margin against a real gesture bar, a hardware keyboard or game pad over Bluetooth, an Android TV remote, real-font text sizes.
+
 ## v7 (0.7.0), gameplay clarity (score, results, failure), 2026-10-17
 Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU, no Android device**. `/dev/kvm` is still `root:109 0660` and not accessible to this user; the Oct 16 attempt showed Android 16 crashing under software emulation, so **the emulator wasn't retried**. Every UI check below ran in a **desktop Linux build** under Xvfb (Mesa software GL). **This isn't Android runtime verification.** The Appetize session the owner described (0.5.0, Pixel 7 / Android 13) was an external observation; Appetize was not driven in this session.
 

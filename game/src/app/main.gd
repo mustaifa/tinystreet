@@ -18,6 +18,8 @@ const SCREENS := {
 	"journal": "res://src/screens/journal_screen.gd",
 	"bakery": "res://src/screens/bakery_screen.gd",
 	"ledger": "res://src/screens/ledger_screen.gd",
+	"puzzle": "res://src/screens/puzzle_screen.gd",     # v8 Delivery Logic
+	"puzzles": "res://src/screens/puzzles_screen.gd",
 }
 
 var bg: ScreenBackdrop

@@ -51,6 +51,14 @@ static func paint(ci: CanvasItem, kind: String, rect: Rect2, color: Color, thick
 		ProductArt.draw(ci, Products.IDS.find(kind.substr(2)), c, s * 0.82, color.a)
 		return
 	match kind:
+		"arrow_up", "arrow_right", "arrow_down", "arrow_left":
+			# Board directions: spatial, so never mirrored in RTL.
+			var ang: float = {"arrow_up": -PI / 2, "arrow_right": 0.0, "arrow_down": PI / 2, "arrow_left": PI}[kind]
+			var fw := Vector2(cos(ang), sin(ang))
+			var sd := Vector2(-fw.y, fw.x)
+			var tip := c + fw * s * 0.24
+			ci.draw_line(c - fw * s * 0.22, c + fw * s * 0.08, color, w * 1.25, true)
+			ci.draw_colored_polygon(PackedVector2Array([tip, tip - fw * s * 0.24 + sd * s * 0.2, tip - fw * s * 0.24 - sd * s * 0.2]), color)
 		"back", "chevron_back":
 			ci.draw_polyline(PackedVector2Array([P.call(0.08, -0.2), P.call(-0.12, 0.0), P.call(0.08, 0.2)]), color, w * 1.15, true)
 		"next", "chevron":

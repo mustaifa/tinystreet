@@ -8,7 +8,7 @@ extends RefCounted
 ## Offline saves cannot provide anti-cheat protection; the checksum detects
 ## corruption, not tampering.
 
-const SCHEMA := 5
+const SCHEMA := 6
 
 var path: String
 var last_load_source := ""     # "main", "tmp", "backup", "fresh"
@@ -109,6 +109,17 @@ static func migrate(d: Dictionary, from_schema: int) -> Dictionary:
 			camp["best"] = {}
 		d["campaign"] = camp
 		s = 5
+	if s < 6:
+		# v8 (schema 6) adds the Delivery Logic namespace. The sorting
+		# campaign, tokens, grant ledger and restoration are left exactly as
+		# they were; nothing new is marked cleared. An older file is kept as
+		# <save>.schema5.bak by load_data before the first migrated write.
+		var logic: Dictionary = d.get("logic", {}) if d.get("logic") is Dictionary else {}
+		for k in ["cleared", "best", "medals", "current"]:
+			if not logic.get(k) is Dictionary:
+				logic[k] = {}
+		d["logic"] = logic
+		s = 6
 	return d
 
 ## Keeps an untouched copy of an older-schema save (once per schema) before
@@ -168,6 +179,6 @@ static func migrate_v2_to_v3(d: Dictionary) -> Dictionary:
 	return d
 
 func delete_all() -> void:
-	for suffix in ["", ".tmp", ".bak", ".schema1.bak", ".schema2.bak", ".schema3.bak", ".schema4.bak"]:
+	for suffix in ["", ".tmp", ".bak", ".schema1.bak", ".schema2.bak", ".schema3.bak", ".schema4.bak", ".schema5.bak"]:
 		if FileAccess.file_exists(path + suffix):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))

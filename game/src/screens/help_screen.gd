@@ -2,11 +2,11 @@ extends Control
 ## How to play. Reachable from home, gameplay and settings at any time. Each
 ## topic is a card led by the same icon the game uses for that idea.
 
+## v8: Delivery Logic. (The sorting game's help topics, help_* keys, are
+## kept in the string tables with the retired mode.)
 const TOPICS := [
-	["help_goal", "cup"], ["help_tap", "tap"], ["help_badges", "info"], ["help_priority", "levels"],
-	["help_bell", "bell"], ["help_counter", "counter"], ["help_auto", "spark"], ["help_full", "counter"], ["help_fresh", "timer"],
-	["help_bag", "help"], ["help_lock", "lock"], ["help_two_stage", "flag"], ["help_lose", "close"],
-	["help_undo", "undo"], ["help_hint", "hint"], ["help_score", "trophy"], ["help_stars", "star"], ["help_tokens", "coin"], ["help_tasks", "journal"],
+	["dl_help_goal", "target"], ["dl_help_move", "tap"], ["dl_help_push", "crate"], ["dl_help_pads", "check"],
+	["dl_help_stuck", "lock"], ["dl_help_undo", "undo"], ["dl_help_hint", "hint"], ["dl_help_reward", "coin"],
 ]
 
 func setup(_p: Dictionary) -> void:
@@ -21,12 +21,13 @@ func setup(_p: Dictionary) -> void:
 	row.alignment = FlowContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("h_separation", 10)
 	row.add_theme_constant_override("v_separation", 10)
-	for p in Products.COUNT:
+	for s in DeliveryLevel.SYMBOLS:
+		var p: int = DeliveryLevel.SYMBOL_PRODUCT[s]
 		var item := UI.vbox(2)
 		var sp := ProductSprite.new(p, 84)
 		sp.custom_minimum_size = Vector2(84, 84)
 		item.add_child(sp)
-		var l := UI.label(Loc.t("p_" + Products.IDS[p]), "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+		var l := UI.label(Loc.t("dl_sym_name_" + DeliveryLevel.SYMBOL_IDS[s]), "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
 		UI.fit_font(l, 116, Style.T_CAPTION, 16)
 		item.add_child(l)
 		item.custom_minimum_size = Vector2(118, 0)

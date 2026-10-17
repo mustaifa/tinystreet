@@ -1,0 +1,65 @@
+{
+	"generated_by": "tools/delivery_report.gd",
+	"levels": {
+		"d01": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 3,
+			"positions": 8
+		},
+		"d02": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 8,
+			"positions": 72
+		},
+		"d03": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 5,
+			"positions": 8
+		},
+		"d04": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 11,
+			"positions": 57
+		},
+		"d05": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 9,
+			"positions": 29
+		},
+		"d06": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 12,
+			"positions": 92
+		},
+		"d07": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 9,
+			"positions": 353
+		},
+		"d08": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 12,
+			"positions": 111
+		},
+		"d09": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 8,
+			"positions": 170
+		},
+		"d10": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 13,
+			"positions": 122
+		},
+		"d11": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 16,
+			"positions": 468
+		},
+		"d12": {
+			"method": "exhaustive BFS over push positions",
+			"min_pushes": 15,
+			"positions": 772
+		}
+	}
+}

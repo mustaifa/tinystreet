@@ -35,6 +35,11 @@ static func wants_play_billing() -> bool:
 	return REAL_PURCHASES_ENABLED and OS.has_feature("monetization") \
 		and Engine.has_singleton("GodotGooglePlayBilling")
 
+## QA builds only (export preset with the custom feature "qa", never the
+## player APK): every Delivery Logic level is open for review.
+static func qa_unlock_all() -> bool:
+	return OS.has_feature("qa")
+
 static func skin_id(settings: Dictionary) -> String:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--skin="):

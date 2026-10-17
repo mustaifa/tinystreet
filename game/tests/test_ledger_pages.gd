@@ -165,7 +165,7 @@ func test_schema4_save_gets_ledger_defaults() -> void:
 	f.store_string(JSON.stringify({"schema": 4, "sha256": payload.sha256_text(), "payload": payload}))
 	f.close()
 	var d := s.load_data()
-	eq(SaveStore.SCHEMA, 5, "v7 bumped the schema (best scores)")
+	eq(SaveStore.SCHEMA, 6, "v8 bumped the schema (Delivery Logic namespace)")
 	check(s.backup_written != "", "the schema-4 file is backed up before migrating")
 	eq(d.ledger.done, {}, "ledger defaults added")
 	eq(int(d.tokens), 15, "v3 balance kept (12 + 3 stars)")

@@ -9,6 +9,7 @@ extends RefCounted
 
 const BEATS := {
 	"intro": [["mira", "st_intro_1"], ["mira", "st_intro_2"]],
+	"dl_intro": [["mira", "st_dl_intro_1"], ["mira", "st_dl_intro_2"]],
 	"lvl:c004": [["theo", "st_theo_1"], ["mira", "st_theo_2"]],
 	"lvl:f01": [["theo", "st_fresh_1"]],
 	"lvl:c008": [["mira", "st_ch2_1"]],
@@ -36,7 +37,7 @@ const BEATS := {
 }
 
 ## Order for the Journal's "replay story" list.
-const JOURNAL := ["intro", "first_served", "lvl:c004", "step:clean", "lvl:f01", "lvl:p01", "lvl:p06", "special:p06",
+const JOURNAL := ["dl_intro", "intro", "first_served", "lvl:c004", "step:clean", "lvl:f01", "lvl:p01", "lvl:p06", "special:p06",
 	"step:walls", "lvl:p12", "special:p12", "bakery_open", "special:m08", "lvl:c008", "step:floor",
 	"lvl:c016", "step:counter", "lvl:b01", "step:lights", "lvl:c031", "step:seating", "lvl:k01",
 	"step:plants", "lvl:c053", "step:opening"]

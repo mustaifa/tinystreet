@@ -27,11 +27,10 @@ func _on_consent(can_request_ads: bool) -> void:
 	App.ads.initialize(can_request_ads)
 	if App.load_notice != "":
 		App.main.toast(Loc.t(App.load_notice), 3.5)
-	var first_time: bool = not Progression.is_cleared(App.data, App.progression.campaign[0].id) \
-		and App.data.current.is_empty()
+	# v8: first launch of Delivery Logic (no puzzle solved or started) goes
+	# straight to puzzle 1 after two short lines; everyone else lands home.
+	var first_time: bool = App.delivery.count() > 0 and App.delivery.cleared_count(App.data) == 0 \
+		and DeliveryProgress.current_id(App.data) == "" and not Story.seen(App.data, "dl_intro")
+	App.main.goto("home", {}, false)
 	if first_time:
-		# Two short lines from Mira, then straight into level 1.
-		App.main.goto("home", {}, false)
-		Story.play("intro", func(): App.main.goto("game", {"kind": "campaign", "id": App.progression.campaign[0].id}))
-	else:
-		App.main.goto("home", {}, false)
+		Story.play("dl_intro", func(): App.main.goto("puzzle", {"id": App.delivery.id_at(0)}))

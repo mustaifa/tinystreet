@@ -30,6 +30,8 @@ static func fresh() -> Dictionary:
 		"challenges": {"done": {}},
 		"ledger": {"done": {}, "nohint": {}, "precision": {}, "offer_seen": false},
 		"daily_days": 0,
+		# v8 Delivery Logic (schema 6), separate from the sorting campaign.
+		"logic": {"cleared": {}, "best": {}, "medals": {}, "current": {}},
 	}
 
 static func sanitize(d: Dictionary) -> Dictionary:

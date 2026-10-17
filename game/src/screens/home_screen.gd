@@ -1,10 +1,11 @@
 extends Control
 ## Café home. The café, framed as a little shop front on the street, is the
-## centrepiece. One clear primary action (Play / Continue) sits in the thumb
-## zone; the next restoration goal is a single tappable card; the bakery and
-## the Midnight Ledger appear as "next door" cards once they exist; the three
-## main destinations are illustrated tiles. Badges and dots point to anything
-## ready to claim or buy, never to anything that needs payment.
+## centrepiece. One clear primary action (Play / Continue the next Delivery
+## Logic puzzle) sits in the thumb zone; the next restoration goal is a single
+## tappable card; the three main destinations are illustrated tiles.
+## v8: the sorting campaign, bakery, ledger and daily challenges are retired
+## from the primary flow (their code and the player's records are kept).
+## Badges and dots point to anything ready to claim, never to payment.
 
 var cafe: CafeView
 var play_btn: Button
@@ -23,17 +24,16 @@ func setup(params: Dictionary) -> void:
 	front.custom_minimum_size = Vector2(0, 380)
 	root.add_child(front)
 	root.add_child(_goal_card())
-	# --- next door: bakery and the expert ledger
-	var doors := _doors()
-	if doors:
-		root.add_child(doors)
 	root.add_child(_play_button())
 	root.add_child(_tiles())
-	if params.get("finale", false) or (_all_done() and Restoration.is_complete(App.data) and not App.data.tutorial.done.has("finale_seen")):
-		_finale.call_deferred()
+	if params.get("dl_finale", false):
+		_dl_finale.call_deferred()
 
 func _all_done() -> bool:
-	return App.progression.cleared_count(App.data) >= App.progression.campaign.size()
+	return App.delivery.all_cleared(App.data)
+
+func _dl_finale() -> void:
+	App.main.show_overlay(Dialog.make(Loc.t("dl_finale_title"), Loc.t("dl_finale_body"), [[Loc.t("close"), func(): pass, ""]], null, "star"))
 
 func _top_bar() -> Control:
 	var top := UI.hbox(12)
@@ -41,8 +41,11 @@ func _top_bar() -> Control:
 	coins.tooltip_text = Loc.t("tokens_n", [App.data.tokens])
 	top.add_child(coins)
 	top.add_child(UI.spacer(0, true))
+	# The journal's tasks and awards belong to the retired sorting game: the
+	# chip stays only while something there is still ready to claim.
 	var ready := Tasks.ready_count(App.data) + Achievements.claimable_count(App.data)
-	top.add_child(UI.chip("journal", func(): App.main.goto("journal"), "ChipButton", Style.CHIP, ready, Loc.t("journal")))
+	if ready > 0:
+		top.add_child(UI.chip("journal", func(): App.main.goto("journal"), "ChipButton", Style.CHIP, ready, Loc.t("journal")))
 	if App.billing.is_available():
 		top.add_child(UI.chip("plus", func(): App.main.goto("shop"), "ChipButton", Style.CHIP, 0, Loc.t("shop")))
 	# Help lives in Settings and on every puzzle screen (v6: a calmer top bar).
@@ -152,25 +155,24 @@ func _door(glyph: String, title: String, sub: String, cb: Callable, night: bool,
 		UI.badge(b, -1)
 	return b
 
-## The primary action: continue the level in progress, or play the next one.
+## The primary action: continue the puzzle in progress, or play the next one.
 func _play_button() -> Control:
-	var prog := App.progression
-	var nxt := prog.next_level_index(App.data)
-	var cur: Dictionary = App.data.current
-	var play_id: String = prog.campaign[nxt].id
-	var title := Loc.t("home_play")
-	var n := nxt + 1
-	if cur.get("kind", "") == "campaign" and cur.has("id") and prog.campaign_index(cur.id) >= 0:
-		play_id = cur.id
-		n = prog.campaign_index(cur.id) + 1
-		title = Loc.t("home_continue")
-	var ch := prog.chapter_of(n - 1)
-	# v6: the level number is the headline; the verb and chapter are the line under it.
-	var sub := title + ((" · " + Loc.t(ch)) if ch != "" else "")
-	title = Loc.t("level_n", [n])
-	if _all_done() and sub.begins_with(Loc.t("home_play")):
-		sub = Loc.t("home_all_cleared", [n])
-	play_btn = UI.icon_text_button("play", title, func(): App.main.goto("game", {"kind": "campaign", "id": play_id}), "", 132, sub, 56)
+	var dp := App.delivery
+	var nxt := dp.next_index(App.data)
+	var cur := DeliveryProgress.current_id(App.data)
+	var play_id := dp.id_at(nxt)
+	var verb := Loc.t("home_play")
+	if cur != "" and dp.index_of(cur) >= 0:
+		play_id = cur
+		verb = Loc.t("home_continue")
+	var i := dp.index_of(play_id)
+	var ci := dp.chapter_index(i)
+	# The puzzle number is the headline; the verb and chapter are the line under it.
+	var sub := verb + ((" · " + Loc.t(str(dp.chapters[ci].title))) if ci >= 0 else "")
+	if _all_done() and verb == Loc.t("home_play"):
+		sub = Loc.t("dl_all_solved", [i + 1])
+	play_btn = UI.icon_text_button("play", Loc.t("dl_puzzle_n", [i + 1]), func(): App.main.goto("puzzle", {"id": play_id}), "", 132, sub, 56)
+	play_btn.name = "PlayButton"
 	_breathe(play_btn)
 	return play_btn
 
@@ -188,10 +190,9 @@ func _breathe(b: Control) -> void:
 func _tiles() -> Control:
 	var row := UI.hbox(12)
 	var can_restore := Restoration.can_unlock(App.data)
-	var daily_open := not Progression.is_daily_done(App.data, Progression.today_key())
-	row.add_child(_tile("levels", Loc.t("levels"), func(): App.main.goto("levels"), false))
+	row.add_child(_tile("levels", Loc.t("dl_puzzles"), func(): App.main.goto("puzzles"), false))
 	row.add_child(_tile("brush", Loc.t("restore"), func(): App.main.goto("restore"), can_restore))
-	row.add_child(_tile("trophy", Loc.t("challenges"), func(): App.main.goto("daily"), daily_open))
+	row.add_child(_tile("help", Loc.t("help"), func(): App.main.goto("help"), false))
 	return row
 
 func _tile(glyph: String, text: String, cb: Callable, dot: bool) -> Control:

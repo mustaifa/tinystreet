@@ -8,11 +8,12 @@ signal data_changed
 signal language_changed
 signal settings_changed
 
-const VERSION := "0.7.0"
+const VERSION := "0.8.0"
 
 var data: Dictionary = {}
 var store: SaveStore
-var progression := Progression.new()
+var progression := Progression.new()   # retired sorting campaign (records kept)
+var delivery := DeliveryProgress.new()   # v8 Delivery Logic
 var ads: AdService
 var billing: BillingService
 var analytics: Analytics
@@ -48,6 +49,7 @@ func boot(save_path: String = "user://save.json", services: Dictionary = {}) -> 
 	elif store.last_load_source == "fresh" and store.last_load_issue.contains("corrupt"):
 		load_notice = "save_reset"
 	progression.load_levels()
+	delivery.load_levels()
 	# Today's café tasks exist before any play, so every win counts.
 	Tasks.refresh(data, Progression.today_key(), Meta.seen_mechanics(data, progression))
 	if str(data.settings.lang) == "":

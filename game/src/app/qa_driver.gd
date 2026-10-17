@@ -122,6 +122,12 @@ func _run() -> void:
 		await _player_reopen()
 	elif scenario == "finale":
 		await _finale()
+	elif scenario.begins_with("dl_"):
+		var qd = load("res://src/app/qa_delivery.gd")
+		if qd is GDScript and qd.can_instantiate():
+			await qd.new(self).run(scenario)
+		else:
+			print("QA: FAIL qa_delivery.gd did not load")
 	print("QA: done ", scenario)
 	get_tree().quit()
 

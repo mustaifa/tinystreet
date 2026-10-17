@@ -8,7 +8,7 @@ extends RefCounted
 ## Offline saves cannot provide anti-cheat protection; the checksum detects
 ## corruption, not tampering.
 
-const SCHEMA := 4
+const SCHEMA := 5
 
 var path: String
 var last_load_source := ""     # "main", "tmp", "backup", "fresh"
@@ -101,6 +101,14 @@ static func migrate(d: Dictionary, from_schema: int) -> Dictionary:
 		# challenge cards. Defaults come from GameData.sanitize; nothing
 		# existing is changed, so no reward is granted twice or lost.
 		s = 4
+	if s < 5:
+		# v7 (schema 5) adds personal-best scores per level. Old wins have no
+		# recorded score, so the map starts empty; stars and tokens are untouched.
+		var camp: Dictionary = d.get("campaign", {})
+		if not camp.has("best"):
+			camp["best"] = {}
+		d["campaign"] = camp
+		s = 5
 	return d
 
 ## Keeps an untouched copy of an older-schema save (once per schema) before
@@ -160,6 +168,6 @@ static func migrate_v2_to_v3(d: Dictionary) -> Dictionary:
 	return d
 
 func delete_all() -> void:
-	for suffix in ["", ".tmp", ".bak", ".schema1.bak", ".schema2.bak", ".schema3.bak"]:
+	for suffix in ["", ".tmp", ".bak", ".schema1.bak", ".schema2.bak", ".schema3.bak", ".schema4.bak"]:
 		if FileAccess.file_exists(path + suffix):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))

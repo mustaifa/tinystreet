@@ -1,5 +1,38 @@
 # Test Report
 
+## v7 (0.7.0), gameplay clarity (score, results, failure), 2026-10-17
+Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU, no Android device**. `/dev/kvm` is still `root:109 0660` and not accessible to this user; the Oct 16 attempt showed Android 16 crashing under software emulation, so **the emulator wasn't retried**. Every UI check below ran in a **desktop Linux build** under Xvfb (Mesa software GL). **This isn't Android runtime verification.** The Appetize session the owner described (0.5.0, Pixel 7 / Android 13) was an external observation; Appetize was not driven in this session.
+
+### What ran, by kind
+| Kind | Check | Result |
+|---|---|---|
+| Automated logic | Unit/integration tests | **PASS: 148 passed, 0 failed** (+13 `tests/test_score.gd`: points reward deliveries, not taps or bells; tidy bonus only on completion; undo/redo/restart exact, with no double count on redo; a saved attempt rebuilds the same score; solver key ignores the tallies; all 96 shipped solutions score every item once; best score kept and never pays; win rewards idempotent; schema 4 → 5 migration keeps stars and tokens, with a backup; last-level and last-bakery main action; a full counter with a delivery left is not lost; loss detected, retry clean, undo recovers) |
+| Automated logic | Level validation | **PASS: levels=164 failed=0 unverified=0**; `docs/LEVEL_REPORT.md` unchanged (only score tallies were added to `Rules`) |
+| Automated logic | Guide data | All stored routes (96 + 8 + 60 + 13) replayed to a win; appendix routes unchanged |
+| Desktop UI, real input | **`player`** (new; fresh save, taps only on visible keys and crates) | **PASS 33/33**: first launch → level 1 → result card **≈0.6 s** after the last delivery (measured 600–713 ms), nothing covering it; "Level complete!", score, +tokens; best saved; story plays **after** the result; **Next level opens level 2**; levels 2–3 via Next; **genuine loss on level 4** (a losing line found by search, played by taps) with the reason "counter is full (3 of 3)…", no reward or unlock; **Retry → fresh board, score 0, crates respond**; two undos return the score exactly, replaying adds nothing; Restart → 0; Restart/Undo/Pause/Help/crate taps before the card are refused; a tap on a card key as the card lands is swallowed; rewards paid once; Replay pays no repeat tokens; best kept; Next after a replay → level 5; Pause → Level map |
+| Desktop UI, real input | **`player_reopen`** (relaunch on the same save) | **PASS 12/12**: tokens, cleared levels 1–4 and their best scores survive a restart; level 5 not cleared; Play opens level 5 |
+| Desktop UI, real input | **`finale`** | **PASS 5/5**: level 96 opens from Play; its card's only primary is "Celebrate the grand finale"; it lands on Home with the finale message |
+| Desktop UI, real input | `player` in **Arabic** (720×1280) | **PASS 32/32** (run before the extra lock check was added); RTL strip, result and failure cards inspected |
+| Desktop UI, real input | `player` at **720×1080 (3:2) + large text + reduced motion** | **PASS 33/33**; result and failure cards fit without scrolling |
+| Desktop UI | All 96 campaign levels via taps | **PASS: 96/96 won** |
+| Desktop UI | Existing flows on fresh saves | **PASS**: slice 4/4, v3 11/11, v2 10/10, nav/Back 17/17, rewards 8/8, ledger 17/17; rapid 400 taps consistent, 0 leftover effects; layouts and EN/AR tours: 0 script errors |
+| Desktop UI | Frame times (software GL; not a phone) | play avg 88.5–93.2 ms, p95 ~121 ms (v6: 78–82 ms) |
+| Build | APK `build/tinystreet-v7-clarity-debug.apk` | `com.tinystreet.sortrestore` **0.7.0 / versionCode 7**; `apksigner` certificate SHA-256 **`62fa12828ad217be61c751322a58f2ce10988c3fccc11b1c704b7259a6281b2e`** (same as v1–v6: updates in place); APK SHA-256 `a57e7aa1823434ce80fb6891ccda2284dc176c936ec95c99ad65d27fe2619b35` |
+| Android emulator | none | **NOT RUN (blocked: no KVM access)** |
+| Physical device | none | **NOT RUN** (owner: `docs/ANDROID_ACCEPTANCE_TESTS.md` part A2, G-01…G-10) |
+
+### Defects found and fixed in v7
+1. **Result card could be lost (pre-existing, confirmed by real-input QA).** Every board input first snaps effects (`_finish_effects`), which killed the tween that would show the win card 1 s later. A tap in that window left a won board with no result and no Next. The same applied to the loss card, the Café Rush hand-off and the ledger "Page solved" card. Now a scene-tree timer drives them.
+2. **Story beat before the result** (owner's Appetize observation). It now plays after the card.
+3. Restart / Undo / Pause / **Help** during the win delay could start a new attempt or leave the screen (Help: the card never appeared and the level restarted). A won attempt now refuses them.
+4. A card that appears under a still-tapping finger could take the tap as a choice (seen with reduced motion). Card keys now ignore presses for 450 ms (same mechanism as screen transitions).
+5. Competing primaries on the first win (Restore above Next); "Next level" on the last level; `delete_all()` missing the new `.schema4.bak`.
+6. Found during the redesign and fixed: the result card scrolled at 720×1280 (compacted); the inline Restore key broke mid-word; "1 spaces" wording; the +25 pop-up overlapped +10/+5.
+
+QA-harness mistakes, not game bugs: a fresh install opens level 1 directly (the first script expected Home); `_texts()` ignored button captions; a fixed (60, 60) "pause" tap hit Help in RTL. All corrected.
+
+**Not verified (needs the phone):** touch comfort of the new strip and card keys, real fonts and density, how the +10/+25 pop-ups and score roll-up feel at 60 fps, sound of the score count, Android Back during the result, installing over v6. Whether the loop now *feels* clear and satisfying is the owner's call.
+
 ## v6 (0.6.0), production polish phase A (skins, art, sound, board), 2026-10-16
 Environment unchanged: GitHub Codespace, 2 vCPU, **no GPU, no Android device or emulator**. Visual and interaction checks ran in a desktop Linux build under Xvfb (Mesa software GL). **This isn't Android runtime verification.**
 

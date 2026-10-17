@@ -8,7 +8,7 @@ static func fresh() -> Dictionary:
 		"settings": {"music": 0.6, "sfx": 0.9, "haptics": true, "reduced_motion": false,
 			"lang": "", "large_text": false},
 		"tutorial": {"done": {}},
-		"campaign": {"stars": {}, "cleared": {}, "mastery": {}},
+		"campaign": {"stars": {}, "cleared": {}, "mastery": {}, "best": {}},
 		"tokens": 0,
 		"tokens_earned": 0,
 		"grants": {},

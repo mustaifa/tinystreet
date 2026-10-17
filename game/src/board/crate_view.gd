@@ -31,6 +31,7 @@ var _pulse := 0.0
 var _down := false
 var _press_pos := Vector2.ZERO
 var _unlock_flash := 0.0
+var _rows := -1.0              # v7: items the crate body is drawn for (eases toward items.size())
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -47,13 +48,14 @@ func front_size() -> float:
 	return minf(size.x * 0.84, 136.0)
 
 func back_size() -> float:
-	return front_size() * 0.7
+	return front_size() * 0.76
 
-## Top of the crate body. The crate is as tall as its starting stack needs (the
-## café wall shows above short crates), never taller than the control.
+## Top of the crate body. The crate is as tall as its remaining stack needs
+## (v7: it settles down as items leave, so no empty slats tower over the
+## board), never taller than the control.
 func body_top() -> float:
 	var fs := front_size()
-	var behind := maxi(capacity, items.size()) - 1
+	var behind := (_rows if _rows >= 0.0 else float(maxi(capacity, items.size()))) - 1.0
 	var need := fs + 38 + maxf(0, behind) * back_size() * 0.86 + 34
 	return clampf(size.y - need, 2.0, size.y - fs - 60)
 
@@ -77,6 +79,17 @@ func flash_unlock() -> void:
 	tw.tween_method(func(v): _unlock_flash = v; queue_redraw(), 1.0, 0.0, App.dur(0.6))
 
 func _process(delta: float) -> void:
+	var want := float(items.size())
+	if _rows < 0.0 or App.reduced_motion():
+		if _rows != want:
+			_rows = want
+			queue_redraw()
+	elif absf(_rows - want) > 0.01:
+		_rows = move_toward(_rows, want, delta * 5.0)
+		queue_redraw()
+	elif _rows != want:
+		_rows = want
+		queue_redraw()
 	if highlight or (not fresh.is_empty() and fresh[0]) or (oven and lock_left > 0):
 		_pulse = fmod(_pulse + delta * (0.0 if App.reduced_motion() else 1.4), 1.0)
 		queue_redraw()

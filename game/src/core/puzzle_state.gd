@@ -14,6 +14,8 @@ var next_order: int = 0              # index of the next queued order
 var completed: int = 0               # orders fully delivered
 var moves: int = 0
 var peak_counter: int = 0            # highest simultaneous counter occupancy reached
+var served_direct: int = 0           # v7 score: items that went straight from a crate into an order
+var served_counter: int = 0          # v7 score: items that reached an order from the counter
 var pin: int = -1                    # v3: tray whose bell is rung (served first), -1 = none
 var rings_used: int = 0              # v4: bell rings so far (counts against level.bell_budget)
 var violation := false               # v4: set only on simulation copies when a delivery breaks level.sequence
@@ -53,6 +55,8 @@ func copy() -> PuzzleState:
 	s.completed = completed
 	s.moves = moves
 	s.peak_counter = peak_counter
+	s.served_direct = served_direct
+	s.served_counter = served_counter
 	s.pin = pin
 	s.rings_used = rings_used
 	return s
@@ -70,6 +74,8 @@ func assign(o: PuzzleState) -> void:
 	completed = o.completed
 	moves = o.moves
 	peak_counter = o.peak_counter
+	served_direct = o.served_direct
+	served_counter = o.served_counter
 	pin = o.pin
 	rings_used = o.rings_used
 	violation = o.violation

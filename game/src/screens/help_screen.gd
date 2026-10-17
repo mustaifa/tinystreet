@@ -4,9 +4,9 @@ extends Control
 
 const TOPICS := [
 	["help_goal", "cup"], ["help_tap", "tap"], ["help_badges", "info"], ["help_priority", "levels"],
-	["help_bell", "bell"], ["help_counter", "counter"], ["help_auto", "spark"], ["help_fresh", "timer"],
+	["help_bell", "bell"], ["help_counter", "counter"], ["help_auto", "spark"], ["help_full", "counter"], ["help_fresh", "timer"],
 	["help_bag", "help"], ["help_lock", "lock"], ["help_two_stage", "flag"], ["help_lose", "close"],
-	["help_undo", "undo"], ["help_hint", "hint"], ["help_stars", "star"], ["help_tokens", "coin"], ["help_tasks", "journal"],
+	["help_undo", "undo"], ["help_hint", "hint"], ["help_score", "trophy"], ["help_stars", "star"], ["help_tokens", "coin"], ["help_tasks", "journal"],
 ]
 
 func setup(_p: Dictionary) -> void:

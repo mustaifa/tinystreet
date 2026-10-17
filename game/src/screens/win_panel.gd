@@ -1,13 +1,18 @@
 class_name WinPanel
 extends Dialog
-## Level-complete card, short and satisfying: the stars land one by one, the
-## coin reward counts up, one quiet stats line, the next café goal, and at most
-## one highlighted notice. Next is the main action; Replay and Return share a row.
+## Level-complete card (v7): the result first, then the way on. The title,
+## stars and a counting score land together; a breakdown line explains the
+## points, then the tokens actually paid and the next café goal. "Next level"
+## is the only primary action; Replay and Café share a row underneath.
+## A story beat earned by this win plays after the card, when the player
+## moves on (never before the result).
 
-static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: PuzzleSession) -> Dialog:
+static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: PuzzleSession, beat: String = "") -> Dialog:
 	var d := WinPanel.new()
 	d.back_closes = false
-	var extra := UI.vbox(16)
+	var then := func(cb: Callable) -> Callable:
+		return cb if beat == "" else func(): Story.play(beat, cb)
+	var extra := UI.vbox(10)
 	# --- stars
 	var star_row := UI.hbox(14)
 	star_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -15,22 +20,27 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		var g := Glyph.new()
 		g.kind = "star" if i < stars else "star_empty"
 		g.color = Style.GOLD if i < stars else Color(Style.INK_SOFT, 0.35)
-		g.custom_minimum_size = Vector2(112 if i == 1 else 96, 112 if i == 1 else 96)
+		g.custom_minimum_size = Vector2(88 if i == 1 else 74, 88 if i == 1 else 74)
 		g.pivot_offset = g.custom_minimum_size / 2
 		star_row.add_child(g)
 		if i < stars and not App.reduced_motion():
 			g.scale = Vector2.ZERO
 			var tw := g.create_tween()
-			tw.tween_interval(0.25 + i * 0.22)
+			tw.tween_interval(0.2 + i * 0.2)
 			tw.tween_callback(func(): App.audio.play("star", 1.0 + i * 0.12))
-			tw.tween_property(g, "scale", Vector2(1.2, 1.2), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_property(g, "scale", Vector2(1.2, 1.2), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 			tw.tween_property(g, "scale", Vector2.ONE, 0.1)
 	extra.add_child(star_row)
-	# --- stats: one quiet line (v6; the card is about the reward, not numbers)
-	var stats := UI.label(Loc.t("win_stats", [ps.state.moves, ps.state.peak_counter, ps.undo_count]), "CaptionLabel")
-	extra.add_child(stats)
-	# --- rewards line
-	var meta: Dictionary = res.get("meta", {})
+	# --- score: the number, personal best, and where it came from
+	var b := Scoring.breakdown(ps.state)
+	extra.add_child(_score_row(int(b.total), res, kind in ["campaign", "bakery"]))
+	var why := Loc.t("win_breakdown", [b.direct, b.via_counter, b.orders])
+	if int(b.tidy) > 0:
+		why += " · " + Loc.t("win_tidy", [b.tidy])
+	var wl := UI.label(why, "CaptionLabel")
+	wl.custom_minimum_size = Vector2(520, 0)
+	extra.add_child(wl)
+	# --- tokens actually paid (campaign and bakery)
 	if kind in ["campaign", "bakery"]:
 		var tok := int(res.get("tokens", 0)) + int(res.get("mastery_tokens", 0))
 		var rw := UI.hbox(10)
@@ -38,12 +48,15 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		if tok > 0:
 			rw.add_child(_coin_reward(tok))
 		if bool(res.get("mastery", false)):
-			var mp := UI.pill("ribbon", Loc.t("win_mastery_short"), Style.TEAL)
-			rw.add_child(mp)
+			rw.add_child(UI.pill("ribbon", Loc.t("win_mastery_short"), Style.TEAL))
 		if rw.get_child_count() > 0:
 			extra.add_child(rw)
+		if tok > 0:
+			extra.add_child(UI.label(Loc.t("win_tokens_caption"), "CaptionLabel"))
 		else:
-			extra.add_child(UI.label(Loc.t("win_no_new_tokens"), "SoftLabel"))
+			var nl := UI.label(Loc.t("win_no_new_tokens"), "SoftLabel")
+			nl.custom_minimum_size = Vector2(500, 0)
+			extra.add_child(nl)
 	# --- one tip, the most useful
 	var tip := ""
 	if stars < 3:
@@ -54,7 +67,7 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		var tl := UI.label(tip, "SoftLabel")
 		tl.custom_minimum_size = Vector2(500, 0)
 		extra.add_child(tl)
-	# --- highlights: special reward, achievements, challenge result
+	# --- highlights: special reward, challenge result
 	var sp: Dictionary = res.get("special", {})
 	if bool(sp.get("new", false)):
 		extra.add_child(_notice("spark", Loc.t("reward_" + str(sp.reward).replace(":", "_")), "WarmPanel"))
@@ -66,24 +79,16 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 		extra.add_child(_notice("trophy" if met else "info", txt, "TealPanel" if met else "SoftPanel"))
 	# Awards and café tasks are not repeated here: the home screen badges them.
 	if kind in ["campaign", "bakery"]:
-		extra.add_child(_goal())
-	# --- actions
+		extra.add_child(_goal(then.call(func(): d.close(); App.main.goto("restore"))))
+	# --- actions: one primary
 	var buttons: Array = []
 	if kind in ["campaign", "bakery"]:
-		var can_restore := Restoration.can_unlock(App.data)
-		var first_restore := can_restore and Restoration.steps(App.data) == 0
-		if first_restore:
-			buttons.append([Loc.t("restore_now"), func(): App.main.goto("restore"), "WarmButton"])
-			buttons.append([Loc.t("next_level"), func(): game.next_level(), ""])
-		else:
-			buttons.append([Loc.t("next_level"), func(): game.next_level(), ""])
-			if can_restore:
-				buttons.append([Loc.t("restore_now"), func(): App.main.goto("restore"), "WarmButton"])
-		buttons.append([Loc.t("replay"), func(): game.replay(), "SecondaryButton"])
+		buttons.append([_next_text(kind, ps.level.id), then.call(func(): game.next_level()), ""])
+		buttons.append([Loc.t("replay"), then.call(func(): game.replay()), "SecondaryButton"])
 		if kind == "bakery":
-			buttons.append([Loc.t("bakery_title"), func(): App.main.goto("home", {}, false); App.main.goto("bakery"), "SecondaryButton"])
+			buttons.append([Loc.t("bakery_title"), then.call(func(): App.main.goto("home", {}, false); App.main.goto("bakery")), "SecondaryButton"])
 		else:
-			buttons.append([Loc.t("to_cafe"), func(): App.main.goto("home", {}, false), "SecondaryButton"])
+			buttons.append([Loc.t("to_cafe"), then.call(func(): App.main.goto("home", {}, false)), "SecondaryButton"])
 	elif kind == "challenge":
 		buttons.append([Loc.t("challenges"), func(): App.main.goto("home", {}, false); App.main.goto("daily"), ""])
 		buttons.append([Loc.t("replay"), func(): game.replay(), "SecondaryButton"])
@@ -92,13 +97,49 @@ static func create(game: Node, kind: String, stars: int, res: Dictionary, ps: Pu
 			App.share_text(Progression.share_text(game.date_key, stars, ps.state.moves))
 			App.main.toast(Loc.t("share_copied")), ""])
 		buttons.append([Loc.t("to_cafe"), func(): App.main.goto("home", {}, false), "SecondaryButton"])
-	var title := Loc.t("win_title")
+	var title := Loc.t("win_level_complete")
 	if kind == "daily":
 		title = Loc.t("daily_done_title")
 	elif kind == "challenge":
 		title = Loc.t("challenge_done_title")
 	d._build(title, "", buttons, extra)
 	return d
+
+## The main action's wording: the last level leads to the finale, not to a
+## level that doesn't exist.
+static func _next_text(kind: String, id: String) -> String:
+	if kind == "bakery":
+		var bi := App.progression.bakery_index(id)
+		return Loc.t("next_level") if bi + 1 < App.progression.bakery.size() else Loc.t("bakery_finish")
+	var i := App.progression.campaign_index(id)
+	return Loc.t("next_level") if i + 1 < App.progression.campaign.size() else Loc.t("campaign_finish")
+
+## The score counts up while the stars land; then "New best!" or the best.
+static func _score_row(total: int, res: Dictionary, with_best: bool) -> Control:
+	var col := UI.hbox(14)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	var cap := UI.label(Loc.t("hud_score"), "StrongLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	cap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	col.add_child(cap)
+	var n := UI.label(str(total), "DisplayLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+	n.add_theme_color_override("font_color", Style.TEAL_DARK)
+	col.add_child(n)
+	if with_best:
+		if bool(res.get("new_best", false)):
+			var t := UI.tag(Loc.t("win_new_best"), Style.GOLD_SOFT, Style.INK)
+			t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			col.add_child(t)
+		elif int(res.get("best", 0)) > total:
+			var bl := UI.label(Loc.t("win_score_best", [int(res.best)]), "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false)
+			bl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			col.add_child(bl)
+	if not App.reduced_motion() and total > 0:
+		n.text = "0"
+		var tw := n.create_tween()
+		tw.tween_interval(0.2)
+		tw.tween_method(func(v: float): n.text = str(int(round(v))), 0.0, float(total), 0.7).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		tw.tween_callback(func(): App.audio.play("stage"))
+	return col
 
 ## A large coin pill whose number counts up after the stars have landed.
 static func _coin_reward(n: int) -> Control:
@@ -113,7 +154,7 @@ static func _coin_reward(n: int) -> Control:
 			l.text = "+%d" % n
 		return p
 	var tw := p.create_tween()
-	tw.tween_interval(0.25 + 3 * 0.22)
+	tw.tween_interval(0.95)
 	tw.tween_method(func(v: float):
 		var t := "+%d" % int(round(v))
 		if l.text != t:
@@ -160,7 +201,7 @@ static func _notice(glyph: String, text: String, panel: String) -> Control:
 	return UI.card(r, panel)
 
 ## The next café step, as one line with a bar.
-static func _goal() -> Control:
+static func _goal(restore: Callable) -> Control:
 	var i := Restoration.next_index(App.data)
 	var have := int(App.data.tokens)
 	var r := UI.hbox(12)
@@ -180,5 +221,11 @@ static func _goal() -> Control:
 	col.add_child(t)
 	col.add_child(UI.progress(mini(have, int(st.cost)), int(st.cost), Style.TERRACOTTA if ready else Style.GOLD, 14))
 	r.add_child(col)
-	r.add_child(UI.label(Loc.t("ready") if ready else "%d/%d" % [have, int(st.cost)], "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false))
+	if ready and Restoration.can_unlock(App.data):
+		var b := UI.button(Loc.t("restore_short"), restore, "WarmButton", 64)
+		b.autowrap_mode = TextServer.AUTOWRAP_OFF   # one word: size to it, never break it
+		b.custom_minimum_size.x = 150
+		r.add_child(b)
+	else:
+		r.add_child(UI.label("%d/%d" % [have, int(st.cost)], "CaptionLabel", HORIZONTAL_ALIGNMENT_CENTER, false))
 	return r

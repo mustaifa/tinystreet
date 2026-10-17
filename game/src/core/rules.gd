@@ -37,6 +37,10 @@ extends RefCounted
 ##     a listed order before an earlier listed one is refused (state
 ##     unchanged), exactly like any other illegal tap.
 ##
+## SCORE TALLIES (v7): every item that reaches an order is counted on the
+##   state as direct (crate -> order) or via the counter. Scoring derives
+##   points from these and `completed`, so undo/redo/restore stay exact.
+##
 ## ACTIONS: an int >= 0 taps that crate; an int < 0 rings tray (-a - 1).
 
 enum Dest { NONE, TRAY, COUNTER }
@@ -214,6 +218,7 @@ static func _apply_routed(s: PuzzleState, crate: int, pv: Dictionary, events: Ar
 		events.append({"type": EV_REVEAL, "crate": crate, "product": s.front(crate)})
 	if pv.dest == Dest.TRAY:
 		s.tray_fill[pv.tray][p] += 1
+		s.served_direct += 1
 		events.append({"type": EV_TO_TRAY, "crate": crate, "product": p, "tray": pv.tray})
 	else:
 		s.counter[pv.slot] = p
@@ -264,6 +269,7 @@ static func resolve(s: PuzzleState, events: Array) -> void:
 			if t >= 0:
 				s.counter[slot] = -1
 				s.tray_fill[t][p] += 1
+				s.served_counter += 1
 				events.append({"type": EV_COUNTER_TO_TRAY, "slot": slot, "product": p, "tray": t})
 				changed = true
 

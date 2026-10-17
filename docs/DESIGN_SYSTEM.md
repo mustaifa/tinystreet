@@ -86,6 +86,9 @@ Nunito (OFL) at three weights cut from the variable font (600 regular, 800 bold,
 | Switch | `UI.switch(value, on_change)` | Track + knob with the word On/Off inside. |
 | Dialog | `Dialog.make(title, text, buttons, extra, icon, night)` | Icon medallion, scroll-capped body (never runs off-screen), two secondary actions share a row under the primary. |
 | Cards | `UI.card(child, variation)` | `CardPanel`, `SoftPanel`, `HeroPanel`, `TealPanel`, `WarmPanel`, `NightCard`, `ParchmentCard`. |
+| Gameplay HUD (v7) | `game_screen.gd` `_Hud` | One paper strip with three equal readouts (Orders n/N with a segmented bar, Score in teal that rolls up and pops, Counter used/size with one pip per space, turning amber at one space left and terracotta "FULL" when full), then the "Next:" queue. Columns mirror in RTL. |
+| Result card (v7) | `WinPanel.create(...)` | Title "Level complete!", level name, stars, score (display size, counts up), one breakdown caption, tokens actually paid, the next café step with an inline Warm "Restore" key when affordable, then **one** primary (Next / finale) and a secondary pair (Replay · Café). |
+| Failure card (v7) | `game_screen._show_lost` | "No moves left", the cause in one sentence, a soft tip line; primary **Retry level**, secondary **Undo last move**. |
 
 ## Icons
 
@@ -103,7 +106,7 @@ Set: back, next, chevron, undo, redo, restart, hint, pause, gear, help, info, st
 
 Easing: ease-out cubic for movement, back-out for pops, sine for gentle emphasis. Emphasis loops are **limited** (Play button breathes 3 times, the current level pulses 4 times) and never flash. **Reduce motion** removes transitions, pulses, item flights and confetti (a brief still glow replaces bursts).
 
-Interaction safety: every UI key ignores a second press within 350 ms and any press during a screen transition, so double taps never trigger an action twice. Gameplay taps snap running animations to their end before applying the next move, so the view always matches the game state.
+Interaction safety: every UI key ignores a second press within 350 ms and any press during a screen transition, so double taps never trigger an action twice. Gameplay taps snap running animations to their end before applying the next move, so the view always matches the game state. Result and failure cards are scheduled with a scene-tree timer, not an effect tween, so that snapping can never cancel them (v7 fix). Point pop-ups (+10 / +5 / +25) float from where the points were earned and are ordinary effects.
 
 ## Night (Midnight Ledger) and bakery treatments
 

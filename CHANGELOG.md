@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.7.0 (v7), 2026-10-17: gameplay clarity (score, results, failure)
+After the owner's feedback ("feels basic; doesn't clearly communicate scoring, winning, losing or progression") and an external Appetize playtest of 0.5.0. Puzzle rules, level data and the economy are unchanged. The save schema goes 4 → 5 (adds best scores only).
+
+### Bug fixes (confirmed by real-input QA)
+- **Result card could vanish.** Any tap in the second after the winning move (crate, ticket, Undo, Restart, Hint) snapped effects and, with them, killed the delayed tween that showed "Orders delivered!". The player was left on a finished board with no result and no Next. The same applied to the "No moves left" card, the Café Rush hand-off and the Midnight Ledger "Page solved" card. All four now use a scene-tree timer that effects can't cancel. Found by the new `player` QA scenario ("stray taps" step).
+- **Story popup before the result.** The first-served and special-order beats were shown before the win card, so players had to dismiss a story to learn they had won. They now play after the result, when the player picks Next, Replay or Café.
+- **Restart, Undo or Pause during the win delay** could start a new attempt or open Pause under the incoming result. A won attempt now ignores them.
+- **Two main buttons on the first win** ("Restore the café" above "Next level"). Next is now always the only primary action; Restore is an inline key on the café-goal row.
+- **Last level:** the win card offered "Next level" on level 96 (it went to the finale anyway). It now says "Celebrate the grand finale" (bakery: "Back to the bakery").
+- `SaveStore.delete_all()` left the `.schema4.bak` migration backup behind.
+
+### Design changes
+- **Live score**, separate from stars and tokens: +10 for each item served straight from a crate, +5 from the counter, +25 per order, and +10 per unused counter space at the end. It is derived from puzzle state, so undo, redo, restart and resume are exact; taps, bells, undos and hints earn nothing. Points pop up (+10 / +5 / +25) where they are earned, and the readout rolls up. **Personal best** per level ("New best!").
+- **Heads-up strip** on every puzzle: Orders n/N (with a bar) · Score · Counter used/size (amber at one space left, terracotta "FULL"), above the upcoming-customer queue. The subtitle states the goal ("Opening up · Goal: serve all 4 orders").
+- **"Level complete!" card** about 0.6 s after the last delivery (was 1.0 s, sometimes behind a story popup): stars, the score counting up, a one-line breakdown, tokens actually paid ("Spend tokens to restore the café"), the next café step, then Next level / Replay · Café.
+- **Failure card:** "No moves left" names the cause (a full counter with nothing wanted, a fresh item, a strapped crate). **Retry level** is primary and **Undo last move** (free) secondary. A full counter is explained as not a loss while deliveries remain ("Counter full: only items an order needs can move now"; Help gains "A full counter").
+- **Board:** crates settle down as they empty (no tall empty slats), and queued items are larger (76% of the front item).
+- Pause lists the points rules under the star rules; Help gains "Score, stars and tokens".
+- New EN/AR strings (about 25 keys; the Arabic is unreviewed).
+
+### Level audit (no data changes)
+Levels 1–3 can't be lost; level 4 is the first genuine-loss level (random legal play wins about 80%), level 6 about 53%. Scores vary with play from level 1 (105–120). Move limits weren't added: every solution takes one tap per item, so a move limit would mean nothing.
+
+### QA
+New real-input scenarios `player`, `player_reopen` and `finale` (`tools/qa_battery.sh` runs them first), and `tests/test_score.gd` (13 tests).
+
 ## 0.6.0 (v6), 2026-10-16: production polish, phase A (skins, art, sound, board)
 First step of the production plan (`docs/PRODUCTION_ROADMAP.md`), with the owner's direction: **free resources only for now, and built so art can be swapped easily later.** Puzzle rules, levels, economy and save format are unchanged (schema 4).
 

@@ -297,7 +297,7 @@ func on_won() -> void:
 	]
 	var d := Dialog.make(Loc.t("ledger_done_title"), "", buttons, extra, "", true)
 	d.back_closes = false
-	g._delay(App.dur(1.0), func(): App.main.show_overlay(d))
+	g._after(App.dur(1.0), func(): App.main.show_overlay(d))
 
 ## "Why this works": the designer's explanation, and an honest note on
 ## whether the player's sequence matched the reference solution.

@@ -1,4 +1,4 @@
-# Game Design: Tiny Street: Sort & Restore (v3)
+# Game Design: Tiny Street: Sort & Restore (v3, v7 additions)
 
 *Working title, pending name/trademark availability checks.*
 
@@ -44,6 +44,31 @@ Portrait, single-player, offline sorting puzzle for adults. Sort deliveries, ser
 
 ## Hints
 Computed from the **current** state with the real solver (worker thread, 30k-node budget): SOLVED (the next crate glows, or the ticket to ring glows: "Ring the bell on ticket N"), UNSOLVABLE ("undo N moves" or "restart"), TIMEOUT (no claim). A hint is always the first action of a real solution from the current position, never a random legal move. Hints never affect stars.
+
+## Points (v7)
+A live **score** for the current attempt, shown in the heads-up strip (Orders · Score · Counter) and counted up on the result card. It is separate from stars (the rating) and tokens (the currency): points never pay tokens and never change stars.
+
+| Event | Points |
+|---|---|
+| An item goes straight from a crate into an order | +10 |
+| An item reaches an order from the counter | +5 |
+| An order is delivered | +25 |
+| Completion: each of the level's own counter spaces never used | +10 |
+
+- Taps, bell rings, undos and hints earn nothing by themselves. Parking an item earns nothing until it is served.
+- **Derived from state only.** `Rules` tallies `served_direct` / `served_counter` on `PuzzleState`; `Scoring.points(state)` computes the total. Undo restores the snapshot (points go back with the move), redo re-applies the move (no double count), restart starts at 0, and a saved attempt is rebuilt by replaying its moves (same points). The tallies are not part of the solver key.
+- **Why this formula:** every solution taps each item exactly once, so move counts can't vary. What the player does control is how much goes through the counter, so direct service scores more and the tidy bonus rewards an unused counter. On level 1 the range is 105–120; on later levels the spread grows.
+- **Personal best** per level (campaign and bakery) in `data.campaign.best` (save schema 5). The result card says "New best!" when a replay beats a previous best, or shows the best when this run is lower. Bests never pay.
+
+## Results (v7)
+- **Win:** the "Level complete!" card appears about 0.6 s after the final delivery (confetti plays meanwhile). It shows the stars, the score counting up, the breakdown line, counter peak vs the ★★ target, the tokens actually paid, the next café step (with an inline **Restore** button when affordable), and one primary action: **Next level**. On the last campaign level it reads **Celebrate the grand finale**, and on the last bakery level **Back to the bakery**. Replay and Café share a secondary row.
+- **Story beats earned by the win** (the first customer served, special orders) play **after** the card, when the player picks any action. They never cover the result.
+- Result and failure cards are timed with a scene-tree timer, so a tap made while effects are snapping can't cancel them. A won attempt ignores Restart, Undo, Pause and further taps.
+
+## Failure (v7 wording; rules unchanged)
+- **Loss** = not won and no legal tap (canonical, `Rules.is_lost`). A **full counter is not a loss** while some crate's front item is wanted by an order. The status line says "Counter full: only items an order needs can move now", and the Counter readout turns to **FULL**.
+- The **No moves left** card names the cause (counter full *n of n* with nothing wanted, a fresh item that must wait, or a strapped crate). **Retry level** is the primary action; **Undo last move** (free) is secondary, and the optional rewarded extra space stays secondary. A loss pays nothing and unlocks nothing.
+- Levels 1–3 can't be lost (forgiving tutorials). Level 4 is the first that can be: random legal play wins about 80% of the time there, and level 6 about 53%. No timers or move limits were added: moves are fixed per level, so a move limit would be meaningless, and the optional timed play stays in Café Rush.
 
 ## Scoring
 - ★ Complete the level.

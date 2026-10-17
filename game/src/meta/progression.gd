@@ -105,6 +105,17 @@ static func record_win(data: Dictionary, id: String, stars: int) -> Dictionary:
 	out.tokens = Wallet.grant_stars(data, id, stars)
 	return out
 
+## v7: keeps the best score per level (campaign and bakery). Scores are
+## informational: they never pay tokens or affect stars.
+static func record_score(data: Dictionary, id: String, points: int) -> Dictionary:
+	var prev := int(data.campaign.best.get(id, 0))
+	if points > prev:
+		data.campaign.best[id] = points
+	return {"score": points, "best": maxi(prev, points), "prev_best": prev, "new_best": prev > 0 and points > prev}
+
+static func best_score(data: Dictionary, id: String) -> int:
+	return int(data.campaign.best.get(id, 0))
+
 func bakery_index(id: String) -> int:
 	for i in bakery.size():
 		if bakery[i].id == id:

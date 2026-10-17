@@ -1,6 +1,6 @@
 # Tiny Street: Solutions Appendix (spoilers)
 
-<!-- subtitle: Verified walkthroughs for every level and ledger page · game version 0.5.0 · SPOILERS -->
+<!-- subtitle: Verified walkthroughs for every level and ledger page · game version 0.7.0 · SPOILERS -->
 
 > **Spoilers.** This appendix gives a complete solution for every puzzle in the game. The main player guide is spoiler-free; read this only when you are stuck or want to compare routes.
 
@@ -12,7 +12,7 @@
 - **Verified** means the route was replayed through the game's own rules for this version and finishes the level. It is *one* working route, not necessarily the shortest or the tidiest. The stars column is what this exact route earns with no undo; a different route can earn more.
 - Midnight Ledger routes are the ledger's **proven reference solutions**: each uses the proven minimum number of bell rings, and because every solution taps each item exactly once, also the minimum number of moves.
 
-Generated from game data for version 0.5.0 by `tools/build_guide_appendix.py`.
+Generated from game data for version 0.7.0 by `tools/build_guide_appendix.py`.
 
 ## Campaign
 

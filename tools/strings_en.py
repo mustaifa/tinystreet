@@ -432,3 +432,23 @@ EN.update({
 "locked_hint_bakery": "Bake level %s first to open this one.",
 "settings_sound": "Sound", "settings_comfort": "Comfort",
 })
+
+# v7: gameplay clarity (score, results, failure)
+EN.update({
+"hud_orders": "Orders", "hud_score": "Score", "hud_counter": "Counter", "hud_full": "FULL",
+"goal_orders": "Goal: serve all %s orders",
+"win_level_complete": "Level complete!", "win_score_best": "Best %s", "win_new_best": "New best!",
+"win_breakdown": "%s straight ×10 · %s from the counter ×5 · %s orders ×25",
+"win_tidy": "unused counter +%s",
+"win_tokens_caption": "Spend tokens to restore the café.",
+"campaign_finish": "Celebrate the grand finale", "bakery_finish": "Back to the bakery",
+"restore_short": "Restore", "lost_retry": "Retry level", "lost_undo": "Undo last move",
+"lost_body_full": "The counter is full (%s of %s) and no crate's front item is wanted by an order.",
+"lost_tip": "Retry starts this level again. Undo is free and takes back your last move.",
+"counter_full_ok": "Counter full: only items an order needs can move now",
+"points_rules": "Points (this attempt only): +10 straight to an order · +5 from the counter · +25 per finished order · +10 per counter space never used.",
+"help_score_t": "Score, stars and tokens",
+"help_score_b": "Score counts this attempt: +10 for each item served straight from a crate, +5 for one served from the counter, +25 per finished order, and +10 at the end for each counter space you never used. Undo takes points back with the move. Stars rate the finish and pay tokens; tokens restore the café.",
+"help_full_t": "A full counter",
+"help_full_b": "A full counter isn't game over. You can still tap any crate whose front item an order needs. You only run out of moves when nothing fits an order or the counter.",
+})

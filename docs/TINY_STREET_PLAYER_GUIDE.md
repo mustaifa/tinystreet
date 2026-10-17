@@ -1,9 +1,9 @@
 # Tiny Street: Sort & Restore — Player Guide
 
-<!-- subtitle: The complete guide to every mode, screen and rule · game version 0.5.0 · spoiler-free -->
+<!-- subtitle: The complete guide to every mode, screen and rule · game version 0.7.0 · spoiler-free -->
 <!-- cover: screenshots/v5/home_done.jpg, screenshots/v5/game_mid.jpg, screenshots/v5/ledger_play.jpg -->
 
-This guide describes **Tiny Street: Sort & Restore, version 0.5.0** (the "UI polish" build). Every screenshot was captured from this version of the game. The wording in **bold** matches the buttons and labels you see on screen.
+This guide describes **Tiny Street: Sort & Restore, version 0.7.0** (the "UI polish" build). Every screenshot was captured from this version of the game. The wording in **bold** matches the buttons and labels you see on screen.
 
 The main guide is **spoiler-free**: it explains rules and screens, never the answer to a particular puzzle. Complete, verified walkthroughs are kept in a separate file, `TINY_STREET_SOLUTIONS_APPENDIX.md`. Appendix A at the end lists every level and page in the game, generated from the game's own data.
 
@@ -87,13 +87,13 @@ Fill every customer's order using the products in the crates. There is no timer 
 | Part | What it shows |
 |---|---|
 | **Pause** chip (‖) | Pauses: **Resume**, **Restart**, **Settings**, and **Level map** (campaign) or **Back to café** (other modes). The star rules for the level are listed here too. |
-| Title and chapter | The level number and its chapter, e.g. "Level 53 · Two-part orders". |
+| Title, chapter and goal | The level number, its chapter and the goal, e.g. "Level 53" over "Two-part orders · Goal: serve all 6 orders". |
 | **How to play** chip (?) | Opens the rules. (In expert mode this is the **Rules** card, a book icon.) |
-| **Orders 1/6** bar | Orders served so far. Each segment is one order; ticked segments are done. |
+| **Orders · Score · Counter** strip | Three readouts that are always visible. **Orders 1/6**: orders served so far, with a small bar. **Score**: points for this attempt (see "Score" below); it counts up as you serve. **Counter 2/3**: spaces in use; it turns amber at one space left and reads **FULL** when full. |
 | **Next:** queue | The next customers waiting and the first thing each will ask for. |
 | Order tickets | Up to three customers at once. Each ticket has a **number** (1, 2, 3), the customer's face, the items they want, and one circle per item (filled with a tick when it arrives). A second part, if any, is shown under **then**. |
-| **Counter 0 / 3** | The holding counter and its free spaces. |
-| Status line | Short messages: why a tap was refused, a hint, or "Counter full — send items straight to orders". |
+| Counter | The holding counter. Items wait here until an order needs them. |
+| Status line | Short messages: why a tap was refused, a hint, or "Counter full: only items an order needs can move now". |
 | Crates | Each crate shows its whole stack. Only the big **front item** at the bottom can be taken. |
 | Dock: **Undo**, **Hint**, **Restart** | Tools. Undo and Restart are always free. The coral number on Hint is your free hints left. |
 
@@ -121,19 +121,36 @@ Consecutive moves that go straight into orders build a little streak ("Nice!"). 
 
 ## Getting stuck
 
-If no front item can go to an order or the counter, you are stuck and the **No moves left** card appears. **Undo (free)** takes back your last move; **Restart** starts again. A full counter is fine as long as some item can still go straight to an order.
+**A full counter is not game over.** While the counter is full you can still tap any crate whose front item an order needs (its badge shows a ticket number).
+
+You only run out of moves when no front item fits an order or the counter. Then the **No moves left** card appears and says why, for example "The counter is full (3 of 3) and no crate's front item is wanted by an order". **Retry level** starts the level again; **Undo last move** (free) takes back your last move so you can try another route. A loss never costs anything, and nothing is unlocked.
+
+Levels 1–3 can't be lost. From level 4 on, the order you tap things in matters.
 
 > In test builds you may also see **Extra counter space (watch ad)** or **Watch a short ad for a hint**. These use a simulated ad that never contacts an ad network.
 
+## Score
+
+The **Score** counts points for this attempt only:
+
+| You… | Points |
+|---|---|
+| serve an item straight from a crate into an order | +10 |
+| serve an item from the counter | +5 |
+| finish an order | +25 |
+| finish the level: each counter space you never used | +10 |
+
+Small "+10" / "+25" pop-ups show where you earned them. Tapping, ringing a bell, undoing or using a hint earns nothing by itself; Undo takes the points of that move back. The level's **best score** is kept, and the result card says **New best!** when you beat it. Points are for bragging only: **stars** rate the finish and pay **tokens**, and tokens restore the café.
+
 ## Stars
 
-Every level shows its star rules in the **Pause** card:
+Every level shows its star rules (and the points rules) in the **Pause** card:
 
 - 1 star: complete the level.
 - 2 stars: keep your peak counter use at the level's target or less.
 - 3 stars: also use at most 1 undo and no extra counter space.
 
-Hints never affect stars. The win card shows your moves, peak counter use and undos, and tells you how to earn more stars.
+Hints never affect stars. When you get fewer than 3, the result card tells you how to earn more.
 
 ## Hints, Undo and Restart
 
@@ -141,13 +158,15 @@ Hints never affect stars. The win card shows your moves, peak counter use and un
 - **Undo**: free and unlimited. It restores everything, including automatic deliveries and the bell.
 - **Restart**: free. Starts a new attempt of the same level.
 
-![Pause card with star rules](screenshots/v5/pause.jpg)
-![No moves left](screenshots/v5/lost.jpg)
-![Level complete](screenshots/v5/win.jpg)
+![Playing: goal, orders, score and counter](screenshots/v7/play.jpg)
+![No moves left](screenshots/v7/lost.jpg)
+![Level complete](screenshots/v7/win.jpg)
 
 ## Finishing a level
 
-The win card lands your stars one by one, then shows three stats (**moves**, **peak counter**, **undos**), any tokens and ribbon you earned, one tip, and your next café step. **Next level** is the main action; **Restore the café** appears when you can afford the next step; **Replay** and **Café** sit side by side underneath.
+About half a second after the last delivery, the **Level complete!** card appears. It shows your stars, your **score** counting up (with **New best!** or your best), one line on where the points came from, the **tokens** you earned (each new star pays 1 token, once; replaying for the same stars pays nothing), one tip, and your next café step, with a **Restore** key when you can afford it. **Next level** is the main action; **Replay** and **Café** sit side by side underneath. On the last level the main action is **Celebrate the grand finale**.
+
+If finishing the level unlocks a story moment (your first customer, a special order), it plays after the card, when you pick an action.
 
 <!-- pagebreak -->
 
@@ -428,11 +447,11 @@ Open the **Journal** chip on Home. Three tabs:
 | "I lost my progress after reinstalling." | Uninstalling deletes local progress. Always install new builds *over* the old one. |
 
 <!-- version-footer -->
-This guide describes version 0.5.0. Generated level data: Appendix A. Spoilers: the separate Solutions Appendix.
+This guide describes version 0.7.0. Generated level data: Appendix A. Spoilers: the separate Solutions Appendix.
 
 # Appendix A: Every level and page
 
-Generated from the game's level files for version **0.5.0** (`tools/build_guide_appendix.py`). Campaign 96 levels, Mira's Bakery 8, Daily/Rush pool 60, challenge cards 12, Midnight Ledger 13 pages.
+Generated from the game's level files for version **0.7.0** (`tools/build_guide_appendix.py`). Campaign 96 levels, Mira's Bakery 8, Daily/Rush pool 60, challenge cards 12, Midnight Ledger 13 pages.
 
 Columns: **Objective** counts orders, order tickets on screen at once, and counter spaces. **Special rules** names the mechanics the level uses. Unlock conditions follow the game's rules: campaign levels open one after another; bakery levels open one after another once the bakery is open; ledger lessons open in order, puzzles after the three lessons, and the final page after any six puzzles.
 

@@ -1,6 +1,6 @@
 # Tiny Street — Android Acceptance Tests
 
-<!-- subtitle: Phone test guide for the UI polish build · version 0.5.0 (versionCode 5) · results NOT RUN until performed -->
+<!-- subtitle: Phone test guide for the gameplay-clarity build · version 0.7.0 (versionCode 7) · results NOT RUN until performed -->
 
 These tests are for a person with an Android phone. They check what desktop automation **cannot**: real touch, real screens and safe areas, real audio and vibration, Android Back, interruptions, and installing over a previous build.
 
@@ -10,10 +10,10 @@ You do **not** need to replay every level. Every level's solvability and every r
 
 | Field | Value |
 |---|---|
-| APK | `build/tinystreet-ui-polish-debug.apk` |
-| Package / version | `com.tinystreet.sortrestore`, 0.5.0, versionCode 5 |
-| SHA-256 | see `build/SHA256SUMS.txt` (line for `tinystreet-ui-polish-debug.apk`) |
-| Previous build on the phone | v4 `tinystreet-v4-expert-debug.apk` (0.4.0 / 4) or v3 (0.3.0 / 3) |
+| APK | `build/tinystreet-v7-clarity-debug.apk` |
+| Package / version | `com.tinystreet.sortrestore`, 0.7.0, versionCode 7 |
+| SHA-256 | see `build/SHA256SUMS.txt` (line for `tinystreet-v7-clarity-debug.apk`) |
+| Previous build on the phone | v6 `tinystreet-v6-polish-debug.apk` (0.6.0 / 6), v5 `tinystreet-ui-polish-r2-debug.apk` (0.5.0 / 5) or older; all share the same signing certificate |
 | Phone model / Android version | *(fill in)* |
 | Screen (size, aspect, notch/punch-hole) | *(fill in)* |
 | Navigation (gestures or 3 buttons) | *(fill in)* |
@@ -41,12 +41,29 @@ Run these first, in order, on a phone that already has your v3 or v4 progress.
 | S-05 | In a level | Press and hold a crate, drag away, release elsewhere. Then press and hold, release on the crate. | Hold: item lifts, dashed line to its destination. Drag away: move cancelled. Release on crate: move made. | | NOT RUN | |
 | S-06 | In a level | Tap **Undo**, then **Hint**, then **Restart**. | Undo reverses the last move. Hint shows "Thinking…" then lights a crate or ticket. Restart starts over. The Hint badge count goes from 1 to nothing after use. | | NOT RUN | |
 | S-07 | In a level | Press Android **Back**. Then **Back** again. | First Back opens **Paused**; second Back closes it and you're still in the level. | | NOT RUN | |
-| S-08 | In a level | Finish the level. | Confetti, stars land one by one, the card shows moves / peak counter / undos, then **Next level**, **Replay** and **Café**. Nothing is cut off. | | NOT RUN | |
+| S-08 | In a level | Finish the level. | Within about a second: **Level complete!**, stars land, the score counts up, one breakdown line, tokens earned, then **Next level** (only primary), **Replay** and **Café**. No story popup covers it. Nothing is cut off and the card doesn't need scrolling. | | NOT RUN | |
 | S-09 | Home | Open **Levels**. Tap a padlocked level. | Current level is teal with a play mark; completed levels show stars; locked ones are faint with a padlock. Tapping a locked level shows "Clear level N first to open this one." | | NOT RUN | |
 | S-10 | Home | Open **Restore**. Tap **Preview**, then **Hide preview**. If affordable, tap **Restore · N** once. | Preview shows the next step in the café (PREVIEW label); hide returns it. Buying spends tokens once, celebrates, and shows the **Choose the …** picker. | | NOT RUN | |
 | S-11 | Bell lesson (level 9) cleared | Open **Challenges** → **Open the ledger** → open **One Bell**. | Night-blue ledger with stamps and page cards. The page shows the strip (**Bells**, **Moves**, **Serve order**). | | NOT RUN | |
 | S-12 | Anywhere | Settings → turn **Reduce motion** on, go back to Home, then turn it off again. | With it on: no screen slide, no pulsing; everything still works. | | NOT RUN | |
 | S-13 | Anywhere | Swipe home (background) for 10 s, reopen. | Same screen and state as before. | | NOT RUN | |
+
+## A2. v7 gameplay loop (score, result, failure)
+
+Use a **fresh install** for G-01 to G-03 (uninstall first, or use a second phone); the others work on any save.
+
+| ID | Preconditions | Steps | Expected result | Actual result | Status | Evidence |
+|---|---|---|---|---|---|---|
+| G-01 | Fresh install | Open the game; tap through Mira's welcome. | Level 1 opens directly. Under the title: "Opening up · Goal: serve all 2 orders". The strip reads **Orders 0/2 · Score 0 · Counter 0/3**. | | NOT RUN | |
+| G-02 | G-01 | Follow the glowing crate. | Each delivery shows a "+10" pop-up and the Score rolls up; a finished order shows "+25". | | NOT RUN | |
+| G-03 | G-02 | Make the last delivery; immediately tap a crate, Undo and Restart several times. | **Level complete!** still appears (taps are ignored once won). Tokens shown (+3 or +4). Then tap **Next level**: Mira's "first customer" line appears **after** the card, then Level 2 opens. | | NOT RUN | |
+| G-04 | Level 2 | Fill all 4 counter spaces with items no order wants yet. | The Counter readout says **FULL 4/4** and the status line says only items an order needs can move. The game is **not** over while any crate's badge shows a ticket number. | | NOT RUN | |
+| G-05 | Level 4 (Theo's level) | Tap items that no order needs until the counter fills and nothing fits. | **No moves left** with a reason (e.g. "The counter is full (3 of 3)…"). **Retry level** is the big button; **Undo last move** is below. No tokens are paid. | | NOT RUN | |
+| G-06 | G-05 | Tap **Retry level**. | The card closes; the level restarts with Score 0, Counter 0/3, and crates respond to taps. | | NOT RUN | |
+| G-07 | Any level, mid-way | Note the Score. Tap **Undo** twice, then redo the same two moves. | The Score drops with each undo and returns to exactly the noted value, never higher. **Restart** sets it to 0. | | NOT RUN | |
+| G-08 | A cleared level | Replay it and finish with a higher score, then again with a lower one. | First: **New best!** Second: "Best N". Replays with the same stars pay no tokens ("No new stars, so no new tokens"). | | NOT RUN | |
+| G-09 | After G-03 | Swipe the app away (close it) and reopen. | Level 1 still cleared with its stars and tokens; Home's Play/Continue points to the right level. | | NOT RUN | |
+| G-10 | Settings | Switch the language to Arabic; play one level to the result and one to a loss. | Strip, result and failure cards are in Arabic and right-to-left; numbers stay readable; nothing overlaps. | | NOT RUN | |
 
 <!-- pagebreak -->
 
@@ -197,12 +214,12 @@ These are about feel, not correctness. Write short notes rather than PASS/FAIL.
 
 # Already covered by automation
 
-So you don't have to replay everything, these ran on the desktop build (Linux, Godot 4.7.2, software rendering) for version 0.5.0. See `TEST_REPORT.md` for exact numbers and logs.
+So you don't have to replay everything, these ran on the desktop build (Linux, Godot 4.7.2, software rendering) for version 0.7.0. See `TEST_REPORT.md` for exact numbers.
 
-- 127 unit and rule tests (rules, solver, saves and migrations, rewards, ledger constraints, scripts compile).
+- 148 unit and rule tests (rules, solver, score and undo/redo/restart, saves and the schema 4 → 5 migration, rewards, ledger constraints, scripts compile).
 - Level validator: every shipped level (campaign, bakery, daily pool) replayed and solver-verified.
-- Ledger proofs: all 13 pages re-proved (witness replay, minimum rings, dead-end classification).
 - All 96 campaign levels won through simulated taps on the real UI.
-- Scripted UI flows: v2 mechanics and restore, v3 slice and bakery, ledger flows, navigation and Back, rewards, rapid tapping, lifecycle save/restore, layouts at 720×1280, 720×1600 with a simulated cut-out, and 720×1000 with larger text, plus English/Arabic screenshots of every screen.
+- **New-player journey through real taps only**: first win → result → next level, a genuine loss on level 4 → Retry, undo/restart score checks, stray taps around the result, replay, close/reopen, and the last level → finale. Run in English, Arabic, and at 720×1080 with large text and reduced motion.
+- Scripted UI flows: mechanics, restore, bakery, ledger, navigation and Back, rewards, rapid tapping, layouts, and English/Arabic screenshots of every screen.
 
 Not covered by automation (and why these phone tests exist): real touch accuracy, real fonts and display density, safe areas reported by real hardware, audio/vibration output, Android Back hardware/gestures, interruptions, and installing over an earlier build.

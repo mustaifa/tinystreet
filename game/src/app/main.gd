@@ -131,6 +131,11 @@ func _show(name: String, params: Dictionary) -> void:
 		tw.tween_property(scr, "modulate:a", 1.0, Style.M_BASE)
 		tw.tween_property(scr, "position:y", 0.0, Style.M_BASE + 0.04).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 
+## Ignores UI-key presses for `ms` (e.g. a result card that appears under a
+## finger still tapping the board must not take that tap as a choice).
+func lock_input(ms: int) -> void:
+	_lock_until = maxi(_lock_until, Time.get_ticks_msec() + ms)
+
 func input_locked() -> bool:
 	return Time.get_ticks_msec() < _lock_until
 

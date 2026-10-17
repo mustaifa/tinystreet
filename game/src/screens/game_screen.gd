@@ -40,7 +40,7 @@ var _hint_task := -1
 var backdrop: Backdrop
 var orders_row: HBoxContainer
 var order_cards: Array = []
-var progress: _ProgressBar
+var progress: _Hud
 var counter: CounterView
 var counter_label: Label
 var status_label: Label
@@ -89,6 +89,7 @@ func setup(params: Dictionary) -> void:
 		started_ms = Time.get_ticks_msec()
 		free_hints = maxi(0, 1 - ps.hints_used)
 	_refresh()
+	progress.snap()
 	_update_coach()
 	if ps.is_lost():
 		_show_lost.call_deferred()
@@ -153,11 +154,12 @@ func _build() -> void:
 	if kind == "ledger":
 		top.add_child(UI.chip("book", func(): ledger.show_rules(), "NightChip", Style.CHIP, 0, Loc.t("ledger_rules")))
 	else:
-		top.add_child(UI.chip("help", func(): App.main.goto("help"), "ChipButton", Style.CHIP, 0, Loc.t("help")))
+		# Not once won: leaving now would drop the result card on its way in.
+		top.add_child(UI.chip("help", func(): if not ps.is_won(): App.main.goto("help"), "ChipButton", Style.CHIP, 0, Loc.t("help")))
 	root.add_child(top)
 	# order progress + queue
-	progress = _ProgressBar.new()
-	progress.custom_minimum_size = Vector2(0, 92)
+	progress = _Hud.new()
+	progress.custom_minimum_size = Vector2(0, 116)
 	progress.game = self
 	progress.night = night
 	root.add_child(progress)
@@ -309,12 +311,13 @@ func _subtitle() -> String:
 		return RushRun.fmt_time(int(App.rush.elapsed_ms))
 	if kind == "challenge":
 		return Challenges.goal_text(Challenges.def(challenge_id), def)
+	var goal := Loc.t("goal_orders", [def.orders.size()])
 	if kind == "bakery":
-		return Loc.t("bakery_title")
+		return Loc.t("bakery_title") + " · " + goal
 	if kind != "campaign":
-		return ""
+		return goal
 	var ch := App.progression.chapter_of(App.progression.campaign_index(level_id))
-	return Loc.t(ch) if ch != "" else ""
+	return Loc.t(ch) + " · " + goal if ch != "" else goal
 
 func _card_height() -> int:
 	var n := mini(def.trays, 3)
@@ -367,7 +370,7 @@ func _refresh() -> void:
 	if ledger:
 		ledger.refresh()
 	if status_label.get_meta("sticky", false) == false:
-		status_label.text = Loc.t("counter_full") if free == 0 else (Loc.t("counter_one_left") if free == 1 and s.counter.size() > 1 else "")
+		status_label.text = Loc.t("counter_full_ok") if free == 0 else (Loc.t("counter_one_left") if free == 1 and s.counter.size() > 1 else "")
 
 func _badge_for(i: int) -> Dictionary:
 	var pv := Rules.preview(ps.state, i)
@@ -540,7 +543,8 @@ func _animate(before: PuzzleState, ev: Array) -> void:
 				var to: Vector2 = oc.product_global_pos(e.product)
 				_fly(e.product, from, to, 0.0, fly, func():
 					_land_tray(oc, e.product)
-					_fx_nodes.append(Fx.burst(fx_layer, to, "sparkle")))
+					_fx_nodes.append(Fx.burst(fx_layer, to, "sparkle"))
+					_points_text(to, Scoring.PTS_DIRECT, false))
 				App.audio.play("place", 1.0 + 0.03 * mini(streak, 8))
 				t = fly
 			Rules.EV_TO_COUNTER:
@@ -558,7 +562,8 @@ func _animate(before: PuzzleState, ev: Array) -> void:
 				var to2: Vector2 = oc2.product_global_pos(e.product)
 				_fly(e.product, counter.slot_global_center(e.slot), to2, t, fly, func():
 					_land_tray(oc2, e.product)
-					_fx_nodes.append(Fx.burst(fx_layer, to2, "sparkle")))
+					_fx_nodes.append(Fx.burst(fx_layer, to2, "sparkle"))
+					_points_text(to2, Scoring.PTS_VIA_COUNTER, false))
 				t += App.dur(0.06)
 			Rules.EV_STAGE:
 				var oc3: OrderCard = order_cards[e.tray]
@@ -572,7 +577,8 @@ func _animate(before: PuzzleState, ev: Array) -> void:
 				_delay(t + fly, func():
 					App.audio.play("deliver")
 					App.haptic(20)
-					_fx_nodes.append(Fx.burst(fx_layer, oc4.get_global_rect().get_center(), "pop")))
+					_fx_nodes.append(Fx.burst(fx_layer, oc4.get_global_rect().get_center(), "pop"))
+					_points_text(oc4.get_global_rect().get_center() + Vector2(0, oc4.size.y * 0.5), Scoring.PTS_ORDER, true))
 			Rules.EV_ARRIVE:
 				_slide_in(order_cards[e.tray], t + fly)
 			Rules.EV_REVEAL:
@@ -592,6 +598,11 @@ func _animate(before: PuzzleState, ev: Array) -> void:
 					cv2.flash_unlock()
 					_fx_nodes.append(Fx.burst(fx_layer, cv2.get_global_rect().get_center(), "pop", [Style.GOLD, Style.WOOD_LIGHT])))
 	progress.queue_redraw()
+
+## "+10" style feedback where points were earned (the HUD rolls up too).
+func _points_text(at: Vector2, pts: int, big: bool) -> void:
+	_fx_nodes.append(Fx.float_text(fx_layer, at + Vector2(0, -40), "+%d" % pts,
+		Style.GOLD_EDGE if big else Style.TEAL_DARK, 40 if big else 30))
 
 func _land_tray(oc: OrderCard, p: int) -> void:
 	oc.in_flight[p] = maxi(0, int(oc.in_flight.get(p, 0)) - 1)
@@ -621,6 +632,11 @@ func _fly(p: int, from: Vector2, to: Vector2, delay: float, d: float, done: Call
 		done.call()
 		sp.queue_free()
 		_fx_nodes.erase(sp))
+
+## Result timing (win card, loss card, Rush hand-off). Unlike _delay, a tap
+## that snaps effects to their end can't cancel it, so the outcome is never lost.
+func _after(t: float, cb: Callable) -> void:
+	get_tree().create_timer(t).timeout.connect(func(): if is_inside_tree(): cb.call())
 
 func _delay(t: float, cb: Callable) -> void:
 	var tw := create_tween()
@@ -737,14 +753,19 @@ func _on_undo() -> void:
 		streak = 0
 		status_label.set_meta("sticky", false)
 		_refresh()
+		progress.snap()
 		persist()
 
 func _on_restart() -> void:
 	_finish_effects()
-	if ps.state.moves == 0:
+	# A won attempt is final: its result card is (about to be) on screen.
+	if ps.state.moves == 0 or ps.is_won():
 		return
+	App.main.close_all_overlays()
 	_new_attempt(true)
+	status_label.set_meta("sticky", false)
 	_refresh()
+	progress.snap()
 	_update_coach()
 
 func _on_hint() -> void:
@@ -849,6 +870,7 @@ func _on_won() -> void:
 	match kind:
 		"campaign", "bakery":
 			res = Progression.record_win(App.data, level_id, stars)
+			res.merge(Progression.record_score(App.data, level_id, Scoring.points(ps.state)))
 			res.merge(Progression.record_mastery(App.data, def, ps.state.peak_counter, ps.hints_used))
 			res["special"] = Specials.on_win(App.data, def)
 		"challenge":
@@ -873,20 +895,24 @@ func _on_won() -> void:
 	coach.visible = false
 	_celebrate()
 	if kind == "rush":
-		_delay(App.dur(0.9), func(): App.on_rush_win())
+		_after(App.dur(0.9), func(): App.on_rush_win())
 		return
-	var d := WinPanel.create(self, kind, stars, res, ps)
-	# A short story beat (shown once) comes before the card: the very first
-	# customer served, or a special order solved.
+	# A short story beat (shown once: the very first customer served, or a
+	# special order solved) plays AFTER the result, when the player moves on.
 	var beat := ""
 	if kind in ["campaign", "bakery"] and bool(res.get("special", {}).get("new", false)):
 		beat = "special:" + level_id
 	elif kind == "campaign" and int(App.data.stats.wins) == 1:
 		beat = "first_served"
-	_delay(App.dur(1.0), func():
-		if beat != "" and Story.has_beat(beat) and not Story.seen(App.data, beat):
-			Story.play(beat, func(): App.main.show_overlay(d))
-		else:
+	if beat != "" and (not Story.has_beat(beat) or Story.seen(App.data, beat)):
+		beat = ""
+	var d := WinPanel.create(self, kind, stars, res, ps, beat)
+	# The result follows the last delivery promptly. The attempt can't change
+	# meanwhile (undo, restart and pause refuse a won attempt).
+	var shown_attempt := attempt
+	_after(App.dur(0.6), func():
+		if attempt == shown_attempt and ps.is_won():
+			App.main.lock_input(450)
 			App.main.show_overlay(d))
 
 ## Finish sequence: every ticket cheers, confetti falls, then the card.
@@ -903,24 +929,31 @@ func _show_lost() -> void:
 	if not ps.is_lost():
 		return
 	if ledger:
-		_delay(App.dur(0.45), func(): if ps.is_lost(): ledger.on_lost())
+		_after(App.dur(0.45), func(): if ps.is_lost(): ledger.on_lost())
 		return
 	if not _lost_reported:
 		_lost_reported = true
 		App.analytics.event("level_failed", {"level": level_id, "moves": ps.state.moves})
 	App.audio.play("lose")
+	# Retry is the main way forward; Undo (free) is the recovery option.
 	var buttons: Array = []
-	buttons.append([Loc.t("undo_free"), _on_undo, ""])
+	buttons.append([Loc.t("lost_retry"), _on_restart, ""])
 	if ps.can_continue() and App.rewards.available():
 		buttons.append([Loc.t("continue_ad"), func():
 			App.rewards.request("continue", func():
 				if ps.grant_continue():
 					App.analytics.event("continue_granted", {"level": level_id})
 					_refresh()
-					persist()), "WarmButton"])
-	buttons.append([Loc.t("restart"), _on_restart, "SecondaryButton"])
-	var d := Dialog.make(Loc.t("lost_title"), _lost_reason(), buttons, null, "undo")
-	_delay(App.dur(0.45), func(): if ps.is_lost(): App.main.show_overlay(d))
+					persist()), "SecondaryButton"])
+	buttons.append([Loc.t("lost_undo"), _on_undo, "SecondaryButton"])
+	var tip := UI.label(Loc.t("lost_tip"), "SoftLabel")
+	tip.custom_minimum_size = Vector2(520, 0)
+	var d := Dialog.make(Loc.t("lost_title"), _lost_reason(), buttons, tip, "close")
+	var shown_attempt := attempt
+	_after(App.dur(0.45), func():
+		if attempt == shown_attempt and ps.is_lost() and not d.is_inside_tree():
+			App.main.lock_input(450)
+			App.main.show_overlay(d))
 
 ## Says why no move is left, naming the blocking mechanic if there is one.
 func _lost_reason() -> String:
@@ -934,15 +967,22 @@ func _lost_reason() -> String:
 		return Loc.t("lost_body_fresh")
 	if locked:
 		return Loc.t("lost_body_locked")
+	if ps.state.counter_free() == 0:
+		return Loc.t("lost_body_full", [ps.state.counter_used(), ps.state.counter.size()])
 	return Loc.t("lost_body")
 
 func _open_pause() -> void:
+	if ps.is_won():
+		return
 	_finish_effects()
 	for cv in crate_views:
 		cv.cancel_press()
 	_pressed_crate = -1
-	var info := UI.label(Loc.t("star_rules", [Scoring.par_counter(def)]), "SoftLabel")
-	info.custom_minimum_size = Vector2(540, 0)
+	var info := UI.vbox(10)
+	for txt in [Loc.t("star_rules", [Scoring.par_counter(def)]), Loc.t("points_rules")]:
+		var l := UI.label(txt, "SoftLabel")
+		l.custom_minimum_size = Vector2(540, 0)
+		info.add_child(l)
 	var leave_text := Loc.t("quit_to_map") if kind == "campaign" else (Loc.t("bakery_title") if kind == "bakery" else Loc.t("quit_to_home"))
 	var d := Dialog.make(Loc.t("paused"), "", [
 		[Loc.t("resume"), func(): pass, ""],
@@ -969,7 +1009,7 @@ func _leave() -> void:
 		App.main.goto("ledger")
 
 func on_back() -> bool:
-	_open_pause()
+	_open_pause()   # ignored once won: the result card is on its way
 	return true
 
 # --------------------------------------------------------------------- tutorial
@@ -1060,47 +1100,94 @@ func next_level() -> void:
 func replay() -> void:
 	App.main.replace("game", {"kind": kind, "id": level_id, "date": date_key, "challenge": challenge_id})
 
-## Orders delivered so far as a segmented bar, with the next customers queued.
-class _ProgressBar extends Control:
+## The heads-up strip: three always-visible readouts (orders served, live
+## score, counter use) above the queue of upcoming customers. Everything is
+## derived from the session state; only the score's roll-up is animated.
+class _Hud extends Control:
+	const STATS_H := 66.0
 	var game: Node
 	var night := false
+	var shown_score := 0.0
+	var _pop := 0.0
 
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		resized.connect(queue_redraw)
+
+	func score() -> int:
+		return Scoring.points(game.ps.state) if game and game.ps else 0
+
+	## Undo, restart or a restored attempt snap the readout to the truth.
+	func snap() -> void:
+		shown_score = score()
+		_pop = 0.0
+		queue_redraw()
+
+	func _process(delta: float) -> void:
+		var target := float(score())
+		if shown_score > target or App.reduced_motion():
+			if shown_score != target:
+				shown_score = target
+				queue_redraw()
+		elif shown_score < target:
+			shown_score = minf(target, shown_score + maxf(90.0 * delta, (target - shown_score) * 7.0 * delta))
+			_pop = 1.0
+			queue_redraw()
+		if _pop > 0.0:
+			_pop = maxf(0.0, _pop - delta * 3.0)
+			queue_redraw()
 
 	func _draw() -> void:
 		if game == null or game.ps == null:
 			return
 		var s: PuzzleState = game.ps.state
 		var d: LevelDef = game.def
-		var total := d.orders.size()
 		var rtl := Loc.is_rtl()
-		var txt := "%d/%d" % [s.completed, total]
-		var tw := Style.font_bold.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24)).x
-		var x0 := 6.0
 		var ink := Style.MOON if night else Style.INK
 		var soft := Style.MOON_SOFT if night else Style.INK_SOFT
-		draw_string(Style.font_bold, Vector2(size.x - x0 - tw if rtl else x0, 24), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(24), ink)
-		# segmented bar
-		var bx := x0 + tw + 16
-		var bw := size.x - bx - x0
-		var by := 12.0
-		var seg := (bw - (total - 1) * 4) / maxf(1, total)
+		var panel := Style.box(Color(Style.NIGHT_2, 0.94) if night else Color(Style.PAPER, 0.96), 20,
+			Style.NIGHT_LINE if night else Style.PAPER_EDGE, 2, false)
+		draw_style_box(panel, Rect2(0, 0, size.x, STATS_H))
+		var cw := size.x / 3.0
+		var total := d.orders.size()
+		var free := s.counter_free()
+		var cols := [
+			[Loc.t("hud_orders"), "%d/%d" % [s.completed, total], ink],
+			[Loc.t("hud_score"), str(int(shown_score)), Style.LANTERN if night else Style.TEAL_DARK],
+			[Loc.t("hud_full") if free == 0 else Loc.t("hud_counter"), "%d/%d" % [s.counter_used(), s.counter.size()],
+				Style.TERRACOTTA if free == 0 else (Style.WARN if free == 1 and s.counter.size() > 1 else ink)],
+		]
+		for i in 3:
+			var x := cw * (2 - i if rtl else i)
+			if i > 0:
+				var lx := x if not rtl else x + cw
+				draw_line(Vector2(lx, 12), Vector2(lx, STATS_H - 12), Color(soft, 0.25), 2)
+			var cap: String = cols[i][0]
+			var col: Color = cols[i][2]
+			draw_string(Style.font_regular, Vector2(x, 24), cap, HORIZONTAL_ALIGNMENT_CENTER, cw, Style.fs(18),
+				col if i == 2 and free == 0 else soft)
+			var fs := Style.fs(30)
+			if i == 1 and _pop > 0.0:
+				fs = int(fs * (1.0 + 0.18 * _pop))
+			draw_string(Style.font_black, Vector2(x, 56), cols[i][1], HORIZONTAL_ALIGNMENT_CENTER, cw, fs, col)
+		# orders: a thin segmented bar under the orders readout
+		var ox := cw * (2 if rtl else 0) + 18
+		var ow := cw - 36
+		var seg := (ow - (total - 1) * 3) / maxf(1, total)
 		for i in total:
-			var sx := bx + i * (seg + 4)
+			var sx := ox + i * (seg + 3)
 			if rtl:
-				sx = size.x - sx - seg
-			var col := (Style.LANTERN if night else Style.TEAL) if i < s.completed else Color(soft, 0.22)
-			var sb := StyleBoxFlat.new()
-			sb.bg_color = col
-			sb.set_corner_radius_all(7)
-			draw_style_box(sb, Rect2(sx, by, seg, 16))
-			if i < s.completed and seg > 22:
-				var cc := Vector2(sx + seg / 2, by + 8)
-				draw_polyline(PackedVector2Array([cc + Vector2(-5, 0), cc + Vector2(-1, 4), cc + Vector2(6, -4)]), Color.WHITE, 2.5, true)
+				sx = ox + ow - (i + 1) * seg - i * 3
+			draw_rect(Rect2(sx, STATS_H - 9, seg, 4), (Style.LANTERN if night else Style.TEAL) if i < s.completed else Color(soft, 0.22))
+		# counter: one pip per space under the counter readout
+		var n := s.counter.size()
+		var cx0 := cw * (0 if rtl else 2) + cw / 2 - (n * 14 - 4) / 2.0
+		for k in n:
+			var filled := k < s.counter_used()
+			draw_rect(Rect2(cx0 + k * 14, STATS_H - 9, 10, 4), cols[2][2] if filled else Color(soft, 0.22))
 		# upcoming customers and what they will ask for first (strategic info)
-		var y := 66.0
+		var x0 := 6.0
+		var y := STATS_H + 28.0
 		var label := Loc.t("next_label") if s.next_order < total else Loc.t("queue_last")
 		var lw := Style.font_regular.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22)).x
 		draw_string(Style.font_regular, Vector2(size.x - x0 - lw if rtl else x0, y + 8), label, HORIZONTAL_ALIGNMENT_LEFT, -1, Style.fs(22), soft)
